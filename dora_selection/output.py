@@ -1,0 +1,18 @@
+"""Persistência dos candidatos avaliados, selecionados e funil."""
+import csv
+import json
+from pathlib import Path
+
+
+def save_output(directory, rows, summary):
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, data in (("repositories", rows), ("selected", [r for r in rows if r["included"]]), ("funnel", summary)):
+        (directory / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    fields = ["full_name", "url", "stars", "language", "created_at", "default_branch", "contributors",
+              "valid_releases", "valid_workflow_runs", "uses_github_actions", "included", "exclusion_reason", "error"]
+    for name, data in (("repositories", rows), ("selected", [r for r in rows if r["included"]])):
+        with (directory / f"{name}.csv").open("w", encoding="utf-8", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(data)
