@@ -183,3 +183,77 @@ Referências:
 [compare e paginação de commits](https://docs.github.com/en/rest/commits/commits#compare-two-commits),
 [tags](https://docs.github.com/en/rest/repos/repos#list-repository-tags),
 [commit e data do autor](https://docs.github.com/en/rest/commits/commits#get-a-commit).
+
+## Lab03S01 — Card 3: coleta e classificação de workflow runs
+
+Este card reutiliza `selection.py`, `output.py`, `__main__.py` e o cliente REST
+existente. O único arquivo novo é `tests/test_card3.py`. O comando do Card 1
+continua sendo o padrão; `--card 3` executa a coleta da amostra selecionada:
+
+```powershell
+python -m dora_selection --card 3 --input outputs/card1/selected.json --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z
+```
+
+O token continua vindo exclusivamente de `GITHUB_TOKEN`. A entrada é a lista JSON
+do Card 1, com `full_name` e `default_branch`. Repositórios excluídos são ignorados;
+nomes repetidos são removidos sem diferenciar maiúsculas e minúsculas. Branch
+ausente gera erro registrado para o repositório, sem escolher outro branch.
+Use a janela do laboratório, com fuso e precisão de segundos.
+
+### Coleta e classificação
+
+- A janela é dividida em meses de calendário UTC. O primeiro/último mês pode ser
+  parcial; os limites são inclusivos, sem sobreposição entre meses.
+- Cada consulta filtra `branch=default_branch`, `event=push` e `created`.
+  Os dados recebidos também são verificados por branch, evento e janela.
+- O paginador existente percorre os links `next` com `per_page=100`.
+- Períodos com 1000 ou mais resultados são subdivididos recursivamente por tempo.
+  O limiar exato de 1000 também é tratado conservadoramente como saturação.
+  Caso um único segundo permaneça saturado, a coleta registra erro explícito.
+- A quantidade de IDs únicos em cada subconsulta é conferida contra `total_count`.
+  Divergência, incluindo alteração dos dados durante a paginação, torna o mês
+  incompleto e exige nova execução. Não há truncamento silencioso.
+- Um mês só é publicado depois de suas páginas e subconsultas terminarem.
+  Falha descarta o buffer daquele mês, preserva os meses completos e continua.
+- IDs são deduplicados por repositório entre páginas, subconsultas e meses.
+- Cada execução persiste `id`, `workflow_id`, `name`, `conclusion`, `status`,
+  `run_started_at`, `updated_at`, `created_at`, `branch`, `event`, `repository`
+  e `classification`. Nome e timestamps opcionais ausentes ficam `null`.
+
+| Classificação persistida | Regra |
+| --- | --- |
+| `success` | Status `completed`, conclusão `success` |
+| `failure` | Status `completed`, conclusão `failure`, `timed_out` ou `startup_failure` |
+| `ignored` | `cancelled`, `skipped`, `neutral`, `action_required`, `stale`, conclusão vazia/desconhecida ou run ainda em andamento |
+
+Runs ignorados são mantidos com sua classificação para análises futuras.
+A classificação reutiliza `classify_run`, preservando os filtros do Card 1.
+Não são calculados CFR, tempo de recuperação ou quaisquer métricas DORA.
+Não foram acrescentados cache avançado, rate limit ou backoff.
+
+### Persistência e testes
+
+O diretório padrão é `outputs/card3`, alterável com `--output`.
+Cada execução cria uma pasta exclusiva `run-*`, sem sobrescrever outras coletas.
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `workflow_runs.json` | Repositórios → workflows → runs, com resumo por classificação, períodos, erros e indicador `complete` |
+| `summary.json` | Janela, repositórios, contagens de runs/classificações, repositórios com erros e indicador global `complete` |
+
+Contagens de resultados incompletos representam somente os meses concluídos.
+Erros aparecem também no stderr. Código de saída 0 indica coleta sem erros;
+1 indica coleta incompleta ou falha de persistência; 2 indica configuração inválida.
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Testes offline validam filtros, campos e associação, todas as classificações,
+paginação real com respostas simuladas, meses/ano bissexto/UTC, subdivisão de
+períodos saturados, divergência de contagem, deduplicação, continuidade após erro,
+comando e persistência sem sobrescrita. Integração real com o GitHub depende das
+credenciais, da janela e dos limites do serviço e não é validada pelos mocks.
+
+Referência oficial:
+[listar workflow runs e limite de consultas filtradas](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository).

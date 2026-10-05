@@ -33,3 +33,21 @@ def save_output(directory, rows, summary):
             writer = csv.DictWriter(file, fieldnames=fields)
             writer.writeheader()
             writer.writerows(data)
+
+
+def save_workflow_runs(directory, repositories, window):
+    """Nova pasta por execução; nunca sobrescreve amostras anteriores."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    run_directory = Path(tempfile.mkdtemp(prefix="run-", dir=directory))
+    summary = {"window_start": window.start.isoformat(), "window_end": window.end.isoformat(),
+               "repositories": len(repositories),
+               "repositories_with_errors": sum(not r["complete"] for r in repositories),
+               "complete": all(r["complete"] for r in repositories)}
+    for category in ("success", "failure", "ignored", "total"):
+        summary[category] = sum(r["summary"][category] for r in repositories)
+    for name, data in (("workflow_runs", repositories), ("summary", summary)):
+        with (run_directory / f"{name}.json").open("x", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+            file.write("\n")
+    return run_directory
