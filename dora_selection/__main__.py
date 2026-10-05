@@ -3,8 +3,7 @@ import json
 import sys
 from .api import APIError, GitHubClient
 from .output import save_output
-from .search import CandidateSearch
-from .selection import MetadataCollector, Window, funnel, timestamp
+from .selection import CandidateSearch, MetadataCollector, Window, funnel, timestamp
 
 
 def main(argv=None):

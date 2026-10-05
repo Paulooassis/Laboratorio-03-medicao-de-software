@@ -8,7 +8,9 @@ from urllib.request import Request, urlopen
 
 
 class APIError(RuntimeError):
-    pass
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def links(header):
@@ -39,7 +41,7 @@ class GitHubClient:
                 body = response.read()
                 return (json.loads(body) if body else [], dict(response.headers))
         except HTTPError as exc:
-            raise APIError(f"HTTP {exc.code} em {parsed.path}") from None
+            raise APIError(f"HTTP {exc.code} em {parsed.path}", status_code=exc.code) from None
         except (URLError, TimeoutError, OSError, ValueError):
             raise APIError(f"Falha de conexão ou JSON inválido em {parsed.path}") from None
 

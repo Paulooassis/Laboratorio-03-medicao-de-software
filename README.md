@@ -96,3 +96,90 @@ Referências oficiais:
 [workflow runs](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository),
 [releases](https://docs.github.com/en/rest/releases/releases#list-releases),
 [contribuidores](https://docs.github.com/en/rest/repos/repos#list-repository-contributors).
+
+## Lab03S01 — Card 2: releases, tags e commits entre releases
+
+Reutiliza o cliente REST, `GITHUB_TOKEN`, o paginador por `Link`, a janela UTC e
+os testes com `unittest` do Card 1. Não calcula Lead Time nem outras métricas DORA.
+
+### Execução
+
+Após gerar a amostra do Card 1, execute na raiz do repositório:
+
+```powershell
+python -m dora_selection.deployments --input outputs/card1/selected.json --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z
+```
+
+Use a mesma janela do experimento. `--input` aceita a lista JSON do Card 1;
+registros com `included=false` são ignorados. Repositórios repetidos são removidos.
+`--output` define a pasta base (padrão `outputs/card2`). `--tag-dates` consulta
+também `commit.author.date` do commit apontado por cada tag; sem essa opção,
+o SHA é coletado e `commit_author_date` permanece `null`. SHAs compartilhados
+entre tags usam uma única consulta de data por repositório.
+
+### Definição dos pares e dados
+
+- Releases são paginadas e filtradas pelo `published_at` na janela inclusiva.
+  São armazenados `release_id`, `tag_name`, `published_at`, `draft` e `prerelease`.
+- Drafts são descartados e contabilizados; drafts sem publicação não têm data
+  para filtragem, então `drafts_excluded` conta os drafts recebidos na listagem.
+- Pré-releases da janela ficam em `prereleases`, disponíveis para análises futuras,
+  e não entram nos pares nem na contagem principal.
+- Releases válidas da janela são ordenadas por `published_at`, com desempate por
+  ID. A primeira recebe `no_previous_release`; não há busca de release anterior
+  fora da janela. Cada par seguinte associa a release anterior à atual.
+- Tags de todo o repositório são paginadas e associadas ao SHA retornado pelo
+  endpoint `/tags`. Releases recebem esse SHA quando a tag aparece na listagem.
+- Compare usa os SHAs das tags quando disponíveis e os nomes das tags como
+  alternativa. Referências são codificadas na URL, inclusive tags com `/`.
+- A chamada `/compare/{base}...{head}` começa com `page=1&per_page=100`, segue
+  todos os links `next` e deduplica commits pelo SHA dentro de cada par.
+  Commits não são filtrados por data: todos os commits retornados pelo compare
+  pertencem à coleta, inclusive os escritos antes da janela.
+- Cada commit armazena `sha`, `author_date` (exatamente `commit.author.date`),
+  `message`, `repository`, `release_id` e `release_tag_name`. As datas não são
+  substituídas por `commit.committer.date`.
+- Comparações vazias são válidas. Falhas 404 recebem `not_found`; outros erros
+  recebem `error`. Ambas incrementam `releases_ignored_comparison_error`.
+  Uma comparação incompleta não publica commits parciais como dados completos.
+  O próximo par usa a release imediatamente anterior mesmo após erro.
+- Erros são armazenados por etapa. Erro de listagem de releases impede comparação
+  daquele repositório, pois a sequência poderia estar incompleta. Erros de tags
+  não impedem tentar compare pelos nomes. Os demais repositórios continuam.
+
+### Saídas e testes
+
+Cada execução cria uma pasta exclusiva `outputs/card2/run-*`, sem sobrescrever
+arquivos do Card 1 ou execuções anteriores. O caminho é informado no terminal.
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `deployments.json` | Lista de repositórios com `releases`, `prereleases`, `tags`, `errors` e resumo individual; commits aninhados na release correspondente |
+| `summary.json` | Janela, quantidade de repositórios, repositórios com erro e total de releases ignoradas por erro de comparação |
+
+O comando retorna 0 quando não há erros registrados e 1 quando há erros de coleta
+ou persistência. Um 404 permite continuar e salvar os dados, mas sinaliza resultado
+parcial pelo código 1. Entrada ou configuração inválida retorna código 2.
+
+Arquivos do Card 2: `dora_selection/deployments.py` (coleta e comando), extensão de
+`dora_selection/output.py` (saída exclusiva) e `tests/test_card2.py`.
+`APIError` passou a disponibilizar `status_code`, preservando sua mensagem e
+compatibilidade com o Card 1.
+
+Execute a mesma suíte completa:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Os testes do Card 2 verificam filtros, pré-releases, ordenação e pares, primeira
+release, tags e datas, associação repositório/release/commit, 404, falha em página
+posterior, continuidade entre repositórios e persistência sem sobrescrita.
+O teste com 301 commits exercita o paginador real com respostas simuladas, incluindo
+paginação de releases e tags. A integração com o GitHub real não é validada por
+esses testes offline.
+
+Referências:
+[compare e paginação de commits](https://docs.github.com/en/rest/commits/commits#compare-two-commits),
+[tags](https://docs.github.com/en/rest/repos/repos#list-repository-tags),
+[commit e data do autor](https://docs.github.com/en/rest/commits/commits#get-a-commit).
