@@ -5,8 +5,7 @@ import unittest
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 from dora_selection.api import APIError, GitHubClient
-from dora_selection.search import CandidateSearch
-from dora_selection.selection import MetadataCollector, Window, classify_run, exclusion, funnel, timestamp
+from dora_selection.selection import CandidateSearch, MetadataCollector, Window, classify_run, exclusion, funnel, timestamp
 from dora_selection.output import save_output
 from dora_selection.__main__ import main
 
@@ -160,8 +159,9 @@ class ClientTests(unittest.TestCase):
     @patch.dict(os.environ, {"GITHUB_TOKEN": "fixture-only"})
     def test_http_error_and_host(self):
         with patch("dora_selection.api.urlopen", side_effect=HTTPError("url", 403, "Forbidden", {}, None)):
-            with self.assertRaisesRegex(APIError, "HTTP 403"):
+            with self.assertRaisesRegex(APIError, "HTTP 403") as caught:
                 GitHubClient().get("/search/repositories")
+            self.assertEqual(caught.exception.status_code, 403)
         with self.assertRaises(APIError):
             GitHubClient().get("https://example.com")
 

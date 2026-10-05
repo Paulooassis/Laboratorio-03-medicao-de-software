@@ -1,7 +1,24 @@
 """Persistência dos candidatos avaliados, selecionados e funil."""
 import csv
 import json
+import tempfile
 from pathlib import Path
+
+
+def save_deployments(directory, repositories, window):
+    """Cada execução recebe uma pasta exclusiva, preservando saídas anteriores."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    run_directory = Path(tempfile.mkdtemp(prefix="run-", dir=directory))
+    summary = {"window_start": window.start.isoformat(), "window_end": window.end.isoformat(),
+               "repositories": len(repositories),
+               "repositories_with_errors": sum(bool(r["errors"]) for r in repositories),
+               "releases_ignored_comparison_error": sum(r["summary"]["releases_ignored_comparison_error"] for r in repositories)}
+    for name, data in (("deployments", repositories), ("summary", summary)):
+        with (run_directory / f"{name}.json").open("x", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+            file.write("\n")
+    return run_directory
 
 
 def save_output(directory, rows, summary):

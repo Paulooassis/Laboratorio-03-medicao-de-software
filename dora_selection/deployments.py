@@ -1,0 +1,185 @@
+"""Card 2: releases, tags e commits; sem cálculo de Lead Time."""
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from urllib.parse import quote
+from .api import APIError, GitHubClient
+from .output import save_deployments
+from .selection import Window, timestamp
+
+
+COLLECTION_ERRORS = (APIError, ValueError, KeyError, TypeError, AttributeError)
+
+
+class DeploymentCollector:
+    def __init__(self, client, window, tag_dates=False):
+        self.client = client
+        self.window = window
+        self.tag_dates = tag_dates
+
+    def collect(self, full_name):
+        result = {"full_name": full_name, "releases": [], "prereleases": [], "tags": [],
+                  "errors": [], "summary": {"valid_releases": 0, "prereleases": 0,
+                  "drafts_excluded": 0, "without_previous": 0,
+                  "releases_ignored_comparison_error": 0, "comparisons_completed": 0}}
+        path = "/repos/" + full_name
+        try:
+            releases = list(self.client.pages(path + "/releases"))
+            seen = set()
+            for release in releases:
+                identity = release["id"]
+                if identity in seen:
+                    continue
+                seen.add(identity)
+                if release["draft"] is True:
+                    result["summary"]["drafts_excluded"] += 1
+                    continue
+                if release["draft"] is not False or not isinstance(release["prerelease"], bool):
+                    raise APIError("Flags de release inválidas.")
+                if not self.window.contains(release.get("published_at")):
+                    continue
+                if not release.get("tag_name"):
+                    raise APIError("Release sem tag_name.")
+                item = {"repository": full_name, "release_id": identity,
+                        "tag_name": release["tag_name"], "published_at": release["published_at"],
+                        "draft": release["draft"], "prerelease": release["prerelease"],
+                        "commit_sha": None, "previous_release_id": None, "previous_tag_name": None,
+                        "comparison_status": "not_applicable" if release["prerelease"] else "pending",
+                        "comparison_error": None, "commits": []}
+                result["prereleases" if item["prerelease"] else "releases"].append(item)
+            for key in ("releases", "prereleases"):
+                result[key].sort(key=lambda r: (timestamp(r["published_at"]), r["release_id"]))
+        except COLLECTION_ERRORS as exc:
+            result["errors"].append({"stage": "releases", "error": str(exc)})
+            # Uma listagem parcial não fornece pares consecutivos confiáveis.
+            result["releases"] = []
+            result["prereleases"] = []
+            return result
+
+        try:
+            tags = list(self.client.pages(path + "/tags"))
+            seen = set()
+            dates = {}
+            for tag in tags:
+                name, sha = tag["name"], tag["commit"]["sha"]
+                if not name or not sha:
+                    raise APIError("Tag sem nome ou commit SHA.")
+                if name in seen:
+                    continue
+                seen.add(name)
+                item = {"repository": full_name, "name": name, "commit_sha": sha,
+                        "commit_author_date": None, "error": None}
+                if self.tag_dates:
+                    try:
+                        if sha not in dates:
+                            commit, _ = self.client.get(path + "/commits/" + quote(sha, safe=""))
+                            date = commit["commit"]["author"]["date"]
+                            timestamp(date)
+                            dates[sha] = date
+                        item["commit_author_date"] = dates[sha]
+                    except COLLECTION_ERRORS as exc:
+                        item["error"] = str(exc)
+                        result["errors"].append({"stage": "tag_commit", "tag_name": name, "error": str(exc)})
+                result["tags"].append(item)
+        except COLLECTION_ERRORS as exc:
+            result["errors"].append({"stage": "tags", "error": str(exc)})
+
+        tag_shas = {t["name"]: t["commit_sha"] for t in result["tags"]}
+        for release in result["releases"] + result["prereleases"]:
+            release["commit_sha"] = tag_shas.get(release["tag_name"])
+        result["summary"]["valid_releases"] = len(result["releases"])
+        result["summary"]["prereleases"] = len(result["prereleases"])
+        previous = None
+        for release in result["releases"]:
+            if previous is None:
+                release["comparison_status"] = "no_previous_release"
+                result["summary"]["without_previous"] += 1
+            else:
+                release["previous_release_id"] = previous["release_id"]
+                release["previous_tag_name"] = previous["tag_name"]
+                base = quote(previous["commit_sha"] or previous["tag_name"], safe="")
+                head = quote(release["commit_sha"] or release["tag_name"], safe="")
+                try:
+                    commits = []
+                    seen = set()
+                    for item in self.client.pages(path + f"/compare/{base}...{head}", {"page": 1}, "commits"):
+                        sha = item["sha"]
+                        if not sha:
+                            raise APIError("Commit sem SHA.")
+                        if sha in seen:
+                            continue
+                        seen.add(sha)
+                        author_date = item["commit"]["author"]["date"]
+                        timestamp(author_date)
+                        commits.append({"repository": full_name, "release_id": release["release_id"],
+                                        "release_tag_name": release["tag_name"], "sha": sha,
+                                        "author_date": author_date, "message": item["commit"]["message"]})
+                    # Só publica a comparação depois de completar todas as páginas.
+                    release["commits"] = commits
+                    release["comparison_status"] = "completed"
+                    result["summary"]["comparisons_completed"] += 1
+                except COLLECTION_ERRORS as exc:
+                    release["comparison_status"] = "not_found" if isinstance(exc, APIError) and exc.status_code == 404 else "error"
+                    release["comparison_error"] = str(exc)
+                    result["summary"]["releases_ignored_comparison_error"] += 1
+                    result["errors"].append({"stage": "compare", "release_id": release["release_id"],
+                                             "previous_release_id": previous["release_id"], "error": str(exc)})
+            # Mesmo após erro, o próximo par continua sendo de releases consecutivas.
+            previous = release
+        return result
+
+
+def collect_repositories(client, window, names, tag_dates=False):
+    collector = DeploymentCollector(client, window, tag_dates)
+    results = []
+    seen = set()
+    for name in names:
+        if name.casefold() not in seen:
+            seen.add(name.casefold())
+            results.append(collector.collect(name))
+    return results
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Lab03S01 Card 2 — releases, tags e commits")
+    parser.add_argument("--input", default="outputs/card1/selected.json")
+    parser.add_argument("--start", required=True)
+    parser.add_argument("--end", required=True)
+    parser.add_argument("--output", default="outputs/card2")
+    parser.add_argument("--tag-dates", action="store_true", help="Consultar também commit.author.date de cada tag")
+    args = parser.parse_args(argv)
+    try:
+        window = Window(timestamp(args.start), timestamp(args.end))
+        if window.start.microsecond or window.end.microsecond:
+            raise ValueError("Use precisão de segundos, sem frações.")
+        rows = json.loads(Path(args.input).read_text(encoding="utf-8"))
+        if not isinstance(rows, list):
+            raise ValueError("Entrada deve ser uma lista JSON de repositórios do Card 1.")
+        names = []
+        for row in rows:
+            if not isinstance(row, dict) or not isinstance(row.get("full_name"), str):
+                raise ValueError("Repositório sem full_name.")
+            if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", row["full_name"]):
+                raise ValueError("full_name deve ter o formato owner/repository.")
+            if row.get("included", True) is True:
+                names.append(row["full_name"])
+        client = GitHubClient()
+    except (APIError, ValueError, OSError) as exc:
+        parser.error(str(exc))
+    results = collect_repositories(client, window, names, args.tag_dates)
+    for repo in results:
+        for error in repo["errors"]:
+            print(f"{repo['full_name']} [{error['stage']}]: {error['error']}", file=sys.stderr)
+    try:
+        directory = save_deployments(args.output, results, window)
+    except OSError as exc:
+        print(f"Erro de persistência: {exc}", file=sys.stderr)
+        return 1
+    print(f"Dados salvos em {directory}")
+    return 1 if any(repo["errors"] for repo in results) else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
