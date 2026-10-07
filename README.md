@@ -377,3 +377,105 @@ GitHub não é validado por mocks.
 Referências oficiais:
 [rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
 [boas práticas de uso da API](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api).
+
+## Lab03S01 — Card 5: métricas DORA
+
+As quatro métricas DORA são calculadas em `dora_selection/metrics.py`, o único
+arquivo novo além de `tests/test_card5.py`. São funções puras: sem rede, sem CLI,
+sem persistência e sem estado compartilhado. Cada uma recebe listas simples e pode
+ser chamada isoladamente, com os dados dos Cards 2 e 3 ou com dados sintéticos.
+A coleta permanece nos Cards 1 a 3; este card não faz requisições nem grava arquivos.
+
+### Uso
+
+```python
+import json
+from pathlib import Path
+from dora_selection.metrics import aggregate_metrics, repository_metrics
+from dora_selection.selection import Window, timestamp
+
+window = Window(timestamp("2026-01-05T00:00:00Z"), timestamp("2026-02-01T23:59:59Z"))
+deployments = json.loads(Path("outputs/card2/run-X/deployments.json").read_text())
+runs = json.loads(Path("outputs/card3/run-Y/workflow_runs.json").read_text())
+metrics = [repository_metrics(window, d["releases"], r["workflows"], d["full_name"])
+           for d, r in zip(deployments, runs)]
+print(aggregate_metrics(metrics))
+```
+
+Use a mesma janela da coleta. `repository_metrics` apenas encaminha os dados para as
+funções abaixo, que continuam utilizáveis separadamente; `aggregate_metrics` resume a
+amostra por medianas. Nenhuma função altera a entrada.
+
+| Função | Métrica | Entrada | Resultado principal |
+| --- | --- | --- | --- |
+| `deployment_frequency(releases, window)` | Deployment Frequency | releases válidas do Card 2 | `releases_per_week`, `weekly_counts`, `median_releases_per_week` |
+| `lead_time_per_release(releases)` | Lead Time por release | releases com commits do Card 2 | `lead_time_hours` por release e `median_hours` |
+| `lead_time_per_commit(releases)` | Lead Time por commit | releases com commits do Card 2 | `lead_time_hours` por commit e `median_hours` |
+| `change_failure_rate(runs)` | Change Failure Rate | workflow runs do Card 3 | `change_failure_rate`, `considered` |
+| `recovery_time_by_workflow(workflows, observed_until)` | Tempo de recuperação | workflows do Card 3 | `median_recovery_hours` por workflow e da amostra |
+| `failure_episodes(runs, observed_until)` | Episódios de falha | runs de um workflow | `episodes`, `recovered`, `censored` |
+
+### Definições
+
+- Deployment Frequency: releases com `published_at` na janela inclusiva divididas
+  pela duração exata da janela em semanas (o último segundo conta). `weekly_counts`
+  cobre todas as semanas ISO de segunda a domingo em UTC, inclusive as sem release,
+  e a mediana é calculada sobre elas. Semanas parciais nas pontas da janela ficam
+  marcadas com `complete: false`, pois reduzem a contagem daquela semana.
+- Lead Time por release: da data do commit mais antigo do intervalo entre a release
+  anterior e a atual até o `published_at` da release. `median_commit_lead_time_hours`
+  resume os commits daquela release.
+- Lead Time por commit: `published_at` da release menos o `commit.author.date` do
+  commit, exatamente o campo coletado no Card 2, sem substituir pelo committer.
+- Change Failure Rate: `failure / (success + failure)` sobre os runs classificados
+  no Card 3. Runs `ignored` (cancelados, em andamento, conclusões desconhecidas)
+  são contados, mas ficam fora do denominador.
+- Tempo de recuperação: duração de cada episódio de falha, do `created_at` da
+  primeira falha ao `updated_at` do sucesso que o encerra (`created_at` como
+  alternativa). Cada workflow é uma série independente, porque é o próximo sucesso
+  do mesmo workflow que evidencia a recuperação.
+
+### Episódios de falha, censura e dados ausentes
+
+- Os runs são ordenados por `created_at`, com desempate por `id`; a ordem da entrada
+  não altera o resultado. Runs sem data utilizável não entram na série e aparecem
+  em `runs_without_date`.
+- Falhas consecutivas pertencem ao mesmo episódio, contadas em `failures`. Um
+  episódio começa na primeira falha e termina no primeiro sucesso posterior.
+  Runs `ignored` não abrem, não estendem e não encerram episódios.
+- Episódios sem sucesso posterior ficam censurados (`censored: true`): `recovery_hours`
+  permanece `null` e `observed_hours` registra apenas o limite inferior observado até
+  `observed_until` (normalmente o fim da janela) ou até o último run. Censurados não
+  entram em nenhuma mediana e não são tratados como recuperação instantânea.
+- Recuperação com datas contraditórias (fim antes do início) recebe
+  `inconsistent: true` e também fica fora da mediana, em vez de ser corrigida.
+- Medianas usam `statistics.median` sobre os valores existentes e retornam `null`
+  quando não há amostra. `change_failure_rate` retorna `null` sem runs considerados,
+  nunca zero por divisão vazia.
+- Datas ausentes ou inválidas nunca interrompem o cálculo nem são estimadas: ficam em
+  `ignored_missing_date`, `commits_without_date`, `runs_without_date` ou no motivo
+  correspondente de `releases_ignored`.
+- Releases sem intervalo confiável são separadas por motivo em `releases_ignored`:
+  `no_previous_release` (primeira release da janela), `no_comparison` (comparação com
+  erro ou 404 no Card 2), `no_date`, `no_commits` (comparação vazia e válida) e
+  `no_commit_dates`. Lead Times negativos, possíveis com rebase ou cherry-pick, são
+  mantidos e contados em `negative`.
+
+### Testes
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Os testes do Card 5 validam releases por semana com semanas vazias e parciais,
+janela e datas ausentes, Lead Time por release e por commit, CFR com e sem runs
+considerados, classificação recalculada a partir de `status`/`conclusion`, episódios
+com falhas consecutivas e runs ignorados no meio, entrada fora de ordem, episódios
+censurados e excluídos da mediana, datas contraditórias, séries independentes por
+workflow, medianas com amostra par e composição com agregação. Também verificam que
+cada função funciona com dicionários mínimos, sem os campos do restante do pipeline.
+Os valores dependem da coleta real dos Cards 1 a 3, que não é exercitada aqui.
+
+Referências:
+[DORA — métricas](https://dora.dev/guides/dora-metrics-four-keys/),
+[semana ISO 8601](https://docs.python.org/3/library/datetime.html#datetime.date.isocalendar).
