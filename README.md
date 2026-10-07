@@ -479,3 +479,114 @@ Os valores dependem da coleta real dos Cards 1 a 3, que não é exercitada aqui.
 Referências:
 [DORA — métricas](https://dora.dev/guides/dora-metrics-four-keys/),
 [semana ISO 8601](https://docs.python.org/3/library/datetime.html#datetime.date.isocalendar).
+
+## Lab03S01 — Card 6: classificação DORA e casos especiais
+
+A classificação em Elite, High, Medium e Low está em `dora_selection/rating.py`, o
+único arquivo novo além de `tests/test_card6.py`. Como no Card 5, são funções puras:
+sem rede, sem CLI e sem persistência. A entrada é o resultado de `repository_metrics`;
+nenhuma métrica é recalculada aqui e nenhuma regra dos Cards 1 a 5 muda.
+
+### Uso
+
+```python
+from dora_selection.metrics import repository_metrics
+from dora_selection.rating import classify_repository, classify_sample
+from dora_selection.selection import Window, timestamp
+
+window = Window(timestamp("2026-01-05T00:00:00Z"), timestamp("2026-02-01T23:59:59Z"))
+metrics = [repository_metrics(window, d["releases"], r["workflows"], d["full_name"])
+           for d, r in zip(deployments, runs)]
+classifications = [classify_repository(row) for row in metrics]
+print(classify_sample(classifications)["by_overall"])
+```
+
+`classify_repository` devolve `ratings` (uma entrada por métrica, com `value`, `level`,
+`score`, `basis` e `reason`), a mediana (`median_score`), a classificação geral
+(`overall_score` e `overall`) e o bloco `special_cases`. `classify_sample` resume a
+amostra: distribuição por métrica, distribuição geral, classificação geral da amostra
+e a soma dos casos especiais. As funções por métrica
+(`deployment_frequency_rating`, `lead_time_rating`, `change_failure_rate_rating`,
+`recovery_time_rating`) continuam utilizáveis isoladamente, assim como `score`,
+`level_from_score` e `overall_classification`.
+
+### Limites
+
+Os limites ficam em um único lugar, o dicionário `SCALES`, com uma `Scale` por métrica.
+`higher_is_better` define o sentido da comparação e `inclusive` se o limite pertence à
+faixa, de modo que alterar um limite não exige mexer na lógica de classificação.
+
+| Métrica | Elite | High | Medium | Low |
+| --- | --- | --- | --- | --- |
+| Deployment Frequency (releases/semana) | ≥ 7 (uma por dia) | ≥ 1 (uma por semana) | ≥ 0,23 (uma por mês) | < 0,23 |
+| Lead Time (horas) | < 1 | < 24 | < 168 (uma semana) | ≥ 168 |
+| Change Failure Rate | ≤ 15% | ≤ 30% | ≤ 45% | > 45% |
+| Tempo de recuperação (horas) | < 1 | < 24 | < 168 | ≥ 168 |
+
+Deployment Frequency usa limites inferiores inclusivos; Lead Time e tempo de
+recuperação, limites superiores exclusivos; Change Failure Rate, limites superiores
+inclusivos. "Uma por mês" é convertida em semanas pelo mês médio do calendário
+gregoriano (365,2425 / 12 dias), o que dá ≈ 0,23 release por semana. Lead Time é
+classificado pela mediana por commit (`commit.author.date` → publicação da release),
+que é a definição DORA; a mediana por release é usada apenas quando só ela está
+disponível, e `basis` registra qual das duas foi usada.
+
+### Classificação geral
+
+Cada nível vale Elite = 4, High = 3, Medium = 2 e Low = 1. A classificação geral é a
+mediana das quatro notas arredondada para baixo: `[4, 3, 2, 1]` tem mediana 2,5 e
+resulta em Medium. `median_score` guarda a mediana exata, `overall_score` o valor
+arredondado e `overall` o nível correspondente.
+
+Métrica sem amostra não vale zero nem Elite: fica com `level: null`, registra o motivo
+em `reason` e não entra na mediana, que é calculada sobre as métricas disponíveis
+(`classified_metrics` informa quantas foram). Sem nenhuma métrica classificável,
+a classificação geral é `null`. A mesma regra vale na amostra: a classificação geral
+do conjunto é a mediana arredondada das classificações gerais dos repositórios.
+
+### Casos especiais
+
+- Release sem commits novos: a comparação do Card 2 terminou vazia e válida. A release
+  continua contando como deployment na frequência e aparece em
+  `releases_without_new_commits`, mas não produz Lead Time. Se nenhuma release do
+  repositório tiver commits, o Lead Time fica sem classificação com o motivo
+  `releases_without_new_commits`.
+- Repositório com apenas uma release: não existe par consecutivo, então o Lead Time
+  fica sem classificação com o motivo `single_release` e o caso é sinalizado em
+  `single_release`. A frequência continua medida normalmente, pois a release ocorreu.
+- Falha nunca recuperada: o episódio censurado do Card 5 não é recuperação instantânea
+  nem dado inexistente. Fica fora da mediana e é contado em `failures_never_recovered`.
+  Quando não há nenhum episódio recuperado, o tempo observado serve de limite inferior
+  e classifica a métrica apenas se já for suficiente para Low (`basis`
+  `censored_lower_bound`); caso contrário o motivo é `never_recovered`. Repositório sem
+  nenhuma falha recebe o motivo `no_failures`, não Elite por omissão. `censored_majority`
+  avisa quando os censurados superam os recuperados e a mediana tende a ser otimista.
+- Workflow runs ignoráveis: cancelados, pulados, neutros, com conclusão desconhecida ou
+  ainda em andamento ficam fora do denominador do CFR e não abrem, não estendem e não
+  encerram episódios de falha. Se todos os runs do repositório forem ignoráveis, o CFR
+  fica sem classificação com o motivo `only_ignored_runs`, em vez de virar 0% e Elite.
+- Zero release na janela é medição, não ausência: a frequência vale 0 e classifica Low.
+- `special_cases` também traz releases sem data, commits sem data, Lead Times negativos
+  (possíveis com rebase ou cherry-pick), runs sem data, episódios com datas
+  contraditórias e o mapa `unclassified_metrics` com o motivo de cada métrica sem nível.
+
+### Testes
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Os testes do Card 6 verificam cada limite nas bordas das quatro faixas, valores não
+numéricos, a conversão para notas e a volta, a mediana das quatro classificações com
+arredondamento para baixo, medianas com métricas faltando, as quatro métricas
+classificadas em conjunto, a distribuição da amostra e os casos especiais: release sem
+commits novos, repositório com uma só release, comparação indisponível, falha nunca
+recuperada, censura classificada por limite inferior, censura fora da mediana dos
+recuperados, runs ignoráveis sem CFR e sem efeito nos episódios, runs classificados por
+`status`/`conclusion` sem o campo do Card 3, datas ausentes, Lead Time negativo e
+entradas vazias ou incompletas. Os valores de uma amostra real dependem da coleta dos
+Cards 1 a 3, que não é exercitada aqui.
+
+Referências:
+[DORA — níveis de desempenho](https://dora.dev/guides/dora-metrics-four-keys/),
+[State of DevOps — faixas de classificação](https://dora.dev/research/).
