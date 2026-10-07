@@ -5,8 +5,10 @@ import re
 import sys
 from pathlib import Path
 from urllib.parse import quote
-from .api import APIError, GitHubClient
+from .api import APIError, GitHubClient, LOGGER
 from .output import save_deployments
+from .resilience import (add_resilience_arguments, client_options, collection_report,
+                         configure_logging, open_checkpoint)
 from .selection import Window, timestamp
 
 
@@ -131,14 +133,23 @@ class DeploymentCollector:
         return result
 
 
-def collect_repositories(client, window, names, tag_dates=False):
+def collect_repositories(client, window, names, tag_dates=False, checkpoint=None, results=None):
+    """Card 4: repositórios sem erro em execução anterior não são recoletados."""
     collector = DeploymentCollector(client, window, tag_dates)
-    results = []
+    results = [] if results is None else results
     seen = set()
     for name in names:
-        if name.casefold() not in seen:
-            seen.add(name.casefold())
-            results.append(collector.collect(name))
+        if name.casefold() in seen:
+            continue
+        seen.add(name.casefold())
+        done = checkpoint.done(name.casefold()) if checkpoint else None
+        if done is not None:
+            results.append(done)
+            continue
+        result = collector.collect(name)
+        if checkpoint:
+            checkpoint.record(name.casefold(), result, not result["errors"])
+        results.append(result)
     return results
 
 
@@ -149,7 +160,9 @@ def main(argv=None):
     parser.add_argument("--end", required=True)
     parser.add_argument("--output", default="outputs/card2")
     parser.add_argument("--tag-dates", action="store_true", help="Consultar também commit.author.date de cada tag")
+    add_resilience_arguments(parser)
     args = parser.parse_args(argv)
+    configure_logging(args.log_file or Path(args.output) / "collection.log")
     try:
         window = Window(timestamp(args.start), timestamp(args.end))
         if window.start.microsecond or window.end.microsecond:
@@ -165,20 +178,32 @@ def main(argv=None):
                 raise ValueError("full_name deve ter o formato owner/repository.")
             if row.get("included", True) is True:
                 names.append(row["full_name"])
-        client = GitHubClient()
+        client = GitHubClient(**client_options(args))
+        checkpoint = open_checkpoint(args, {"card": "2", "window_start": window.start.isoformat(),
+                                            "window_end": window.end.isoformat(), "tag_dates": bool(args.tag_dates)})
     except (APIError, ValueError, OSError) as exc:
         parser.error(str(exc))
-    results = collect_repositories(client, window, names, args.tag_dates)
+    results = []
+    interrupted = False
+    try:
+        collect_repositories(client, window, names, args.tag_dates, checkpoint, results)
+    except KeyboardInterrupt:
+        # O diário já tem os repositórios concluídos; o parcial ainda é persistido.
+        interrupted = True
+        LOGGER.error("Coleta interrompida; retome com os mesmos --output/--state.")
+    finally:
+        if checkpoint:
+            checkpoint.close()
     for repo in results:
         for error in repo["errors"]:
-            print(f"{repo['full_name']} [{error['stage']}]: {error['error']}", file=sys.stderr)
+            LOGGER.error("%s [%s]: %s", repo["full_name"], error["stage"], error["error"])
     try:
-        directory = save_deployments(args.output, results, window)
+        directory = save_deployments(args.output, results, window, collection_report(client, checkpoint))
     except OSError as exc:
-        print(f"Erro de persistência: {exc}", file=sys.stderr)
+        LOGGER.error("Erro de persistência: %s", exc)
         return 1
     print(f"Dados salvos em {directory}")
-    return 1 if any(repo["errors"] for repo in results) else 0
+    return 1 if interrupted or any(repo["errors"] for repo in results) else 0
 
 
 if __name__ == "__main__":

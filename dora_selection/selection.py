@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlparse
-from .api import APIError, links
+from .api import APIError, header, links
 
 
 class CandidateSearch:
@@ -151,10 +151,11 @@ class MetadataCollector:
             people, headers = self.client.get(path + "/contributors", {"per_page": 1, "anon": "true"})
             if not isinstance(people, list):
                 raise APIError("Resposta de contribuidores inválida.")
-            last = links(headers.get("Link", headers.get("link", ""))).get("last")
+            pagination = links(header(headers, "Link"))
+            last = pagination.get("last")
             if last:
                 row["contributors"] = int(parse_qs(urlparse(last).query)["page"][0])
-            elif links(headers.get("Link", headers.get("link", ""))).get("next"):
+            elif pagination.get("next"):
                 row["contributors"] = sum(1 for _ in self.client.pages(path + "/contributors", {"anon": "true"}))
             else:
                 row["contributors"] = len(people)
@@ -270,14 +271,22 @@ class WorkflowRunCollector(MetadataCollector):
         return result
 
 
-def collect_workflow_repositories(client, window, repositories):
+def collect_workflow_repositories(client, window, repositories, checkpoint=None, results=None):
+    """Card 4: repositórios já concluídos vêm do diário; `results` acumula o parcial."""
     collector = WorkflowRunCollector(client, window)
     seen = set()
-    results = []
+    results = [] if results is None else results
     for repo in repositories:
         name = repo.get("full_name", "")
         if name.casefold() in seen or repo.get("included", True) is not True:
             continue
         seen.add(name.casefold())
-        results.append(collector.collect(repo))
+        done = checkpoint.done(name.casefold()) if checkpoint else None
+        if done is not None:
+            results.append(done)
+            continue
+        result = collector.collect(repo)
+        if checkpoint:
+            checkpoint.record(name.casefold(), result, result["complete"])
+        results.append(result)
     return results
