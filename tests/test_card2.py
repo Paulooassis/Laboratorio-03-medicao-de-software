@@ -74,6 +74,29 @@ class DeploymentTests(unittest.TestCase):
                 self.assertEqual(c["author_date"], "2025-12-10T00:00:00Z")
                 self.assertIn("\nDetalhes", c["message"])
 
+    def test_first_release_of_the_window_is_compared_with_the_one_before_the_window(self):
+        self.tags.append({"name": "v6", "commit": {"sha": "tagsha6"}})
+        self.releases += [release(6, published_at="2025-12-31T23:59:59Z"),
+                          release(8, published_at="2025-06-01T00:00:00Z"),
+                          release(9, published_at="2025-12-31T23:59:59Z", prerelease=True),
+                          release(7, published_at="2026-02-01T00:00:01Z")]
+        result = self.collect()
+        first = result["releases"][0]
+        # A anterior é a release mais recente antes da janela; pré-releases e as posteriores não contam.
+        self.assertEqual([r["tag_name"] for r in result["releases"]], ["v1", "v2", "v3"])
+        self.assertEqual((first["previous_release_id"], first["previous_tag_name"]), (6, "v6"))
+        self.assertEqual(first["comparison_status"], "completed")
+        self.assertEqual(len(first["commits"]), 2)
+        self.assertEqual(result["summary"]["without_previous"], 0)
+        self.assertEqual(result["summary"]["comparisons_completed"], 3)
+        comparisons = [c.args[0] for c in self.client.pages.call_args_list if "/compare/" in c.args[0]]
+        self.assertEqual(comparisons[0], "/repos/owner/repo/compare/tagsha6...tagsha1")
+
+    def test_comparisons_in_parallel_keep_release_order(self):
+        serial = self.collect()
+        parallel = DeploymentCollector(self.client, WINDOW, workers=4).collect("owner/repo")
+        self.assertEqual(parallel, serial)
+
     def test_prerelease_does_not_break_pairs(self):
         self.releases[2]["prerelease"] = True
         result = self.collect()

@@ -8,7 +8,7 @@ from urllib.parse import quote
 from .api import APIError, GitHubClient, LOGGER
 from .output import save_deployments
 from .resilience import (add_resilience_arguments, client_options, collection_report,
-                         configure_logging, open_checkpoint)
+                         configure_logging, open_checkpoint, parallel)
 from .selection import Window, timestamp
 
 
@@ -16,10 +16,11 @@ COLLECTION_ERRORS = (APIError, ValueError, KeyError, TypeError, AttributeError)
 
 
 class DeploymentCollector:
-    def __init__(self, client, window, tag_dates=False):
+    def __init__(self, client, window, tag_dates=False, workers=1):
         self.client = client
         self.window = window
         self.tag_dates = tag_dates
+        self.workers = workers
 
     def collect(self, full_name):
         result = {"full_name": full_name, "releases": [], "prereleases": [], "tags": [],
@@ -27,6 +28,8 @@ class DeploymentCollector:
                   "drafts_excluded": 0, "without_previous": 0,
                   "releases_ignored_comparison_error": 0, "comparisons_completed": 0}}
         path = "/repos/" + full_name
+        # Última release publicada antes da janela: base da primeira comparação.
+        earlier = None
         try:
             releases = list(self.client.pages(path + "/releases"))
             seen = set()
@@ -41,6 +44,13 @@ class DeploymentCollector:
                 if release["draft"] is not False or not isinstance(release["prerelease"], bool):
                     raise APIError("Flags de release inválidas.")
                 if not self.window.contains(release.get("published_at")):
+                    published = release.get("published_at")
+                    if (not release["prerelease"] and published and release.get("tag_name")
+                            and timestamp(published) < self.window.start):
+                        key = (timestamp(published), identity)
+                        if earlier is None or key > earlier[0]:
+                            earlier = (key, {"release_id": identity, "tag_name": release["tag_name"],
+                                             "published_at": published, "commit_sha": None})
                     continue
                 if not release.get("tag_name"):
                     raise APIError("Release sem tag_name.")
@@ -93,7 +103,11 @@ class DeploymentCollector:
             release["commit_sha"] = tag_shas.get(release["tag_name"])
         result["summary"]["valid_releases"] = len(result["releases"])
         result["summary"]["prereleases"] = len(result["prereleases"])
-        previous = None
+        # A release anterior pode estar fora da janela; só a primeira da história fica sem par.
+        previous = earlier[1] if earlier else None
+        if previous:
+            previous["commit_sha"] = tag_shas.get(previous["tag_name"])
+        pairs = []
         for release in result["releases"]:
             if previous is None:
                 release["comparison_status"] = "no_previous_release"
@@ -101,41 +115,52 @@ class DeploymentCollector:
             else:
                 release["previous_release_id"] = previous["release_id"]
                 release["previous_tag_name"] = previous["tag_name"]
-                base = quote(previous["commit_sha"] or previous["tag_name"], safe="")
-                head = quote(release["commit_sha"] or release["tag_name"], safe="")
-                try:
-                    commits = []
-                    seen = set()
-                    for item in self.client.pages(path + f"/compare/{base}...{head}", {"page": 1}, "commits"):
-                        sha = item["sha"]
-                        if not sha:
-                            raise APIError("Commit sem SHA.")
-                        if sha in seen:
-                            continue
-                        seen.add(sha)
-                        author_date = item["commit"]["author"]["date"]
-                        timestamp(author_date)
-                        commits.append({"repository": full_name, "release_id": release["release_id"],
-                                        "release_tag_name": release["tag_name"], "sha": sha,
-                                        "author_date": author_date, "message": item["commit"]["message"]})
-                    # Só publica a comparação depois de completar todas as páginas.
-                    release["commits"] = commits
-                    release["comparison_status"] = "completed"
-                    result["summary"]["comparisons_completed"] += 1
-                except COLLECTION_ERRORS as exc:
-                    release["comparison_status"] = "not_found" if isinstance(exc, APIError) and exc.status_code == 404 else "error"
-                    release["comparison_error"] = str(exc)
-                    result["summary"]["releases_ignored_comparison_error"] += 1
-                    result["errors"].append({"stage": "compare", "release_id": release["release_id"],
-                                             "previous_release_id": previous["release_id"], "error": str(exc)})
+                pairs.append((previous, release))
             # Mesmo após erro, o próximo par continua sendo de releases consecutivas.
             previous = release
+
+        def compare(pair):
+            previous, release = pair
+            base = quote(previous["commit_sha"] or previous["tag_name"], safe="")
+            head = quote(release["commit_sha"] or release["tag_name"], safe="")
+            try:
+                commits = []
+                seen = set()
+                for item in self.client.pages(path + f"/compare/{base}...{head}", {"page": 1}, "commits"):
+                    sha = item["sha"]
+                    if not sha:
+                        raise APIError("Commit sem SHA.")
+                    if sha in seen:
+                        continue
+                    seen.add(sha)
+                    author_date = item["commit"]["author"]["date"]
+                    timestamp(author_date)
+                    commits.append({"repository": full_name, "release_id": release["release_id"],
+                                    "release_tag_name": release["tag_name"], "sha": sha,
+                                    "author_date": author_date, "message": item["commit"]["message"]})
+                return commits, None
+            except COLLECTION_ERRORS as exc:
+                return None, exc
+
+        # As comparações são independentes entre si e podem ser consultadas em paralelo.
+        for (previous, release), (commits, exc) in zip(pairs, parallel(compare, pairs, self.workers)):
+            if exc is None:
+                # Só publica a comparação depois de completar todas as páginas.
+                release["commits"] = commits
+                release["comparison_status"] = "completed"
+                result["summary"]["comparisons_completed"] += 1
+            else:
+                release["comparison_status"] = "not_found" if isinstance(exc, APIError) and exc.status_code == 404 else "error"
+                release["comparison_error"] = str(exc)
+                result["summary"]["releases_ignored_comparison_error"] += 1
+                result["errors"].append({"stage": "compare", "release_id": release["release_id"],
+                                         "previous_release_id": previous["release_id"], "error": str(exc)})
         return result
 
 
-def collect_repositories(client, window, names, tag_dates=False, checkpoint=None, results=None):
+def collect_repositories(client, window, names, tag_dates=False, checkpoint=None, results=None, workers=1):
     """Card 4: repositórios sem erro em execução anterior não são recoletados."""
-    collector = DeploymentCollector(client, window, tag_dates)
+    collector = DeploymentCollector(client, window, tag_dates, workers)
     results = [] if results is None else results
     seen = set()
     for name in names:
@@ -147,6 +172,9 @@ def collect_repositories(client, window, names, tag_dates=False, checkpoint=None
             results.append(done)
             continue
         result = collector.collect(name)
+        LOGGER.info("Releases de %s: %d releases, %d comparações (%d de %d repositórios).", name,
+                    result["summary"]["valid_releases"], result["summary"]["comparisons_completed"],
+                    len(results) + 1, len(names))
         if checkpoint:
             checkpoint.record(name.casefold(), result, not result["errors"])
         results.append(result)
