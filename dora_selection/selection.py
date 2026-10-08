@@ -2,7 +2,11 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlparse
-from .api import APIError, header, links
+from .api import APIError, LOGGER, header, links
+from .resilience import parallel
+
+
+COLLECTION_ERRORS = (APIError, ValueError, KeyError, TypeError, AttributeError)
 
 
 class CandidateSearch:
@@ -110,8 +114,24 @@ def exclusion(row):
 
 
 class MetadataCollector:
-    def __init__(self, client, window):
-        self.client, self.window = client, window
+    def __init__(self, client, window, workers=1):
+        self.client, self.window, self.workers = client, window, workers
+
+    def _monthly_runs(self, path, branch, convert):
+        """Runs de cada mês da janela, reduzidos por `convert`, com os meses em paralelo.
+
+        Seleção e Card 3 fazem exatamente as mesmas consultas, de modo que os runs de
+        um repositório são baixados uma só vez e depois vêm do cache. `convert` roda
+        dentro de cada consulta para não manter as respostas completas em memória.
+        Devolve pares (período, (runs, erro)), na ordem dos meses.
+        """
+        def fetch(period):
+            try:
+                return convert(self._runs(path, branch, *period, verify_count=True)), None
+            except COLLECTION_ERRORS as exc:
+                return None, exc
+        periods = list(monthly_periods(self.window))
+        return list(zip(periods, parallel(fetch, periods, self.workers)))
 
     def _runs(self, path, branch, start, end, verify_count=False):
         fmt = lambda d: d.isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -137,6 +157,24 @@ class MetadataCollector:
             else:
                 yield from self.client.pages(path, params, "workflow_runs")
 
+    def _valid_runs(self, path, branch):
+        """Contagem completa dos runs válidos da janela, sem duplicatas entre meses."""
+        def convert(runs):
+            found = []
+            for run in runs:
+                if run.get("id") is None:
+                    raise APIError("Workflow run sem identificador.")
+                found.append((run["id"], run.get("head_branch") == branch and run.get("event") == "push"
+                              and self.window.contains(run.get("created_at")) and bool(classify_run(run))))
+            return found
+        valid = {}
+        for _, (runs, error) in self._monthly_runs(path, branch, convert):
+            if error is not None:
+                raise error
+            for identity, usable in runs:
+                valid.setdefault(identity, usable)
+        return sum(valid.values())
+
     def collect(self, repo):
         row = {"full_name": repo.get("full_name"), "url": repo.get("html_url"),
                "stars": repo.get("stargazers_count"), "language": repo.get("language"),
@@ -161,24 +199,17 @@ class MetadataCollector:
                 row["contributors"] = len(people)
             workflows = list(self.client.pages(path + "/actions/workflows", key="workflows"))
             row["uses_github_actions"] = bool(workflows)
-            row["valid_releases"] = sum(1 for r in self.client.pages(path + "/releases")
-                if r.get("draft") is False and r.get("prerelease") is False
-                and self.window.contains(r.get("published_at")))
-            seen = set()
-            count = 0
-            for run in self._runs(path + "/actions/runs", row["default_branch"], self.window.start, self.window.end):
-                if run.get("id") is None:
-                    raise APIError("Workflow run sem identificador.")
-                if run["id"] in seen:
-                    continue
-                seen.add(run["id"])
-                if (run.get("head_branch") == row["default_branch"] and run.get("event") == "push"
-                        and self.window.contains(run.get("created_at")) and classify_run(run)):
-                    count += 1
-            row["valid_workflow_runs"] = count
+            # Cada filtro só é consultado se o anterior passou: releases e runs de um
+            # repositório já descartado custariam chamadas sem mudar o resultado.
+            if row["uses_github_actions"]:
+                row["valid_releases"] = sum(1 for r in self.client.pages(path + "/releases")
+                    if r.get("draft") is False and r.get("prerelease") is False
+                    and self.window.contains(r.get("published_at")))
+            if row["valid_releases"] is not None and row["valid_releases"] >= 5:
+                row["valid_workflow_runs"] = self._valid_runs(path + "/actions/runs", row["default_branch"])
             row["exclusion_reason"] = exclusion(row)
             row["included"] = row["exclusion_reason"] is None
-        except (APIError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        except COLLECTION_ERRORS as exc:
             row["exclusion_reason"] = "collection_error"
             row["error"] = str(exc)
         return row
@@ -223,36 +254,40 @@ class WorkflowRunCollector(MetadataCollector):
         result = {"full_name": repo.get("full_name"), "default_branch": repo.get("default_branch"),
                   "workflows": [], "periods": [], "errors": [], "complete": True,
                   "summary": {"success": 0, "failure": 0, "ignored": 0, "total": 0}}
+        def convert(raw_runs):
+            prepared = []
+            for run in raw_runs:
+                if (run.get("head_branch") != result["default_branch"] or run.get("event") != "push"
+                        or not self.window.contains(run.get("created_at"))):
+                    continue
+                if run.get("id") is None or run.get("workflow_id") is None:
+                    raise APIError("Run sem id ou workflow_id.")
+                prepared.append({"repository": result["full_name"], "id": run["id"],
+                    "workflow_id": run["workflow_id"], "name": run.get("name"),
+                    "conclusion": run.get("conclusion"), "status": run.get("status"),
+                    "classification": classify_run(run) or "ignored",
+                    "run_started_at": run.get("run_started_at"), "updated_at": run.get("updated_at"),
+                    "created_at": run["created_at"], "branch": run["head_branch"], "event": run["event"]})
+            return prepared
+
         try:
             if not result["full_name"] or not result["default_branch"]:
                 raise APIError("full_name e default_branch são obrigatórios na entrada do Card 1.")
-            periods = list(monthly_periods(self.window))
+            fetched = self._monthly_runs("/repos/" + result["full_name"] + "/actions/runs",
+                                         result["default_branch"], convert)
         except (APIError, ValueError) as exc:
             result["errors"].append({"stage": "repository", "error": str(exc)})
             result["complete"] = False
             return result
         seen = set()
         workflows = {}
-        for start, end in periods:
+        for (start, end), (prepared, error) in fetched:
             period = {"start": start.isoformat(), "end": end.isoformat(), "complete": False}
             result["periods"].append(period)
             try:
                 # Buffer mensal: falha em uma página não publica um mês parcial.
-                raw_runs = list(self._runs("/repos/" + result["full_name"] + "/actions/runs",
-                                          result["default_branch"], start, end, verify_count=True))
-                prepared = []
-                for run in raw_runs:
-                    if (run.get("head_branch") != result["default_branch"] or run.get("event") != "push"
-                            or not self.window.contains(run.get("created_at"))):
-                        continue
-                    if run.get("id") is None or run.get("workflow_id") is None:
-                        raise APIError("Run sem id ou workflow_id.")
-                    prepared.append({"repository": result["full_name"], "id": run["id"],
-                        "workflow_id": run["workflow_id"], "name": run.get("name"),
-                        "conclusion": run.get("conclusion"), "status": run.get("status"),
-                        "classification": classify_run(run) or "ignored",
-                        "run_started_at": run.get("run_started_at"), "updated_at": run.get("updated_at"),
-                        "created_at": run["created_at"], "branch": run["head_branch"], "event": run["event"]})
+                if error is not None:
+                    raise error
                 for run in prepared:
                     if run["id"] in seen:
                         continue
@@ -264,16 +299,16 @@ class WorkflowRunCollector(MetadataCollector):
                     result["summary"][run["classification"]] += 1
                     result["summary"]["total"] += 1
                 period["complete"] = True
-            except (APIError, ValueError, KeyError, TypeError, AttributeError) as exc:
+            except COLLECTION_ERRORS as exc:
                 result["complete"] = False
                 result["errors"].append({"stage": "workflow_runs", **period, "error": str(exc)})
         result["workflows"] = list(workflows.values())
         return result
 
 
-def collect_workflow_repositories(client, window, repositories, checkpoint=None, results=None):
+def collect_workflow_repositories(client, window, repositories, checkpoint=None, results=None, workers=1):
     """Card 4: repositórios já concluídos vêm do diário; `results` acumula o parcial."""
-    collector = WorkflowRunCollector(client, window)
+    collector = WorkflowRunCollector(client, window, workers)
     seen = set()
     results = [] if results is None else results
     for repo in repositories:
@@ -286,6 +321,8 @@ def collect_workflow_repositories(client, window, repositories, checkpoint=None,
             results.append(done)
             continue
         result = collector.collect(repo)
+        LOGGER.info("Workflow runs de %s: %d runs (%d de %d repositórios).", name,
+                    result["summary"]["total"], len(results) + 1, len(repositories))
         if checkpoint:
             checkpoint.record(name.casefold(), result, result["complete"])
         results.append(result)

@@ -24,7 +24,7 @@ class RulesTests(unittest.TestCase):
     def setUp(self):
         self.window = Window(timestamp("2026-01-01T00:00:00Z"), timestamp("2026-02-01T00:00:00Z"))
         self.client = Mock()
-        self.client.get.side_effect = lambda path, params: ([{"login": "person"}], {"Link": '<https://api.github.com/repos/owner/repo/contributors?per_page=1&page=17>; rel="last"'}) if path.endswith("contributors") else ({"total_count": 50}, {})
+        self.client.get.side_effect = lambda path, params: ([{"login": "person"}], {"Link": '<https://api.github.com/repos/owner/repo/contributors?per_page=1&page=17>; rel="last"'}) if path.endswith("contributors") else ({"total_count": len({r["id"] for r in self.runs})}, {})
         self.workflows = [{"id": 1}]
         self.releases = [{"draft": False, "prerelease": False, "published_at": DATE} for _ in range(5)]
         self.runs = [run(i) for i in range(50)]

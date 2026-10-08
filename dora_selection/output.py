@@ -52,3 +52,51 @@ def save_workflow_runs(directory, repositories, window, stats=None):
             json.dump(data, file, ensure_ascii=False, indent=2)
             file.write("\n")
     return run_directory
+
+
+def save_json(path, data):
+    """Escrita atômica: uma interrupção não deixa o arquivo anterior pela metade."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    with temporary.open("w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
+        file.write("\n")
+    temporary.replace(path)
+    return path
+
+
+DORA_FIELDS = ["repository", "stars", "language", "created_at", "contributors", "collection_complete",
+               "releases", "releases_per_week", "commit_lead_time_hours", "release_lead_time_hours",
+               "considered_runs", "change_failure_rate", "recovery_hours", "censored_episodes",
+               "deployment_frequency_level", "lead_time_level", "change_failure_rate_level",
+               "recovery_time_level", "median_score", "overall"]
+
+
+def dora_row(repo, metrics, classification, complete):
+    """Uma linha por repositório: metadados, valores das métricas e classificações."""
+    ratings = classification["ratings"]
+    return {"repository": repo["full_name"], "stars": repo.get("stars"), "language": repo.get("language"),
+            "created_at": repo.get("created_at"), "contributors": repo.get("contributors"),
+            "collection_complete": complete,
+            "releases": metrics["deployment_frequency"]["releases"],
+            "releases_per_week": metrics["deployment_frequency"]["releases_per_week"],
+            "commit_lead_time_hours": metrics["lead_time_per_commit"]["median_hours"],
+            "release_lead_time_hours": metrics["lead_time_per_release"]["median_hours"],
+            "considered_runs": metrics["change_failure_rate"]["considered"],
+            "change_failure_rate": metrics["change_failure_rate"]["change_failure_rate"],
+            "recovery_hours": metrics["recovery_time"]["median_recovery_hours"],
+            "censored_episodes": metrics["recovery_time"]["censored"],
+            **{f"{name}_level": rating["level"] for name, rating in ratings.items()},
+            "median_score": classification["median_score"], "overall": classification["overall"]}
+
+
+def save_dora(directory, rows, metrics, classifications):
+    """Métricas e classificações completas em JSON e o resumo por repositório em CSV."""
+    directory = Path(directory)
+    save_json(directory / "metrics.json", metrics)
+    save_json(directory / "classification.json", classifications)
+    with (directory / "dora.csv").open("w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=DORA_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)

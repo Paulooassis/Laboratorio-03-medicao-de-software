@@ -20,6 +20,7 @@ METRICS = ("deployment_frequency", "lead_time", "change_failure_rate", "recovery
 HOUR = 1.0
 DAY = 24.0
 WEEK = 168.0
+MONTH = 720.0
 DAYS_PER_WEEK = 7.0
 # Mês médio do calendário gregoriano, para converter "uma release por mês" em semanas.
 DAYS_PER_MONTH = 365.2425 / 12
@@ -61,8 +62,9 @@ class Scale:
 
 DEPLOYMENT_FREQUENCY = Scale("deployment_frequency", "releases_per_week", True, True,
                              ((ELITE, DAILY), (HIGH, WEEKLY), (MEDIUM, MONTHLY), (LOW, None)))
+# Enunciado: Elite < 1 dia, High < 1 semana, Medium < 30 dias, Low >= 30 dias.
 LEAD_TIME = Scale("lead_time", "hours", False, False,
-                  ((ELITE, HOUR), (HIGH, DAY), (MEDIUM, WEEK), (LOW, None)))
+                  ((ELITE, DAY), (HIGH, WEEK), (MEDIUM, MONTH), (LOW, None)))
 CHANGE_FAILURE_RATE = Scale("change_failure_rate", "rate", False, True,
                             ((ELITE, 0.15), (HIGH, 0.30), (MEDIUM, 0.45), (LOW, None)))
 RECOVERY_TIME = Scale("recovery_time", "hours", False, False,
@@ -135,20 +137,20 @@ def lead_time_reason(ignored):
 
 
 def lead_time_rating(per_commit, per_release=None):
-    """Classifica Lead Time pela mediana por commit (`commit.author.date` → release).
+    """Classifica Lead Time pela mediana por release (variante (a) do enunciado).
 
-    A mediana por release serve de alternativa quando não há commits datados em
-    nenhuma release, caso em que ela também estará ausente. Sem amostra, o motivo
-    aponta o caso especial: release única, comparação indisponível, release sem
-    commits novos ou commits sem data.
+    O lead time de uma release vai do commit mais antigo do intervalo até a sua
+    publicação. A mediana por commit (variante (b)) serve de alternativa quando a
+    por release está ausente. Sem amostra, o motivo aponta o caso especial: release
+    única, comparação indisponível, release sem commits novos ou commits sem data.
     """
-    value = (per_commit or {}).get("median_hours")
+    value = (per_release or {}).get("median_hours")
     if value is None:
-        value = (per_release or {}).get("median_hours")
+        value = (per_commit or {}).get("median_hours")
         if value is not None:
-            return rated(LEAD_TIME, value, "release_median")
+            return rated(LEAD_TIME, value, "commit_median")
         return unmeasured(LEAD_TIME, lead_time_reason(releases_considered(per_commit)[1]))
-    return rated(LEAD_TIME, value, "commit_median")
+    return rated(LEAD_TIME, value, "release_median")
 
 
 def change_failure_rate_rating(failure_rate):
