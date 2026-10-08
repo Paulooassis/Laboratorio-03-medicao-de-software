@@ -1,8 +1,10 @@
 """Cliente REST direto, com cache, rate limit, retry e erros explícitos."""
+import gzip
 import json
 import logging
 import os
 import re
+import threading
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlparse
@@ -56,6 +58,8 @@ class GitHubClient:
         self.reserve = reserve
         self._sleep = sleep
         self._now = now
+        # Os coletores podem consultar em paralelo; os contadores são compartilhados.
+        self._lock = threading.Lock()
         self.stats = {"requests": 0, "cache_hits": 0, "retries": 0, "rate_limit_waits": 0,
                       "rate_limit_remaining": None, "rate_limit_reset": None}
 
@@ -69,18 +73,24 @@ class GitHubClient:
         if self.cache is not None:
             cached = self.cache.get(url)
             if cached is not None:
-                self.stats["cache_hits"] += 1
+                self._count("cache_hits")
                 return cached
         data, headers = self._request(url, parsed.path)
         if self.cache is not None:
             self.cache.set(url, data, headers)
         return data, headers
 
+    def _count(self, name):
+        with self._lock:
+            self.stats[name] += 1
+
     def _request(self, url, path):
         request = Request(url, headers={
             "Authorization": "Bearer " + self._token,
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
+            # Páginas de runs e de comparação passam de 1 MB; comprimidas ficam ~10x menores.
+            "Accept-Encoding": "gzip",
             "User-Agent": "Lab03S01-Card4",
         })
         attempt = 0
@@ -91,7 +101,9 @@ class GitHubClient:
                 with urlopen(request, timeout=60) as response:
                     headers = dict(response.headers)
                     body = response.read()
-                self.stats["requests"] += 1
+                if (header(headers, "Content-Encoding") or "").lower() == "gzip":
+                    body = gzip.decompress(body)
+                self._count("requests")
                 self._read_quota(headers)
                 return (json.loads(body) if body else [], headers)
             except HTTPError as exc:
@@ -103,7 +115,7 @@ class GitHubClient:
                     LOGGER.error("HTTP %s em %s; erro definitivo, sem nova tentativa.", exc.code, path)
                     raise APIError(f"HTTP {exc.code} em {path}", status_code=exc.code) from None
                 reason, status = f"HTTP {exc.code}", exc.code
-            except ValueError:
+            except (ValueError, EOFError):
                 LOGGER.error("JSON inválido em %s.", path)
                 raise APIError(f"Falha de conexão ou JSON inválido em {path}") from None
             except (URLError, TimeoutError, OSError) as exc:
@@ -112,9 +124,9 @@ class GitHubClient:
                 LOGGER.error("%s em %s após %d tentativa(s); desistindo.", reason, path, attempt)
                 raise APIError(f"{reason} em {path} após {attempt} tentativa(s).", status_code=status) from None
             wait = delay if delay is not None else min(self.max_backoff, self.backoff * 2 ** (attempt - 1))
-            self.stats["retries"] += 1
+            self._count("retries")
             if delay is not None:
-                self.stats["rate_limit_waits"] += 1
+                self._count("rate_limit_waits")
             LOGGER.warning("%s em %s; tentativa %d de %d em %.1fs.",
                            reason, path, attempt + 1, self.max_attempts, wait)
             self._sleep(wait)
@@ -140,7 +152,7 @@ class GitHubClient:
             raise APIError(f"Reset da cota em {wait:.0f}s excede o limite de {self.max_wait:.0f}s.")
         LOGGER.warning("Cota esgotada (%s restantes) antes de %s; aguardando %.0fs até o reset.",
                        remaining, path, wait)
-        self.stats["rate_limit_waits"] += 1
+        self._count("rate_limit_waits")
         self._sleep(wait)
         # A próxima resposta traz a cota renovada; o valor antigo não vale mais.
         self.stats["rate_limit_remaining"] = None

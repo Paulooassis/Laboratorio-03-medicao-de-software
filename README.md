@@ -61,6 +61,7 @@ mesma para todo o grupo. As demais opções têm padrão:
 | `--min-stars` | `1001` | Mínimo de estrelas dos candidatos |
 | `--output` | `outputs/pipeline` | Pasta de saída, com cache e diários |
 | `--tag-dates` | desligado | Consulta também a data do commit de cada tag |
+| `--workers` | `4` | Consultas simultâneas dentro de cada repositório; `1` desliga o paralelismo |
 | `--state` | `<output>/state` | Pasta dos diários de retomada, um por etapa |
 
 As opções de cache, retry e rate limit do Card 4 (`--cache-dir`, `--no-cache`,
@@ -75,11 +76,23 @@ Etapas, na ordem:
 3. **Workflow runs** (Card 3) dos selecionados.
 4. **Métricas e classificação DORA** (Cards 5 e 6), sem rede.
 
-A coleta de 100 repositórios faz milhares de chamadas e pode levar horas, porque o
-programa aguarda sozinho o reset da cota da API (5000 chamadas por hora). Pode ser
-interrompida com `Ctrl+C` a qualquer momento: repetir **o mesmo comando** retoma do
-ponto em que parou, sem refazer chamadas já respondidas. Para validar a instalação
-antes da coleta completa, use uma amostra pequena em outra pasta:
+A coleta de 100 repositórios faz dezenas de milhares de chamadas e leva horas. O
+limite é a cota da API, de 5000 chamadas por hora: quando ela acaba, o programa
+aguarda sozinho o reset e continua. Para chegar perto desse limite sem desperdício:
+
+- cada filtro da seleção só é consultado se o anterior passou (sem Actions não se
+  consultam releases; com menos de 5 releases não se consultam runs);
+- os workflow runs são baixados uma única vez: a seleção faz as mesmas consultas
+  mensais da etapa 3, que então vem inteira do cache;
+- dentro de um repositório, os meses de runs e as comparações entre releases são
+  consultados em paralelo (`--workers`), sempre poucos por vez, como o GitHub pede;
+- as respostas trafegam comprimidas (gzip).
+
+O progresso aparece no console e em `collection.log`, uma linha por repositório
+concluído. A coleta pode ser interrompida com `Ctrl+C` a qualquer momento: repetir
+**o mesmo comando** retoma do ponto em que parou, sem refazer chamadas já
+respondidas. Para validar a instalação antes da coleta completa, use uma amostra
+pequena em outra pasta (cerca de dois minutos):
 
 ```bash
 python -m dora_selection.pipeline --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z --target 3 --output outputs/smoke
@@ -202,8 +215,11 @@ pelo diário do Card 4; use diretórios diferentes para experimentos diferentes.
   janela, status `completed`, conclusão `success`, `failure`, `timed_out` ou
   `startup_failure`. As demais conclusões e runs em andamento são ignorados.
 - Inclusão: Actions, pelo menos 5 releases e 50 runs válidos, e coleta sem erro.
-  Contagens são completas, não apenas interrompidas no limiar. Consultas de
-  runs acima de 1000 resultados são subdivididas por tempo e IDs deduplicados.
+  Os filtros são consultados nessa ordem e a coleta do candidato para no primeiro
+  que falha: os valores não consultados ficam `null`. Contagens feitas são
+  completas, não apenas interrompidas no limiar. Os runs são consultados mês a mês,
+  com as mesmas consultas do Card 3 e a contagem conferida com a da API. Consultas
+  acima de 1000 resultados são subdivididas por tempo e IDs deduplicados.
   Uma faixa indivisível saturada gera erro explícito em vez de contagem truncada.
 - Contribuidores: `anon=true`, `per_page=1`, quantidade pela última página do
   header `Link`; sem `last`, paginação completa se houver `next`. É a contagem
@@ -286,8 +302,10 @@ entre tags usam uma única consulta de data por repositório.
 - Pré-releases da janela ficam em `prereleases`, disponíveis para análises futuras,
   e não entram nos pares nem na contagem principal.
 - Releases válidas da janela são ordenadas por `published_at`, com desempate por
-  ID. A primeira recebe `no_previous_release`; não há busca de release anterior
-  fora da janela. Cada par seguinte associa a release anterior à atual.
+  ID. Cada uma é comparada com a release anterior, que para a primeira da janela é
+  a última release (não draft, não pré-release) publicada antes dela, mesmo fora da
+  janela, como define o enunciado. Só recebe `no_previous_release` a primeira
+  release da história do repositório.
 - Tags de todo o repositório são paginadas e associadas ao SHA retornado pelo
   endpoint `/tags`. Releases recebem esse SHA quando a tag aparece na listagem.
 - Compare usa os SHAs das tags quando disponíveis e os nomes das tags como
@@ -589,9 +607,9 @@ amostra por medianas. Nenhuma função altera a entrada.
 - Change Failure Rate: `failure / (success + failure)` sobre os runs classificados
   no Card 3. Runs `ignored` (cancelados, em andamento, conclusões desconhecidas)
   são contados, mas ficam fora do denominador.
-- Tempo de recuperação: duração de cada episódio de falha, do `created_at` da
+- Tempo de recuperação: duração de cada episódio de falha, do `run_started_at` da
   primeira falha ao `updated_at` do sucesso que o encerra (`created_at` como
-  alternativa). Cada workflow é uma série independente, porque é o próximo sucesso
+  alternativa para ambos). Os runs são ordenados por `created_at`. Cada workflow é uma série independente, porque é o próximo sucesso
   do mesmo workflow que evidencia a recuperação.
 
 ### Episódios de falha, censura e dados ausentes
@@ -615,7 +633,7 @@ amostra por medianas. Nenhuma função altera a entrada.
   `ignored_missing_date`, `commits_without_date`, `runs_without_date` ou no motivo
   correspondente de `releases_ignored`.
 - Releases sem intervalo confiável são separadas por motivo em `releases_ignored`:
-  `no_previous_release` (primeira release da janela), `no_comparison` (comparação com
+  `no_previous_release` (primeira release da história), `no_comparison` (comparação com
   erro ou 404 no Card 2), `no_date`, `no_commits` (comparação vazia e válida) e
   `no_commit_dates`. Lead Times negativos, possíveis com rebase ou cherry-pick, são
   mantidos e contados em `negative`.
@@ -775,7 +793,7 @@ faixa, de modo que alterar um limite não exige mexer na lógica de classificaç
 | Métrica | Elite | High | Medium | Low |
 | --- | --- | --- | --- | --- |
 | Deployment Frequency (releases/semana) | ≥ 7 (uma por dia) | ≥ 1 (uma por semana) | ≥ 0,23 (uma por mês) | < 0,23 |
-| Lead Time (horas) | < 1 | < 24 | < 168 (uma semana) | ≥ 168 |
+| Lead Time (horas) | < 24 (um dia) | < 168 (uma semana) | < 720 (30 dias) | ≥ 720 |
 | Change Failure Rate | ≤ 15% | ≤ 30% | ≤ 45% | > 45% |
 | Tempo de recuperação (horas) | < 1 | < 24 | < 168 | ≥ 168 |
 
@@ -783,9 +801,10 @@ Deployment Frequency usa limites inferiores inclusivos; Lead Time e tempo de
 recuperação, limites superiores exclusivos; Change Failure Rate, limites superiores
 inclusivos. "Uma por mês" é convertida em semanas pelo mês médio do calendário
 gregoriano (365,2425 / 12 dias), o que dá ≈ 0,23 release por semana. Lead Time é
-classificado pela mediana por commit (`commit.author.date` → publicação da release),
-que é a definição DORA; a mediana por release é usada apenas quando só ela está
-disponível, e `basis` registra qual das duas foi usada.
+classificado pela mediana por release (variante (a): do commit mais antigo do
+intervalo até a publicação), a combinação de referência da disciplina; a mediana por
+commit é usada apenas quando a por release está ausente, e `basis` registra qual das
+duas foi usada.
 
 ### Classificação geral
 

@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -20,6 +21,11 @@ class ResponseCache:
         self.hits = 0
         self.misses = 0
         self.writes = 0
+        self._lock = threading.Lock()
+
+    def _count(self, name):
+        with self._lock:
+            setattr(self, name, getattr(self, name) + 1)
 
     @staticmethod
     def normalize(url):
@@ -42,16 +48,16 @@ class ResponseCache:
             headers = dict(entry["headers"])
             data = entry["data"]
         except FileNotFoundError:
-            self.misses += 1
+            self._count("misses")
             return None
         except (OSError, ValueError, TypeError, KeyError) as exc:
             LOGGER.warning("Entrada de cache inválida para %s (%s); nova chamada será feita.", url, exc)
-            self.misses += 1
+            self._count("misses")
             return None
         if self.ttl and time.time() - stored_at > self.ttl:
-            self.misses += 1
+            self._count("misses")
             return None
-        self.hits += 1
+        self._count("hits")
         return data, headers
 
     def set(self, url, data, headers):
@@ -70,11 +76,51 @@ class ResponseCache:
                 file.flush()
                 os.fsync(file.fileno())
             os.replace(temporary, path)
-            self.writes += 1
+            self._count("writes")
         except (OSError, TypeError, ValueError) as exc:
             LOGGER.warning("Falha ao gravar cache de %s: %s", url, exc)
             if temporary and os.path.exists(temporary):
                 os.unlink(temporary)
+
+
+def parallel(function, items, workers=1):
+    """Aplica `function` a cada item com até `workers` threads e devolve na ordem dos itens.
+
+    Com um worker é um laço comum. As threads são daemon e a espera tem timeout,
+    para que Ctrl+C interrompa na hora; a primeira exceção, na ordem dos itens, é
+    repassada e os itens ainda não iniciados são abandonados.
+    """
+    items = list(items)
+    if workers <= 1 or len(items) <= 1:
+        return [function(item) for item in items]
+    results, errors = [None] * len(items), [None] * len(items)
+    pending, lock, stop = iter(enumerate(items)), threading.Lock(), threading.Event()
+
+    def work():
+        while not stop.is_set():
+            with lock:
+                index, item = next(pending, (None, None))
+            if index is None:
+                return
+            try:
+                results[index] = function(item)
+            except BaseException as exc:
+                errors[index] = exc
+                stop.set()
+
+    threads = [threading.Thread(target=work, daemon=True) for _ in range(min(workers, len(items)))]
+    try:
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            while thread.is_alive():
+                thread.join(0.2)
+    finally:
+        stop.set()
+    for error in errors:
+        if error is not None:
+            raise error
+    return results
 
 
 class Checkpoint:

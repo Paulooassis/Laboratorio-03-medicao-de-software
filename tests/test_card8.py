@@ -1,12 +1,14 @@
 """Card 8: pipeline completo com o cliente real e apenas o transporte HTTP simulado."""
 import csv
+import gzip
 import json
 import logging
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 import pytest
+from dora_selection.api import APIError, GitHubClient
 from dora_selection.pipeline import main
-from dora_selection.resilience import configure_logging
+from dora_selection.resilience import configure_logging, parallel
 
 
 TOKEN = "fixture-only-token"
@@ -50,7 +52,10 @@ def workflow_runs():
 
 
 class FakeGitHub:
-    """API mínima: dois repositórios elegíveis e um sem GitHub Actions."""
+    """API mínima: dois repositórios elegíveis e um sem GitHub Actions.
+
+    Cada repositório elegível tem cinco releases na janela e uma anterior a ela (v0).
+    """
 
     def __init__(self, eligible=("owner/one", "owner/two")):
         self.eligible = set(eligible)
@@ -81,10 +86,12 @@ class FakeGitHub:
         if resource == "actions/workflows":
             return {"workflows": [{"id": 7}] if active else []}
         if resource == "releases":
-            return [{"id": day, "tag_name": f"v{day}", "published_at": f"2026-01-{day:02d}T12:00:00Z",
-                     "draft": False, "prerelease": False} for day in RELEASE_DAYS] if active else []
+            earlier = {"id": 100, "tag_name": "v0", "published_at": "2025-12-20T12:00:00Z",
+                       "draft": False, "prerelease": False}
+            return [earlier] + [{"id": day, "tag_name": f"v{day}", "published_at": f"2026-01-{day:02d}T12:00:00Z",
+                                 "draft": False, "prerelease": False} for day in RELEASE_DAYS] if active else []
         if resource == "tags":
-            return [{"name": f"v{day}", "commit": {"sha": f"sha{day}"}} for day in RELEASE_DAYS]
+            return [{"name": f"v{day}", "commit": {"sha": f"sha{day}"}} for day in (0, *RELEASE_DAYS)]
         if resource == "actions/runs":
             runs = workflow_runs() if active else []
             return {"total_count": len(runs), "workflow_runs": runs[:int(query["per_page"])]}
@@ -126,8 +133,9 @@ def test_single_command_runs_every_stage(github, execute, tmp_path):
     assert (summary["status"], summary["stage"]) == ("complete", "metrics")
     assert summary["selection"]["included"] == 2
     assert summary["selection"]["target_reached"] is True
+    # A primeira release da janela é comparada com a anterior a ela: 5 comparações por repositório.
     assert summary["deployments"] == {"repositories": 2, "repositories_with_errors": 0, "valid_releases": 10,
-                                      "comparisons_completed": 8, "releases_ignored_comparison_error": 0}
+                                      "comparisons_completed": 10, "releases_ignored_comparison_error": 0}
     assert summary["workflow_runs"] == {"repositories": 2, "repositories_with_errors": 0, "success": 90,
                                         "failure": 10, "ignored": 0, "total": 100}
     assert summary["incomplete_repositories"] == []
@@ -144,7 +152,7 @@ def test_metrics_and_classification_of_the_known_sample(github, execute, tmp_pat
     metrics = read(tmp_path / "metrics.json")
     assert [row["repository"] for row in metrics] == ["owner/one", "owner/two"]
     first = metrics[0]
-    # 5 releases em 31 dias; 4 delas com um commit 12 h antes; 5 falhas em 50 runs.
+    # 5 releases em 31 dias, cada uma com um commit 12 h antes; 5 falhas em 50 runs.
     assert first["deployment_frequency"]["releases_per_week"] == pytest.approx(5 / (31 / 7))
     assert first["lead_time_per_commit"]["median_hours"] == 12.0
     assert first["lead_time_per_release"]["median_hours"] == 12.0
@@ -152,7 +160,7 @@ def test_metrics_and_classification_of_the_known_sample(github, execute, tmp_pat
     assert first["recovery_time"]["median_recovery_hours"] == 1.0
     classification = read(tmp_path / "classification.json")[0]
     assert {name: rating["level"] for name, rating in classification["ratings"].items()} == {
-        "deployment_frequency": "High", "lead_time": "High", "change_failure_rate": "Elite",
+        "deployment_frequency": "High", "lead_time": "Elite", "change_failure_rate": "Elite",
         "recovery_time": "High"}
     assert classification["overall"] == "High"
     with (tmp_path / "dora.csv").open(encoding="utf-8", newline="") as file:
@@ -175,9 +183,53 @@ def test_second_execution_reuses_cache_and_diaries(github, execute):
 
 def test_stages_share_one_cache(github, execute):
     execute()
-    # Releases e runs pedidos na seleção não são pedidos de novo nas etapas seguintes.
+    # Releases e runs pedidos na seleção não são pedidos de novo nas etapas seguintes:
+    # uma listagem de releases e, para o único mês da janela, a contagem e a página de runs.
     assert github.requests.count("/repos/owner/one/releases") == 1
     assert github.requests.count("/repos/owner/one/actions/runs") == 2
+
+
+def test_discarded_candidate_costs_no_further_requests(github, execute, tmp_path):
+    execute(target="3")
+    # Sem Actions, releases e runs nem são consultados; os valores ficam nulos, não zero.
+    assert [path for path in github.requests if path.startswith("/repos/owner/noactions/")] == [
+        "/repos/owner/noactions/contributors", "/repos/owner/noactions/actions/workflows"]
+    row = read(tmp_path / "selection" / "repositories.json")[2]
+    assert (row["exclusion_reason"], row["valid_releases"], row["valid_workflow_runs"]) == (
+        "no_github_actions", None, None)
+
+
+def test_first_release_of_the_window_uses_the_release_before_it(github, execute, tmp_path):
+    execute()
+    first = read(tmp_path / "deployments.json")[0]["releases"][0]
+    assert (first["tag_name"], first["previous_tag_name"], first["previous_release_id"]) == ("v2", "v0", 100)
+    assert first["comparison_status"] == "completed"
+    assert "/repos/owner/one/compare/sha0...sha2" in github.requests
+    assert read(tmp_path / "classification.json")[0]["special_cases"]["releases_without_previous"] == 0
+
+
+def test_result_does_not_depend_on_the_number_of_workers(github, execute, tmp_path, capsys):
+    names = ("deployments.json", "workflow_runs.json", "metrics.json", "classification.json")
+    execute("--workers", "8")
+    assert main(["--start", "2026-01-01T00:00:00Z", "--end", "2026-01-31T23:59:59Z", "--target", "2",
+                 "--workers", "1", "--output", str(tmp_path / "serial")]) == 0
+    capsys.readouterr()
+    assert [read(tmp_path / "serial" / name) for name in names] == [read(tmp_path / name) for name in names]
+
+
+def test_diary_written_with_older_rules_is_set_aside(github, execute, tmp_path):
+    execute()
+    diary = tmp_path / "state" / "deployments.jsonl"
+    lines = diary.read_text(encoding="utf-8").splitlines()
+    meta = json.loads(lines[0])
+    del meta["meta"]["rules"]
+    diary.write_text("\n".join([json.dumps(meta), *lines[1:]]) + "\n", encoding="utf-8")
+    code, summary = execute()
+    assert code == 0
+    assert (tmp_path / "state" / "deployments.jsonl.old").is_file()
+    # Seleção e workflow runs vêm dos diários; releases são refeitas a partir do cache.
+    assert summary["api"]["resumed_units"] == 4
+    assert summary["api"]["requests"] == 0
 
 
 def test_sample_below_target_still_produces_metrics(github, execute, tmp_path):
@@ -229,7 +281,7 @@ def test_comparison_error_is_a_special_case_not_a_failed_collection(github, exec
         {} if "/compare/" in path else route(path, query)))
     code, summary = execute()
     assert code == 0
-    assert summary["deployments"]["releases_ignored_comparison_error"] == 8
+    assert summary["deployments"]["releases_ignored_comparison_error"] == 10
     classification = read(tmp_path / "classification.json")[0]
     assert classification["ratings"]["lead_time"]["reason"] == "comparison_unavailable"
 
@@ -276,6 +328,31 @@ def test_invalid_arguments_are_rejected(github, tmp_path, arguments, capsys):
         main([*arguments, "--output", str(tmp_path)])
     capsys.readouterr()
     assert not github.requests
+
+
+def test_compressed_response_is_decoded(monkeypatch):
+    response = Response({"ok": 1})
+    response.body = gzip.compress(response.body)
+    response.headers = {"Content-Encoding": "gzip"}
+    sent = []
+    monkeypatch.setenv("GITHUB_TOKEN", TOKEN)
+    monkeypatch.setattr("dora_selection.api.urlopen", lambda request, timeout=None: sent.append(request) or response)
+    assert GitHubClient().get("/rate_limit")[0] == {"ok": 1}
+    assert sent[0].get_header("Accept-encoding") == "gzip"
+
+
+def test_parallel_keeps_order_and_propagates_the_first_error():
+    assert parallel(lambda value: value * 2, range(20), workers=4) == [value * 2 for value in range(20)]
+    assert parallel(lambda value: value + 1, [1, 2], workers=1) == [2, 3]
+    assert parallel(str, [], workers=4) == []
+
+    def fail(value):
+        if value == 3:
+            raise APIError("falhou")
+        return value
+
+    with pytest.raises(APIError):
+        parallel(fail, range(10), workers=4)
 
 
 def test_secrets_and_outputs_are_ignored_by_git():

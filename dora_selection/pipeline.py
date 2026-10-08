@@ -2,7 +2,8 @@
 
 Reúne os Cards 1 a 6 sem mudar nenhuma regra: um só cliente, um só cache e um diário
 de retomada por etapa. Cada etapa é persistida ao terminar, de modo que uma execução
-interrompida recomeça de onde parou.
+interrompida recomeça de onde parou. Dentro de cada repositório, os meses de workflow
+runs e as comparações entre releases são consultados em paralelo (`--workers`).
 """
 import argparse
 import json
@@ -20,6 +21,8 @@ from .selection import (CandidateSearch, MetadataCollector, Window, collect_work
 
 
 STAGES = ("selection", "deployments", "workflow_runs")
+# Versão das regras de coleta de cada etapa: um diário gravado com regras antigas é recusado.
+RULES = {"selection": 1, "deployments": 2, "workflow_runs": 1}
 
 
 def select_repositories(search, collector, target, checkpoint=None, rows=None):
@@ -68,7 +71,8 @@ def compute_dora(window, selected, deployments, workflow_runs):
     return rows, metrics, classifications
 
 
-def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=False, checkpoints=None):
+def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=False, checkpoints=None,
+                 workers=1):
     """Executa as etapas em ordem e devolve o resumo gravado em `summary.json`."""
     output = Path(output)
     checkpoints = checkpoints or {}
@@ -82,7 +86,7 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
     try:
         LOGGER.info("Etapa 1 de 4: seleção de %d repositórios.", target)
         try:
-            error = select_repositories(search, MetadataCollector(client, window), target,
+            error = select_repositories(search, MetadataCollector(client, window, workers), target,
                                         checkpoints.get("selection"), rows)
         finally:
             selected = [row for row in rows if row["included"]]
@@ -99,7 +103,7 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
         LOGGER.info("Etapa 2 de 4: releases, tags e commits de %d repositórios.", len(selected))
         try:
             collect_repositories(client, window, [row["full_name"] for row in selected], tag_dates,
-                                 checkpoints.get("deployments"), deployments)
+                                 checkpoints.get("deployments"), deployments, workers)
         finally:
             summary["deployments"] = {
                 "repositories": len(deployments),
@@ -114,10 +118,11 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
                 LOGGER.error("%s [%s]: %s", repo["full_name"], item["stage"], item["error"])
 
         summary["stage"] = STAGES[2]
+        # As consultas são as mesmas da seleção: o que ela baixou vem do cache.
         LOGGER.info("Etapa 3 de 4: workflow runs de %d repositórios.", len(selected))
         try:
             collect_workflow_repositories(client, window, selected, checkpoints.get("workflow_runs"),
-                                          workflow_runs)
+                                          workflow_runs, workers)
         finally:
             summary["workflow_runs"] = {
                 "repositories": len(workflow_runs),
@@ -152,6 +157,22 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
     return summary
 
 
+def set_aside_outdated(path, meta):
+    """Diário da mesma coleta gravado com regras antigas: fica guardado e a etapa é refeita.
+
+    As respostas da API continuam no cache, então refazer a etapa custa pouco.
+    """
+    try:
+        with path.open(encoding="utf-8") as file:
+            stored = json.loads(file.readline() or "{}").get("meta")
+    except (OSError, ValueError, AttributeError):
+        return
+    if isinstance(stored, dict) and stored != meta and {**stored, "rules": meta["rules"]} == meta:
+        path.replace(path.with_name(path.name + ".old"))
+        LOGGER.warning("%s foi gravado com regras de coleta anteriores; a etapa será refeita a partir do cache.",
+                       path)
+
+
 def open_checkpoints(args, window):
     """Um diário por etapa, pois as unidades (candidato, repositório) são diferentes."""
     if args.no_resume:
@@ -163,7 +184,11 @@ def open_checkpoints(args, window):
     opened = {}
     try:
         for stage in STAGES:
-            opened[stage] = Checkpoint(directory / f"{stage}.jsonl", {"stage": stage, **base, **extra[stage]})
+            meta = {"stage": stage, **base, **extra[stage]}
+            if RULES[stage] > 1:
+                meta["rules"] = RULES[stage]
+                set_aside_outdated(directory / f"{stage}.jsonl", meta)
+            opened[stage] = Checkpoint(directory / f"{stage}.jsonl", meta)
     except (APIError, OSError):
         for checkpoint in opened.values():
             checkpoint.close()
@@ -181,10 +206,12 @@ def main(argv=None):
     parser.add_argument("--min-stars", type=int, default=1001)
     parser.add_argument("--output", default="outputs/pipeline", help="Pasta de saída (padrão outputs/pipeline)")
     parser.add_argument("--tag-dates", action="store_true", help="Consultar também commit.author.date de cada tag")
+    parser.add_argument("--workers", type=int, default=4,
+                        help="Consultas simultâneas dentro de cada repositório (padrão 4; 1 desliga)")
     add_resilience_arguments(parser)
     args = parser.parse_args(argv)
-    if args.target < 1 or args.min_stars < 1:
-        parser.error("--target e --min-stars devem ser >= 1")
+    if args.target < 1 or args.min_stars < 1 or not 1 <= args.workers <= 16:
+        parser.error("--target e --min-stars devem ser >= 1 e --workers deve ficar entre 1 e 16")
     configure_logging(args.log_file or Path(args.output) / "collection.log")
     try:
         window = Window(timestamp(args.start), timestamp(args.end))
@@ -196,7 +223,7 @@ def main(argv=None):
         parser.error(str(exc))
     try:
         summary = run_pipeline(client, window, args.output, args.target, args.min_stars, args.tag_dates,
-                               checkpoints)
+                               checkpoints, args.workers)
     except OSError as exc:
         LOGGER.error("Erro de persistência: %s", exc)
         return 1
