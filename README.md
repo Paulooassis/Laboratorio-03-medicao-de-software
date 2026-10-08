@@ -259,6 +259,125 @@ credenciais, da janela e dos limites do serviço e não é validada pelos mocks.
 Referência oficial:
 [listar workflow runs e limite de consultas filtradas](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository).
 
+## Lab03S01 — Card 4: cache, retomada, rate limit e tratamento de erros
+
+Infraestrutura de resiliência da coleta, aplicada aos três comandos anteriores sem
+mudar nenhuma regra de seleção, classificação ou pareamento. Continua usando apenas
+a biblioteca padrão e `GITHUB_TOKEN`. Não calcula métricas DORA.
+
+### Execução
+
+As mesmas opções existem em `python -m dora_selection` (Cards 1 e 3) e em
+`python -m dora_selection.deployments` (Card 2). Os padrões já ativam cache,
+retomada e log; nada precisa ser informado para obter o comportamento resiliente:
+
+```powershell
+python -m dora_selection --card 3 --input outputs/card1/selected.json --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z
+```
+
+| Opção | Padrão | Efeito |
+| --- | --- | --- |
+| `--cache-dir` | `<output>/cache` | Diretório das respostas gravadas |
+| `--no-cache` | desligado | Não consulta nem grava cache |
+| `--cache-ttl` | `0` | Validade em segundos; `0` não expira |
+| `--state` | `<output>/state.jsonl` | Diário de retomada |
+| `--no-resume` | desligado | Recoleta tudo, ignorando o diário |
+| `--max-attempts` | `5` | Tentativas por chamada, incluindo a primeira |
+| `--backoff` | `1.0` | Base do backoff exponencial em segundos |
+| `--max-backoff` | `60.0` | Teto de cada espera do backoff |
+| `--max-wait` | `3600.0` | Espera máxima aceita por reset de cota |
+| `--rate-limit-reserve` | `0` | Chamadas mantidas de reserva na cota |
+| `--log-file` | `<output>/collection.log` | Arquivo de log, além do stderr |
+
+Apontar `--cache-dir` para o mesmo diretório em execuções e cards diferentes
+reaproveita as respostas já obtidas. O diário, ao contrário, é por experimento.
+
+### Cache local
+
+- A consulta ao cache acontece antes de qualquer chamada; o acerto devolve os
+  mesmos `(dados, headers)` e não consome cota nem tempo de rede.
+- A chave é o SHA-256 da URL normalizada, com os parâmetros ordenados, de modo que
+  a ordem em que a consulta foi montada não cria entradas duplicadas.
+- O token viaja em header e nunca entra na chave nem no arquivo gravado.
+- Só o header `Link` é guardado, o que preserva a paginação a partir do cache.
+  Cota e datas de uma resposta antiga não são reaproveitadas como se fossem atuais.
+- A gravação é feita em arquivo temporário no mesmo diretório e concluída com
+  `os.replace`, operação atômica: uma interrupção não deixa entrada pela metade.
+- Entrada ausente, ilegível, truncada ou expirada conta como ausência, é registrada
+  em log e provoca nova chamada. Respostas de erro não são gravadas.
+
+### Retomada
+
+- Cada unidade concluída é gravada como uma linha JSON no diário, com `flush` e
+  `fsync`, antes de a execução seguir para a próxima. O arquivo é append-only.
+- A unidade é o repositório, em minúsculas: a mesma granularidade das três coletas.
+  Card 1 considera concluído o repositório avaliado sem erro; Card 2, o repositório
+  sem erro em nenhuma etapa; Card 3, o repositório com todos os meses completos.
+- Na retomada, unidades concluídas são reaproveitadas e suas chamadas não são
+  repetidas. Unidades com erro são refeitas, aproveitando o cache das chamadas que
+  já tinham terminado, de forma que a repetição custa pouco e nada é perdido.
+- Resultados gravados na execução atual não substituem a coleta em andamento;
+  apenas o diário lido no início vale como retomada.
+- A primeira linha guarda a configuração (card, janela e `--min-stars` no Card 1).
+  Um diário de outra configuração é recusado com erro, em vez de misturar amostras.
+- Uma interrupção só pode truncar a última linha, que é descartada com aviso e
+  removida do arquivo; as anteriores continuam válidas.
+- `Ctrl+C` é tratado: a coleta para, o parcial é persistido normalmente e o código
+  de saída é 1. A execução seguinte continua de onde parou.
+
+### Rate limit, erros e log
+
+- `X-RateLimit-Remaining` e `X-RateLimit-Reset` são lidos em toda resposta,
+  inclusive nas de erro, sem distinção de maiúsculas no nome do header.
+- Quando o restante chega a `--rate-limit-reserve`, a próxima chamada espera até o
+  reset informado, com um segundo de margem, e só então é enviada.
+- `403` e `429` com `Retry-After` ou com cota esgotada são esperas, não falhas: a
+  chamada é repetida depois do tempo pedido. `403` sem sinal de cota, como falta de
+  permissão, é erro definitivo e não é repetido.
+- Espera maior que `--max-wait` gera erro explícito em vez de travar a execução.
+- Erros `5xx` e falhas de conexão, timeout ou DNS são repetidos com backoff
+  exponencial `--backoff * 2 ** (tentativa - 1)`, limitado por `--max-backoff`.
+- `--max-attempts` conta a primeira tentativa. Esgotadas as tentativas, a chamada
+  falha com `APIError`, que os cards já tratam por repositório sem parar os demais.
+- Demais erros `4xx` e JSON inválido falham na hora, porque repetir não muda a
+  resposta.
+- Esperas, novas tentativas e erros vão para o stderr e para o arquivo de log.
+  O log é aberto antes da coleta, de modo que um erro de configuração já aparece.
+
+### Saídas e testes
+
+`funnel.json` (Card 1) e `summary.json` (Cards 2 e 3) passam a trazer o bloco
+`api` com `requests`, `cache_hits`, `cache_misses`, `cache_entries_written`,
+`cache_directory`, `retries`, `rate_limit_waits`, `rate_limit_remaining`,
+`rate_limit_reset` e `resumed_units`. O Card 1 ganha o motivo de parada
+`interrupted`. Os demais arquivos e campos continuam iguais aos dos cards anteriores.
+
+Arquivos do Card 4: `dora_selection/resilience.py` (cache, diário, log e opções),
+extensão de `dora_selection/api.py` (cota, retry e backoff), uso do diário em
+`selection.py`, `deployments.py` e `__main__.py`, bloco `api` em `output.py` e
+`tests/test_card4.py`.
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Os testes offline cobrem acerto de cache na mesma execução e em execução posterior,
+chave independente da ordem dos parâmetros, paginação a partir do cache, expiração,
+entrada corrompida, resposta de erro não gravada, leitura dos headers de cota,
+espera até o reset, reserva, `403` de cota, `Retry-After`, `403` definitivo, teto de
+espera, backoff exponencial com teto, limite de tentativas, falha de conexão, `404`
+sem repetição, log em arquivo, diário com unidade concluída e com erro, linha
+truncada, configuração divergente, retomada nos três cards e interrupção com dados
+preservados. Um teste executa o Card 3 inteiro com o cliente real e apenas o
+transporte HTTP simulado: repete um `503`, grava o cache e, na segunda execução sem
+diário, refaz a coleta sem nenhuma chamada. Relógio e espera são injetados nos
+testes, que não dormem nem usam rede. O comportamento diante dos limites reais do
+GitHub não é validado por mocks.
+
+Referências oficiais:
+[rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
+[boas práticas de uso da API](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api).
+
 ## Lab03S01 — Card 5: métricas DORA
 
 As quatro métricas DORA são calculadas em `dora_selection/metrics.py`, o único
@@ -457,6 +576,117 @@ Os valores dependem da coleta real dos Cards 1 a 3, que não é exercitada aqui.
 Referências:
 [DORA — métricas](https://dora.dev/guides/dora-metrics-four-keys/),
 [semana ISO 8601](https://docs.python.org/3/library/datetime.html#datetime.date.isocalendar).
+
+## Lab03S01 — Card 6: classificação DORA e casos especiais
+
+A classificação em Elite, High, Medium e Low está em `dora_selection/rating.py`, o
+único arquivo novo além de `tests/test_card6.py`. Como no Card 5, são funções puras:
+sem rede, sem CLI e sem persistência. A entrada é o resultado de `repository_metrics`;
+nenhuma métrica é recalculada aqui e nenhuma regra dos Cards 1 a 5 muda.
+
+### Uso
+
+```python
+from dora_selection.metrics import repository_metrics
+from dora_selection.rating import classify_repository, classify_sample
+from dora_selection.selection import Window, timestamp
+
+window = Window(timestamp("2026-01-05T00:00:00Z"), timestamp("2026-02-01T23:59:59Z"))
+metrics = [repository_metrics(window, d["releases"], r["workflows"], d["full_name"])
+           for d, r in zip(deployments, runs)]
+classifications = [classify_repository(row) for row in metrics]
+print(classify_sample(classifications)["by_overall"])
+```
+
+`classify_repository` devolve `ratings` (uma entrada por métrica, com `value`, `level`,
+`score`, `basis` e `reason`), a mediana (`median_score`), a classificação geral
+(`overall_score` e `overall`) e o bloco `special_cases`. `classify_sample` resume a
+amostra: distribuição por métrica, distribuição geral, classificação geral da amostra
+e a soma dos casos especiais. As funções por métrica
+(`deployment_frequency_rating`, `lead_time_rating`, `change_failure_rate_rating`,
+`recovery_time_rating`) continuam utilizáveis isoladamente, assim como `score`,
+`level_from_score` e `overall_classification`.
+
+### Limites
+
+Os limites ficam em um único lugar, o dicionário `SCALES`, com uma `Scale` por métrica.
+`higher_is_better` define o sentido da comparação e `inclusive` se o limite pertence à
+faixa, de modo que alterar um limite não exige mexer na lógica de classificação.
+
+| Métrica | Elite | High | Medium | Low |
+| --- | --- | --- | --- | --- |
+| Deployment Frequency (releases/semana) | ≥ 7 (uma por dia) | ≥ 1 (uma por semana) | ≥ 0,23 (uma por mês) | < 0,23 |
+| Lead Time (horas) | < 1 | < 24 | < 168 (uma semana) | ≥ 168 |
+| Change Failure Rate | ≤ 15% | ≤ 30% | ≤ 45% | > 45% |
+| Tempo de recuperação (horas) | < 1 | < 24 | < 168 | ≥ 168 |
+
+Deployment Frequency usa limites inferiores inclusivos; Lead Time e tempo de
+recuperação, limites superiores exclusivos; Change Failure Rate, limites superiores
+inclusivos. "Uma por mês" é convertida em semanas pelo mês médio do calendário
+gregoriano (365,2425 / 12 dias), o que dá ≈ 0,23 release por semana. Lead Time é
+classificado pela mediana por commit (`commit.author.date` → publicação da release),
+que é a definição DORA; a mediana por release é usada apenas quando só ela está
+disponível, e `basis` registra qual das duas foi usada.
+
+### Classificação geral
+
+Cada nível vale Elite = 4, High = 3, Medium = 2 e Low = 1. A classificação geral é a
+mediana das quatro notas arredondada para baixo: `[4, 3, 2, 1]` tem mediana 2,5 e
+resulta em Medium. `median_score` guarda a mediana exata, `overall_score` o valor
+arredondado e `overall` o nível correspondente.
+
+Métrica sem amostra não vale zero nem Elite: fica com `level: null`, registra o motivo
+em `reason` e não entra na mediana, que é calculada sobre as métricas disponíveis
+(`classified_metrics` informa quantas foram). Sem nenhuma métrica classificável,
+a classificação geral é `null`. A mesma regra vale na amostra: a classificação geral
+do conjunto é a mediana arredondada das classificações gerais dos repositórios.
+
+### Casos especiais
+
+- Release sem commits novos: a comparação do Card 2 terminou vazia e válida. A release
+  continua contando como deployment na frequência e aparece em
+  `releases_without_new_commits`, mas não produz Lead Time. Se nenhuma release do
+  repositório tiver commits, o Lead Time fica sem classificação com o motivo
+  `releases_without_new_commits`.
+- Repositório com apenas uma release: não existe par consecutivo, então o Lead Time
+  fica sem classificação com o motivo `single_release` e o caso é sinalizado em
+  `single_release`. A frequência continua medida normalmente, pois a release ocorreu.
+- Falha nunca recuperada: o episódio censurado do Card 5 não é recuperação instantânea
+  nem dado inexistente. Fica fora da mediana e é contado em `failures_never_recovered`.
+  Quando não há nenhum episódio recuperado, o tempo observado serve de limite inferior
+  e classifica a métrica apenas se já for suficiente para Low (`basis`
+  `censored_lower_bound`); caso contrário o motivo é `never_recovered`. Repositório sem
+  nenhuma falha recebe o motivo `no_failures`, não Elite por omissão. `censored_majority`
+  avisa quando os censurados superam os recuperados e a mediana tende a ser otimista.
+- Workflow runs ignoráveis: cancelados, pulados, neutros, com conclusão desconhecida ou
+  ainda em andamento ficam fora do denominador do CFR e não abrem, não estendem e não
+  encerram episódios de falha. Se todos os runs do repositório forem ignoráveis, o CFR
+  fica sem classificação com o motivo `only_ignored_runs`, em vez de virar 0% e Elite.
+- Zero release na janela é medição, não ausência: a frequência vale 0 e classifica Low.
+- `special_cases` também traz releases sem data, commits sem data, Lead Times negativos
+  (possíveis com rebase ou cherry-pick), runs sem data, episódios com datas
+  contraditórias e o mapa `unclassified_metrics` com o motivo de cada métrica sem nível.
+
+### Testes
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Os testes do Card 6 verificam cada limite nas bordas das quatro faixas, valores não
+numéricos, a conversão para notas e a volta, a mediana das quatro classificações com
+arredondamento para baixo, medianas com métricas faltando, as quatro métricas
+classificadas em conjunto, a distribuição da amostra e os casos especiais: release sem
+commits novos, repositório com uma só release, comparação indisponível, falha nunca
+recuperada, censura classificada por limite inferior, censura fora da mediana dos
+recuperados, runs ignoráveis sem CFR e sem efeito nos episódios, runs classificados por
+`status`/`conclusion` sem o campo do Card 3, datas ausentes, Lead Time negativo e
+entradas vazias ou incompletas. Os valores de uma amostra real dependem da coleta dos
+Cards 1 a 3, que não é exercitada aqui.
+
+Referências:
+[DORA — níveis de desempenho](https://dora.dev/guides/dora-metrics-four-keys/),
+[State of DevOps — faixas de classificação](https://dora.dev/research/).
 Os testes offline cobrem acerto de cache na mesma execução e em execução posterior,
 chave independente da ordem dos parâmetros, paginação a partir do cache, expiração,
 entrada corrompida, resposta de erro não gravada, leitura dos headers de cota,
