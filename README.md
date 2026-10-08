@@ -462,6 +462,103 @@ amostra por medianas. Nenhuma função altera a entrada.
   mantidos e contados em `negative`.
 
 ### Testes
+## Lab03S01 — Card 4: cache, retomada, rate limit e tratamento de erros
+
+Infraestrutura de resiliência da coleta, aplicada aos três comandos anteriores sem
+mudar nenhuma regra de seleção, classificação ou pareamento. Continua usando apenas
+a biblioteca padrão e `GITHUB_TOKEN`. Não calcula métricas DORA.
+
+### Execução
+
+As mesmas opções existem em `python -m dora_selection` (Cards 1 e 3) e em
+`python -m dora_selection.deployments` (Card 2). Os padrões já ativam cache,
+retomada e log; nada precisa ser informado para obter o comportamento resiliente:
+
+```powershell
+python -m dora_selection --card 3 --input outputs/card1/selected.json --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z
+```
+
+| Opção | Padrão | Efeito |
+| --- | --- | --- |
+| `--cache-dir` | `<output>/cache` | Diretório das respostas gravadas |
+| `--no-cache` | desligado | Não consulta nem grava cache |
+| `--cache-ttl` | `0` | Validade em segundos; `0` não expira |
+| `--state` | `<output>/state.jsonl` | Diário de retomada |
+| `--no-resume` | desligado | Recoleta tudo, ignorando o diário |
+| `--max-attempts` | `5` | Tentativas por chamada, incluindo a primeira |
+| `--backoff` | `1.0` | Base do backoff exponencial em segundos |
+| `--max-backoff` | `60.0` | Teto de cada espera do backoff |
+| `--max-wait` | `3600.0` | Espera máxima aceita por reset de cota |
+| `--rate-limit-reserve` | `0` | Chamadas mantidas de reserva na cota |
+| `--log-file` | `<output>/collection.log` | Arquivo de log, além do stderr |
+
+Apontar `--cache-dir` para o mesmo diretório em execuções e cards diferentes
+reaproveita as respostas já obtidas. O diário, ao contrário, é por experimento.
+
+### Cache local
+
+- A consulta ao cache acontece antes de qualquer chamada; o acerto devolve os
+  mesmos `(dados, headers)` e não consome cota nem tempo de rede.
+- A chave é o SHA-256 da URL normalizada, com os parâmetros ordenados, de modo que
+  a ordem em que a consulta foi montada não cria entradas duplicadas.
+- O token viaja em header e nunca entra na chave nem no arquivo gravado.
+- Só o header `Link` é guardado, o que preserva a paginação a partir do cache.
+  Cota e datas de uma resposta antiga não são reaproveitadas como se fossem atuais.
+- A gravação é feita em arquivo temporário no mesmo diretório e concluída com
+  `os.replace`, operação atômica: uma interrupção não deixa entrada pela metade.
+- Entrada ausente, ilegível, truncada ou expirada conta como ausência, é registrada
+  em log e provoca nova chamada. Respostas de erro não são gravadas.
+
+### Retomada
+
+- Cada unidade concluída é gravada como uma linha JSON no diário, com `flush` e
+  `fsync`, antes de a execução seguir para a próxima. O arquivo é append-only.
+- A unidade é o repositório, em minúsculas: a mesma granularidade das três coletas.
+  Card 1 considera concluído o repositório avaliado sem erro; Card 2, o repositório
+  sem erro em nenhuma etapa; Card 3, o repositório com todos os meses completos.
+- Na retomada, unidades concluídas são reaproveitadas e suas chamadas não são
+  repetidas. Unidades com erro são refeitas, aproveitando o cache das chamadas que
+  já tinham terminado, de forma que a repetição custa pouco e nada é perdido.
+- Resultados gravados na execução atual não substituem a coleta em andamento;
+  apenas o diário lido no início vale como retomada.
+- A primeira linha guarda a configuração (card, janela e `--min-stars` no Card 1).
+  Um diário de outra configuração é recusado com erro, em vez de misturar amostras.
+- Uma interrupção só pode truncar a última linha, que é descartada com aviso e
+  removida do arquivo; as anteriores continuam válidas.
+- `Ctrl+C` é tratado: a coleta para, o parcial é persistido normalmente e o código
+  de saída é 1. A execução seguinte continua de onde parou.
+
+### Rate limit, erros e log
+
+- `X-RateLimit-Remaining` e `X-RateLimit-Reset` são lidos em toda resposta,
+  inclusive nas de erro, sem distinção de maiúsculas no nome do header.
+- Quando o restante chega a `--rate-limit-reserve`, a próxima chamada espera até o
+  reset informado, com um segundo de margem, e só então é enviada.
+- `403` e `429` com `Retry-After` ou com cota esgotada são esperas, não falhas: a
+  chamada é repetida depois do tempo pedido. `403` sem sinal de cota, como falta de
+  permissão, é erro definitivo e não é repetido.
+- Espera maior que `--max-wait` gera erro explícito em vez de travar a execução.
+- Erros `5xx` e falhas de conexão, timeout ou DNS são repetidos com backoff
+  exponencial `--backoff * 2 ** (tentativa - 1)`, limitado por `--max-backoff`.
+- `--max-attempts` conta a primeira tentativa. Esgotadas as tentativas, a chamada
+  falha com `APIError`, que os cards já tratam por repositório sem parar os demais.
+- Demais erros `4xx` e JSON inválido falham na hora, porque repetir não muda a
+  resposta.
+- Esperas, novas tentativas e erros vão para o stderr e para o arquivo de log.
+  O log é aberto antes da coleta, de modo que um erro de configuração já aparece.
+
+### Saídas e testes
+
+`funnel.json` (Card 1) e `summary.json` (Cards 2 e 3) passam a trazer o bloco
+`api` com `requests`, `cache_hits`, `cache_misses`, `cache_entries_written`,
+`cache_directory`, `retries`, `rate_limit_waits`, `rate_limit_remaining`,
+`rate_limit_reset` e `resumed_units`. O Card 1 ganha o motivo de parada
+`interrupted`. Os demais arquivos e campos continuam iguais aos dos cards anteriores.
+
+Arquivos do Card 4: `dora_selection/resilience.py` (cache, diário, log e opções),
+extensão de `dora_selection/api.py` (cota, retry e backoff), uso do diário em
+`selection.py`, `deployments.py` e `__main__.py`, bloco `api` em `output.py` e
+`tests/test_card4.py`.
 
 ```powershell
 python -m unittest discover -s tests -v
@@ -590,3 +687,19 @@ Cards 1 a 3, que não é exercitada aqui.
 Referências:
 [DORA — níveis de desempenho](https://dora.dev/guides/dora-metrics-four-keys/),
 [State of DevOps — faixas de classificação](https://dora.dev/research/).
+Os testes offline cobrem acerto de cache na mesma execução e em execução posterior,
+chave independente da ordem dos parâmetros, paginação a partir do cache, expiração,
+entrada corrompida, resposta de erro não gravada, leitura dos headers de cota,
+espera até o reset, reserva, `403` de cota, `Retry-After`, `403` definitivo, teto de
+espera, backoff exponencial com teto, limite de tentativas, falha de conexão, `404`
+sem repetição, log em arquivo, diário com unidade concluída e com erro, linha
+truncada, configuração divergente, retomada nos três cards e interrupção com dados
+preservados. Um teste executa o Card 3 inteiro com o cliente real e apenas o
+transporte HTTP simulado: repete um `503`, grava o cache e, na segunda execução sem
+diário, refaz a coleta sem nenhuma chamada. Relógio e espera são injetados nos
+testes, que não dormem nem usam rede. O comportamento diante dos limites reais do
+GitHub não é validado por mocks.
+
+Referências oficiais:
+[rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
+[boas práticas de uso da API](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api).
