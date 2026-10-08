@@ -139,7 +139,11 @@ class Checkpoint:
             self._write({"meta": self.meta})
 
     def _load(self):
-        lines = self.path.read_text(encoding="utf-8").splitlines()
+        # Só "\n" separa entradas: splitlines() também quebraria em U+2028, U+0085 e outros
+        # separadores que aparecem crus dentro de mensagens de commit.
+        lines = self.path.read_text(encoding="utf-8").split("\n")
+        if lines and lines[-1] == "":
+            lines.pop()
         valid = []
         for number, line in enumerate(lines, start=1):
             try:

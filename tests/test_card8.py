@@ -341,6 +341,20 @@ def test_compressed_response_is_decoded(monkeypatch):
     assert sent[0].get_header("Accept-encoding") == "gzip"
 
 
+def test_diary_survives_line_separators_inside_commit_messages(tmp_path):
+    from dora_selection.resilience import Checkpoint
+    meta = {"stage": "deployments"}
+    message = "fix\u2028linha\x85dois\x0cfim\x1c"
+    diary = Checkpoint(tmp_path / "state.jsonl", meta)
+    diary.record("owner/one", {"commits": [{"message": message}]})
+    diary.record("owner/two", {"commits": []})
+    diary.close()
+    reopened = Checkpoint(tmp_path / "state.jsonl", meta)
+    assert reopened.done("owner/one") == {"commits": [{"message": message}]}
+    assert reopened.done("owner/two") == {"commits": []}
+    reopened.close()
+
+
 def test_parallel_keeps_order_and_propagates_the_first_error():
     assert parallel(lambda value: value * 2, range(20), workers=4) == [value * 2 for value in range(20)]
     assert parallel(lambda value: value + 1, [1, 2], workers=1) == [2, 3]
