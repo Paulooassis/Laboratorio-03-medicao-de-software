@@ -85,6 +85,16 @@ class TestLeadTimePerCommit:
 
 
 class TestLeadTimePerRelease:
+    def test_example_from_the_assignment(self, make_release, make_commit):
+        # v1.1 em 15/03 com commits de 02/03, 10/03 e 14/03: 13 dias por release; 13, 5 e 1 por commit.
+        release = make_release(2, "2026-03-15T00:00:00Z", [make_commit("a", "2026-03-02T00:00:00Z"),
+                                                           make_commit("b", "2026-03-10T00:00:00Z"),
+                                                           make_commit("c", "2026-03-14T00:00:00Z")])
+        assert lead_time_per_release([release])["releases"][0]["lead_time_hours"] == 13 * 24
+        per_commit = lead_time_per_commit([release])
+        assert [commit["lead_time_hours"] for commit in per_commit["commits"]] == [13 * 24, 5 * 24, 24]
+        assert per_commit["median_hours"] == 5 * 24
+
     def test_known_sample(self, releases):
         result = lead_time_per_release(releases)
         assert [record["status"] for record in result["releases"]] == [
@@ -264,6 +274,33 @@ class TestRecoveryTime:
         # A recuperação termina no `updated_at` do sucesso, não no `created_at`.
         assert first["recovered_at"] == "2026-01-06T16:00:00+00:00"
 
+    def test_example_from_the_assignment(self, make_run):
+        # 09:00 success, 10:00 failure, 10:30 failure, 11:15 success que termina às 11:20: 1h20.
+        result = failure_episodes([
+            make_run(1, "success", "2026-01-05T09:00:00Z"),
+            make_run(2, "failure", "2026-01-05T10:00:00Z"),
+            make_run(3, "failure", "2026-01-05T10:30:00Z"),
+            make_run(4, "success", "2026-01-05T11:15:00Z", "2026-01-05T11:20:00Z"),
+        ])
+        assert result["episodes"][0]["recovery_hours"] == pytest.approx(4 / 3)
+
+    def test_episode_starts_at_run_started_at_of_the_first_failure(self, make_run):
+        # Run criado às 10:00, mas iniciado (ou reexecutado) às 10:30.
+        result = failure_episodes([
+            make_run(1, "failure", "2026-01-05T10:00:00Z", run_started_at="2026-01-05T10:30:00Z"),
+            make_run(2, "success", "2026-01-05T11:00:00Z", "2026-01-05T12:00:00Z"),
+        ])
+        episode = result["episodes"][0]
+        assert episode["started_at"] == "2026-01-05T10:30:00+00:00"
+        assert episode["recovery_hours"] == 1.5
+
+    def test_run_without_run_started_at_falls_back_to_created_at(self, make_run):
+        result = failure_episodes([
+            make_run(1, "failure", "2026-01-05T10:00:00Z", run_started_at=None),
+            make_run(2, "success", "2026-01-05T12:00:00Z"),
+        ])
+        assert result["episodes"][0]["recovery_hours"] == 2.0
+
     def test_runs_are_ordered_before_pairing(self, ci_runs):
         assert failure_episodes(list(reversed(ci_runs)))["median_recovery_hours"] == 4.0
 
@@ -376,11 +413,17 @@ class TestDoraThresholds:
     def test_deployment_frequency(self, value, level):
         assert DEPLOYMENT_FREQUENCY.level(value) == level
 
-    @pytest.mark.parametrize("scale", [LEAD_TIME, RECOVERY_TIME])
+    @pytest.mark.parametrize("value, level", [(0.0, ELITE), (23.99, ELITE), (24.0, HIGH), (167.99, HIGH),
+                                              (168.0, MEDIUM), (719.99, MEDIUM), (720.0, LOW)])
+    def test_lead_time(self, value, level):
+        # Enunciado: < 1 dia, < 1 semana, < 30 dias.
+        assert LEAD_TIME.level(value) == level
+
     @pytest.mark.parametrize("value, level", [(0.0, ELITE), (0.99, ELITE), (1.0, HIGH), (23.99, HIGH),
                                               (24.0, MEDIUM), (167.99, MEDIUM), (168.0, LOW)])
-    def test_lead_time_and_recovery_time(self, scale, value, level):
-        assert scale.level(value) == level
+    def test_recovery_time(self, value, level):
+        # Enunciado: < 1 hora, < 1 dia, < 1 semana.
+        assert RECOVERY_TIME.level(value) == level
 
     @pytest.mark.parametrize("value, level", [(0.0, ELITE), (0.15, ELITE), (0.151, HIGH), (0.30, HIGH),
                                               (0.301, MEDIUM), (0.45, MEDIUM), (0.451, LOW), (1.0, LOW)])
@@ -396,22 +439,23 @@ class TestDoraClassification:
     def test_known_sample(self, metrics):
         result = classify_repository(metrics)
         levels = {name: rating["level"] for name, rating in result["ratings"].items()}
-        assert levels == {"deployment_frequency": HIGH, "lead_time": MEDIUM,
+        # Lead Time de 24 h já não é "menos de 1 dia": High, não Elite.
+        assert levels == {"deployment_frequency": HIGH, "lead_time": HIGH,
                           "change_failure_rate": LOW, "recovery_time": HIGH}
-        assert result["scores"] == [3, 2, 1, 3]
-        # Mediana 2,5 arredondada para baixo.
-        assert result["median_score"] == 2.5
-        assert (result["overall_score"], result["overall"]) == (2, MEDIUM)
+        assert result["scores"] == [3, 3, 1, 3]
+        assert result["median_score"] == 3.0
+        assert (result["overall_score"], result["overall"]) == (3, HIGH)
         assert result["repository"] == "owner/repo"
         assert result["special_cases"]["unclassified_metrics"] == {}
 
-    def test_lead_time_prefers_commit_median(self, metrics):
+    def test_lead_time_prefers_release_median(self, metrics):
+        # Variante (a): mediana por release, 36 h; a por commit seria 24 h.
         rating = lead_time_rating(metrics["lead_time_per_commit"], metrics["lead_time_per_release"])
-        assert (rating["value"], rating["basis"]) == (24.0, "commit_median")
+        assert (rating["value"], rating["basis"]) == (36.0, "release_median")
 
-    def test_lead_time_falls_back_to_release_median(self):
-        rating = lead_time_rating({"median_hours": None}, {"median_hours": 0.5})
-        assert (rating["level"], rating["basis"]) == (ELITE, "release_median")
+    def test_lead_time_falls_back_to_commit_median(self):
+        rating = lead_time_rating({"median_hours": 0.5}, {"median_hours": None})
+        assert (rating["level"], rating["basis"]) == (ELITE, "commit_median")
 
     @pytest.mark.parametrize("ratings, overall", [
         ([ELITE, ELITE, ELITE, ELITE], ELITE),
@@ -424,6 +468,11 @@ class TestDoraClassification:
     ])
     def test_overall_is_the_floored_median(self, ratings, overall):
         assert overall_classification(ratings)["overall"] == overall
+
+    def test_example_from_the_assignment(self):
+        # Notas (4, 3, 3, 1): mediana 3, logo High.
+        result = overall_classification([ELITE, HIGH, HIGH, LOW])
+        assert (result["median_score"], result["overall"]) == (3.0, HIGH)
 
     def test_unmeasured_metrics_never_become_elite(self, window):
         result = classify_repository(repository_metrics(window))
@@ -446,8 +495,8 @@ class TestDoraClassification:
         rows = [classify_repository(metrics), classify_repository(repository_metrics(window)), None]
         sample = classify_sample(rows)
         assert sample["repositories"] == 2
-        assert sample["by_overall"] == {ELITE: 0, HIGH: 0, MEDIUM: 1, LOW: 1, "unclassified": 0}
-        assert sample["by_metric"]["lead_time"] == {ELITE: 0, HIGH: 0, MEDIUM: 1, LOW: 0, "unclassified": 1}
-        # Notas 2 e 1: mediana 1,5, arredondada para Low.
-        assert (sample["median_score"], sample["overall"]) == (1.5, LOW)
+        assert sample["by_overall"] == {ELITE: 0, HIGH: 1, MEDIUM: 0, LOW: 1, "unclassified": 0}
+        assert sample["by_metric"]["lead_time"] == {ELITE: 0, HIGH: 1, MEDIUM: 0, LOW: 0, "unclassified": 1}
+        # Notas 3 e 1: mediana 2, Medium.
+        assert (sample["median_score"], sample["overall"]) == (2.0, MEDIUM)
         assert sample["special_cases"]["failures_never_recovered"] == 1

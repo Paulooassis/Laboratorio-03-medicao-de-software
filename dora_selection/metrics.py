@@ -232,6 +232,11 @@ def ordered_runs(runs):
     return [run for _, _, run in dated], undated
 
 
+def run_start(run):
+    """Início de um run: `run_started_at` e, na falta dele, `created_at`."""
+    return moment((run or {}).get("run_started_at")) or moment((run or {}).get("created_at"))
+
+
 def run_end(run):
     """Fim observado de um run: `updated_at` e, na falta dele, `created_at`."""
     return moment((run or {}).get("updated_at")) or moment((run or {}).get("created_at"))
@@ -241,7 +246,7 @@ def failure_episodes(runs, observed_until=None):
     """Episódios de falha e tempo de recuperação de uma sequência de runs.
 
     Falhas consecutivas pertencem ao mesmo episódio, encerrado pelo primeiro sucesso
-    posterior: a recuperação vai do `created_at` da primeira falha ao `updated_at`
+    posterior: a recuperação vai do `run_started_at` da primeira falha ao `updated_at`
     desse sucesso. Runs `ignored` não abrem, estendem nem encerram episódios.
 
     Um episódio sem sucesso posterior fica censurado (`censored`): `observed_hours`
@@ -260,7 +265,7 @@ def failure_episodes(runs, observed_until=None):
             result["ignored"] += 1
             continue
         result["considered"] += 1
-        when = moment(run.get("created_at"))
+        when = run_start(run)
         if kind == FAILURE:
             if episode is None:
                 episode = {"repository": run.get("repository"), "workflow_id": run.get("workflow_id"),

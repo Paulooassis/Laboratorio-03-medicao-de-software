@@ -35,8 +35,8 @@ class ThresholdTests(unittest.TestCase):
             self.assertEqual(DEPLOYMENT_FREQUENCY.level(value), level, value)
 
     def test_lead_time_uses_exclusive_upper_bounds(self):
-        for value, level in ((0.0, ELITE), (0.999, ELITE), (1.0, HIGH), (23.99, HIGH), (24.0, MEDIUM),
-                             (167.99, MEDIUM), (168.0, LOW), (720.0, LOW)):
+        for value, level in ((0.0, ELITE), (23.99, ELITE), (24.0, HIGH), (167.99, HIGH), (168.0, MEDIUM),
+                             (719.99, MEDIUM), (720.0, LOW), (5000.0, LOW)):
             self.assertEqual(LEAD_TIME.level(value), level, value)
 
     def test_change_failure_rate_uses_inclusive_upper_bounds(self):
@@ -44,9 +44,10 @@ class ThresholdTests(unittest.TestCase):
                              (0.3001, MEDIUM), (0.45, MEDIUM), (0.4501, LOW), (1.0, LOW)):
             self.assertEqual(CHANGE_FAILURE_RATE.level(value), level, value)
 
-    def test_recovery_time_uses_the_same_bounds_as_lead_time(self):
-        for value in (0.0, 0.5, 1.0, 23.0, 24.0, 100.0, 168.0, 5000.0):
-            self.assertEqual(RECOVERY_TIME.level(value), LEAD_TIME.level(value), value)
+    def test_recovery_time_uses_exclusive_upper_bounds(self):
+        for value, level in ((0.0, ELITE), (0.999, ELITE), (1.0, HIGH), (23.99, HIGH), (24.0, MEDIUM),
+                             (167.99, MEDIUM), (168.0, LOW), (5000.0, LOW)):
+            self.assertEqual(RECOVERY_TIME.level(value), level, value)
 
     def test_non_numeric_values_are_not_classified(self):
         for scale in (DEPLOYMENT_FREQUENCY, LEAD_TIME, CHANGE_FAILURE_RATE, RECOVERY_TIME):
@@ -107,11 +108,11 @@ class MetricRatingTests(unittest.TestCase):
         self.assertEqual((result["level"], result["score"], result["reason"]), (None, None, "no_window"))
         self.assertIsNone(deployment_frequency_rating(None)["level"])
 
-    def test_lead_time_prefers_the_commit_median(self):
-        result = lead_time_rating({"median_hours": 5.0}, {"median_hours": 400.0})
-        self.assertEqual((result["level"], result["basis"]), (HIGH, "commit_median"))
-        fallback = lead_time_rating(None, {"median_hours": 400.0})
-        self.assertEqual((fallback["level"], fallback["basis"]), (LOW, "release_median"))
+    def test_lead_time_prefers_the_release_median(self):
+        result = lead_time_rating({"median_hours": 30.0}, {"median_hours": 800.0})
+        self.assertEqual((result["level"], result["basis"]), (LOW, "release_median"))
+        fallback = lead_time_rating({"median_hours": 30.0}, None)
+        self.assertEqual((fallback["level"], fallback["basis"]), (HIGH, "commit_median"))
 
     def test_change_failure_rate_rating(self):
         result = change_failure_rate_rating({"total": 10, "success": 9, "failure": 1,
@@ -300,11 +301,11 @@ class RepositoryClassificationTests(unittest.TestCase):
         self.assertEqual(result["repository"], "owner/repo")
         self.assertEqual(result["window_start"], metrics["window_start"])
         levels = {name: rating["level"] for name, rating in result["ratings"].items()}
-        self.assertEqual(levels, {"deployment_frequency": HIGH, "lead_time": HIGH,
+        self.assertEqual(levels, {"deployment_frequency": HIGH, "lead_time": ELITE,
                                   "change_failure_rate": HIGH, "recovery_time": ELITE})
-        self.assertEqual(result["scores"], [3, 3, 3, 4])
+        self.assertEqual(result["scores"], [3, 4, 3, 4])
         self.assertEqual((result["median_score"], result["overall_score"], result["overall"]),
-                         (3.0, 3, HIGH))
+                         (3.5, 3, HIGH))
         self.assertEqual(result["ratings"]["change_failure_rate"]["value"], 1 / 6)
         self.assertEqual(result["ratings"]["recovery_time"]["value"], 0.5)
         self.assertEqual(result["special_cases"]["unclassified_metrics"], {})
@@ -321,7 +322,7 @@ class RepositoryClassificationTests(unittest.TestCase):
         self.assertEqual(result["by_metric"]["deployment_frequency"],
                          {ELITE: 0, HIGH: 1, MEDIUM: 1, LOW: 1, "unclassified": 0})
         self.assertEqual(result["by_metric"]["lead_time"],
-                         {ELITE: 0, HIGH: 1, MEDIUM: 0, LOW: 0, "unclassified": 2})
+                         {ELITE: 1, HIGH: 0, MEDIUM: 0, LOW: 0, "unclassified": 2})
         self.assertEqual(result["by_overall"],
                          {ELITE: 0, HIGH: 1, MEDIUM: 1, LOW: 1, "unclassified": 0})
         self.assertEqual((result["median_score"], result["overall_score"], result["overall"]), (2, 2, MEDIUM))
