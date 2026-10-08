@@ -1,5 +1,164 @@
 # Laboratorio-03-medicao-de-software
 
+![Testes](https://github.com/Paulooassis/Laboratorio-03-medicao-de-software/actions/workflows/tests.yml/badge.svg)
+
+## Como executar
+
+Do zero até as métricas DORA dos 100 repositórios. As seções dos Cards 1 a 6, mais
+abaixo, detalham as regras de cada etapa; aqui está só o necessário para rodar.
+
+### 1. Instalação
+
+Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
+dependências instaladas servem somente aos testes.
+
+```bash
+git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
+cd Laboratorio-03-medicao-de-software
+python -m venv .venv
+source .venv/bin/activate          # Windows (PowerShell): .venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+```
+
+### 2. Token do GitHub
+
+O token é lido exclusivamente da variável de ambiente `GITHUB_TOKEN`. Ele não é
+aceito por argumento nem por arquivo de configuração e não aparece em saídas, cache
+ou log.
+
+1. Crie um token em <https://github.com/settings/tokens>. Só são lidos dados
+   públicos: um token clássico sem nenhum escopo marcado é suficiente.
+2. Exporte-o no terminal em que o pipeline será executado:
+
+```bash
+export GITHUB_TOKEN=ghp_seu_token      # Linux/macOS
+```
+
+```powershell
+$env:GITHUB_TOKEN = "ghp_seu_token"    # Windows (PowerShell)
+```
+
+Para não digitar o token a cada sessão, copie `.env.example` para `.env`, preencha e
+carregue com `set -a; source .env; set +a`. O `.env` está no `.gitignore`, assim como
+`outputs/`; nunca coloque um token em arquivo versionado.
+
+### 3. Pipeline
+
+Um único comando executa seleção, metadados, releases e commits, workflow runs,
+métricas e classificação:
+
+```bash
+python -m dora_selection.pipeline --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z
+```
+
+`--start` e `--end` definem a janela inclusiva (ISO 8601 com fuso, precisão de
+segundos) e são obrigatórios: a janela é uma decisão do experimento e deve ser a
+mesma para todo o grupo. As demais opções têm padrão:
+
+| Opção | Padrão | Efeito |
+| --- | --- | --- |
+| `--target` | `100` | Quantidade de repositórios a selecionar |
+| `--min-stars` | `1001` | Mínimo de estrelas dos candidatos |
+| `--output` | `outputs/pipeline` | Pasta de saída, com cache e diários |
+| `--tag-dates` | desligado | Consulta também a data do commit de cada tag |
+| `--state` | `<output>/state` | Pasta dos diários de retomada, um por etapa |
+
+As opções de cache, retry e rate limit do Card 4 (`--cache-dir`, `--no-cache`,
+`--cache-ttl`, `--no-resume`, `--max-attempts`, `--backoff`, `--max-backoff`,
+`--max-wait`, `--rate-limit-reserve`, `--log-file`) valem aqui com os mesmos padrões.
+
+Etapas, na ordem:
+
+1. **Seleção e metadados** (Card 1): percorre os repositórios públicos por estrelas
+   até reunir `--target` que atendam aos critérios.
+2. **Releases, tags e commits** (Card 2) dos selecionados.
+3. **Workflow runs** (Card 3) dos selecionados.
+4. **Métricas e classificação DORA** (Cards 5 e 6), sem rede.
+
+A coleta de 100 repositórios faz milhares de chamadas e pode levar horas, porque o
+programa aguarda sozinho o reset da cota da API (5000 chamadas por hora). Pode ser
+interrompida com `Ctrl+C` a qualquer momento: repetir **o mesmo comando** retoma do
+ponto em que parou, sem refazer chamadas já respondidas. Para validar a instalação
+antes da coleta completa, use uma amostra pequena em outra pasta:
+
+```bash
+python -m dora_selection.pipeline --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z --target 3 --output outputs/smoke
+```
+
+O comando termina com código 0 quando a meta é atingida e a coleta de todos os
+repositórios está completa. Termina com 1 quando a amostra fica abaixo da meta, há
+erro de busca, algum repositório ficou com coleta incompleta ou a execução foi
+interrompida; `summary.json` informa qual foi o caso em `status` e `stage`. Com
+amostra abaixo da meta as métricas são calculadas mesmo assim, sobre o que foi
+selecionado. Falha ao comparar duas releases (tag apagada, por exemplo) não conta
+como coleta incompleta: é o caso especial `comparison_unavailable` do Card 6.
+
+### 4. Testes e cobertura
+
+```bash
+python -m pytest
+```
+
+Os testes são offline: não usam rede nem token real. O comando já mede a cobertura
+de `dora_selection/metrics.py` e `dora_selection/rating.py`, lista as linhas não
+cobertas e **falha se a cobertura ficar abaixo de 80%** (configuração em
+`pyproject.toml`). Variações úteis:
+
+```bash
+python -m pytest tests/test_card7.py            # só métricas e classificação
+python -m pytest --cov=dora_selection           # cobertura do pacote inteiro
+python -m pytest --cov-report=html              # relatório navegável em htmlcov/
+python -m pytest --no-cov -k recovery           # um subconjunto, sem o limite de cobertura
+```
+
+O limite vale para a execução inteira; rodar um arquivo isolado que não exercita as
+métricas reprova por cobertura, e `--no-cov` evita isso. As fixtures compartilhadas
+ficam em `tests/conftest.py`: uma amostra pequena cujos resultados são calculáveis à
+mão (1 release por semana, Lead Time mediano de 24 h por commit e 36 h por release,
+Change Failure Rate de 0,5, recuperação mediana de 4 h e uma falha não recuperada).
+
+O workflow `.github/workflows/tests.yml` executa o mesmo `python -m pytest` em todo
+`push` e `pull_request`, em Python 3.10 e 3.12; cobertura abaixo de 80% reprova o job.
+
+### 5. Dados e cache
+
+Tudo fica na pasta de saída (`outputs/pipeline` por padrão), ignorada pelo Git:
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `selection/repositories.json` / `.csv` | Todos os candidatos avaliados, com metadados, filtros e motivo de exclusão |
+| `selection/selected.json` / `.csv` | Os repositórios incluídos na amostra |
+| `selection/funnel.json` | Funil da seleção |
+| `deployments.json` | Por repositório: `releases` (cada uma com seus `commits`), `prereleases`, `tags`, `errors` |
+| `workflow_runs.json` | Por repositório: `workflows` (cada um com seus `runs` classificados), `periods`, `errors` |
+| `metrics.json` | Resultado de `repository_metrics` de cada repositório (Card 5) |
+| `classification.json` | Resultado de `classify_repository` de cada repositório (Card 6) |
+| `dora.csv` | Uma linha por repositório: metadados, valor de cada métrica e classificações |
+| `summary.json` | Janela, situação da execução, totais por etapa, medianas da amostra, distribuição das classificações e uso da API |
+| `collection.log` | Erros, esperas por cota e novas tentativas |
+| `state/<etapa>.jsonl` | Diários de retomada: uma linha por unidade concluída |
+| `cache/<2 hex>/<sha256>.json` | Uma resposta da API por arquivo |
+
+- `dora.csv` é a tabela para análise: `releases_per_week`, `commit_lead_time_hours`,
+  `release_lead_time_hours`, `change_failure_rate`, `recovery_hours`, o nível de cada
+  métrica (`*_level`) e a classificação geral (`overall`). Célula vazia significa
+  métrica sem amostra, não zero; o motivo está em `classification.json`.
+  `collection_complete` indica se releases e workflow runs do repositório foram
+  coletados sem erro.
+- Cada arquivo do cache guarda `url` (normalizada, sem o token), `stored_at`, `data`
+  e o header `Link`. A chave é o SHA-256 da URL, e as etapas compartilham o mesmo
+  cache: releases e runs lidos na seleção não são pedidos de novo depois. Respostas
+  de erro não são gravadas. O cache não expira por padrão (`--cache-ttl`).
+- Os diários guardam o resultado de cada candidato ou repositório já concluído e
+  pertencem a uma janela: usar outra janela na mesma pasta é recusado. Para um novo
+  experimento, use outro `--output`; para recoletar tudo, apague a pasta ou use
+  `--no-resume --no-cache`.
+- Os arquivos de dados são regravados a cada execução na mesma pasta.
+
+Os comandos por etapa (`python -m dora_selection` e `python -m dora_selection.deployments`),
+descritos nas seções a seguir, continuam disponíveis e gravam em `outputs/card1` a
+`outputs/card3`.
+
 ## Lab03S01 — Card 1: seleção de repositórios
 
 Pipeline em Python 3.10+ usando somente a biblioteca padrão. Não requer instalação
@@ -81,7 +240,7 @@ valem para este comando sem alterar as regras de seleção.
 ### Testes
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m pytest
 ```
 
 Os testes cobrem inclusão/exclusão, conclusões de runs, branch/evento/janela,
@@ -170,7 +329,7 @@ compatibilidade com o Card 1.
 Execute a mesma suíte completa:
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m pytest
 ```
 
 Os testes do Card 2 verificam filtros, pré-releases, ordenação e pares, primeira
@@ -247,7 +406,7 @@ Erros aparecem também no stderr. Código de saída 0 indica coleta sem erros;
 1 indica coleta incompleta ou falha de persistência; 2 indica configuração inválida.
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m pytest
 ```
 
 Testes offline validam filtros, campos e associação, todas as classificações,
@@ -358,7 +517,7 @@ extensão de `dora_selection/api.py` (cota, retry e backoff), uso do diário em
 `tests/test_card4.py`.
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m pytest
 ```
 
 Os testes offline cobrem acerto de cache na mesma execução e em execução posterior,
@@ -561,7 +720,7 @@ extensão de `dora_selection/api.py` (cota, retry e backoff), uso do diário em
 `tests/test_card4.py`.
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m pytest
 ```
 
 Os testes do Card 5 validam releases por semana com semanas vazias e parciais,
@@ -670,7 +829,7 @@ do conjunto é a mediana arredondada das classificações gerais dos repositóri
 ### Testes
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m pytest
 ```
 
 Os testes do Card 6 verificam cada limite nas bordas das quatro faixas, valores não
