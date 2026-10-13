@@ -91,12 +91,20 @@ def sample_records(repositories, deployments, window, seed=42, count=60, release
             if type(identity) is not int or identity < 1 or not isinstance(tag, str) or not tag:
                 raise ValueError(f"{name}: release sem release_id ou tag_name válido.")
             previous = release.get("previous_tag_name")
-            if release.get("comparison_status") != "completed" or not isinstance(previous, str) or not previous:
+            status = release.get("comparison_status")
+            if status == "no_previous_release" and previous is None and release.get("previous_release_id") is None:
+                sha = release.get("commit_sha")
+                if not isinstance(sha, str) or not sha:
+                    raise ValueError(f"{name}, release {identity}: SHA da primeira release indisponível.")
+                commits_url = base + "/commits/" + quote(sha, safe="")
+            elif status == "completed" and isinstance(previous, str) and previous:
+                commits_url = base + "/compare/" + quote(previous, safe="") + "..." + quote(tag, safe="")
+            else:
                 raise ValueError(f"{name}, release {identity}: comparação anterior indisponível.")
             item = {"sample_id": sample_id, "repository": name, "release_id": identity,
                     "tag_name": tag, "published_at": published.isoformat(),
                     "release_url": base + "/releases/tag/" + quote(tag, safe=""),
-                    "commits_url": base + "/compare/" + quote(previous, safe="") + "..." + quote(tag, safe="")}
+                    "commits_url": commits_url}
             if identity in valid and valid[identity] != item:
                 raise ValueError(f"{name}: dados conflitantes para release {identity}.")
             valid[identity] = item

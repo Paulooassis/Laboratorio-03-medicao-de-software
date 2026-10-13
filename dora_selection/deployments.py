@@ -121,6 +121,8 @@ class DeploymentCollector:
 
         def compare(pair):
             previous, release = pair
+            if previous["commit_sha"] and previous["commit_sha"] == release["commit_sha"]:
+                return [], None
             base = quote(previous["commit_sha"] or previous["tag_name"], safe="")
             head = quote(release["commit_sha"] or release["tag_name"], safe="")
             try:
@@ -142,11 +144,25 @@ class DeploymentCollector:
             except COLLECTION_ERRORS as exc:
                 return None, exc
 
-        # As comparações são independentes entre si e podem ser consultadas em paralelo.
-        for (previous, release), (commits, exc) in zip(pairs, parallel(compare, pairs, self.workers)):
+        def comparison_key(pair):
+            previous, release = pair
+            return (previous["commit_sha"] or previous["tag_name"],
+                    release["commit_sha"] or release["tag_name"])
+
+        unique_pairs = {}
+        for pair in pairs:
+            unique_pairs.setdefault(comparison_key(pair), pair)
+        identical = sum(bool(previous["commit_sha"]) and previous["commit_sha"] == release["commit_sha"]
+                        for previous, release in unique_pairs.values())
+        LOGGER.info("Comparações de %s: %d pares, %d consultas únicas, %d pares com SHA idêntico.",
+                    full_name, len(pairs), len(unique_pairs) - identical, identical)
+        comparisons = dict(zip(unique_pairs, parallel(compare, unique_pairs.values(), self.workers)))
+        for previous, release in pairs:
+            commits, exc = comparisons[comparison_key((previous, release))]
             if exc is None:
                 # Só publica a comparação depois de completar todas as páginas.
-                release["commits"] = commits
+                release["commits"] = [{**commit, "release_id": release["release_id"],
+                                       "release_tag_name": release["tag_name"]} for commit in commits]
                 release["comparison_status"] = "completed"
                 result["summary"]["comparisons_completed"] += 1
             else:
