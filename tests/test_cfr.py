@@ -33,12 +33,16 @@ class SemverTests(unittest.TestCase):
         self.assertFalse(semver_patch_only({"tag_name": "v2.5.0"}, {"tag_name": "v2.4.0"}))
         self.assertFalse(semver_patch_only({"tag_name": "v3.0.0"}, {"tag_name": "v2.9.9"}))
 
-    def test_patch_only_is_undecided_without_comparable_tags(self):
-        self.assertIsNone(semver_patch_only({"tag_name": "v2.3.1"}, None))
+    def test_own_patch_decides_without_smaller_previous(self):
+        self.assertTrue(semver_patch_only({"tag_name": "v2.3.1"}, None))
+        self.assertFalse(semver_patch_only({"tag_name": "v2.3.0"}, {"tag_name": "nightly"}))
+        # Tag menor ou igual à anterior (backport, retag): decide o próprio patch.
+        self.assertTrue(semver_patch_only({"tag_name": "v1.0.1"}, {"tag_name": "v2.0.0"}))
+        self.assertFalse(semver_patch_only({"tag_name": "v1.0.0"}, {"tag_name": "1.0.0"}))
+
+    def test_undecided_when_tag_is_not_semver(self):
         self.assertIsNone(semver_patch_only({"tag_name": "2024-05-10"}, {"tag_name": "v1.0.0"}))
-        # Tag menor ou igual à anterior (backport, retag) não é comparável.
-        self.assertIsNone(semver_patch_only({"tag_name": "v1.0.1"}, {"tag_name": "v2.0.0"}))
-        self.assertIsNone(semver_patch_only({"tag_name": "v1.0.0"}, {"tag_name": "1.0.0"}))
+        self.assertIsNone(semver_patch_only({}, None))
 
 
 class FixCommitTests(unittest.TestCase):
@@ -67,7 +71,7 @@ class EhCorretivaTests(unittest.TestCase):
         self.assertTrue(eh_corretiva(current, previous, [commit("fix: a"), commit("feat: b")]))
         self.assertFalse(eh_corretiva(current, previous,
                                       [commit("fix: a"), commit("feat: b"), commit("feat: c")]))
-        self.assertTrue(eh_corretiva({"tag_name": "v1.0.1"}, None, [commit("hotfix: crash")]))
+        self.assertTrue(eh_corretiva({"tag_name": "nightly"}, None, [commit("hotfix: crash")]))
 
     def test_without_commits_or_semver_is_not_corrective(self):
         self.assertFalse(eh_corretiva({"tag_name": "nightly"}, {"tag_name": "nightly-2"}, []))
@@ -103,12 +107,12 @@ class CfrEntregaTests(unittest.TestCase):
                               release(2, "v1.0.1", "2026-01-12T12:00:00Z")], END)
         self.assertTrue(result["details"][0]["failed"])
 
-    def test_any_later_fix_within_seven_days_counts(self):
+    def test_any_later_fix_of_the_same_line_within_seven_days_counts(self):
         result = cfr_entrega([release(1, "v1.0.0", "2026-01-05T12:00:00Z"),
-                              release(2, "v1.1.0", "2026-01-06T12:00:00Z"),
-                              release(3, "v1.1.1", "2026-01-07T12:00:00Z")], END)
-        self.assertEqual([d["failed"] for d in result["details"]], [True, True, False])
-        self.assertEqual(result["details"][0]["fixed_by_tag_name"], "v1.1.1")
+                              release(2, "v2.0.0", "2026-01-06T12:00:00Z"),
+                              release(3, "v1.0.1", "2026-01-07T12:00:00Z")], END)
+        self.assertEqual([d["failed"] for d in result["details"]], [True, False, False])
+        self.assertEqual(result["details"][0]["fixed_by_tag_name"], "v1.0.1")
 
     def test_releases_in_last_seven_days_are_censored(self):
         result = cfr_entrega([release(1, "v1.0.0", "2026-01-20T12:00:00Z"),
@@ -140,10 +144,35 @@ class CfrEntregaTests(unittest.TestCase):
         self.assertEqual([d["failed"] for d in result["details"]], [True, False, False])
 
     def test_first_release_uses_previous_tag_outside_window(self):
-        result = cfr_entrega([release(1, "v1.0.1", "2026-01-05T12:00:00Z", previous_tag_name="v1.0.0"),
-                              release(2, "v1.1.0", "2026-01-06T12:00:00Z")], END)
+        result = cfr_entrega([release(1, "v2.0.1", "2026-01-05T12:00:00Z", previous_tag_name="v1.9.0"),
+                              release(2, "v2.1.0", "2026-01-06T12:00:00Z")], END)
+        self.assertFalse(result["details"][0]["corrective"])
+        result = cfr_entrega([release(1, "v2.0.1", "2026-01-05T12:00:00Z")], END)
         self.assertTrue(result["details"][0]["corrective"])
-        self.assertEqual(result["corrective"], 1)
+
+    def test_parallel_lines_compare_and_fail_within_their_own_line(self):
+        # Como no kubernetes: patches de v1.34.x e v1.35.x intercalados com v1.36.0.
+        result = cfr_entrega([release(1, "v1.35.4", "2026-01-05T10:00:00Z"),
+                              release(2, "v1.34.7", "2026-01-05T11:00:00Z"),
+                              release(3, "v1.36.0", "2026-01-06T12:00:00Z"),
+                              release(4, "v1.36.1", "2026-01-08T12:00:00Z"),
+                              release(5, "v1.35.5", "2026-01-20T12:00:00Z")], END)
+        details = {d["tag_name"]: d for d in result["details"]}
+        self.assertEqual([d["corrective"] for d in result["details"]], [True, True, False, True, True])
+        # v1.34.7 seguida por v1.36.1 em 3 dias não falhou: a correção é de outra linha.
+        self.assertFalse(details["v1.34.7"]["failed"])
+        self.assertFalse(details["v1.35.4"]["failed"])
+        self.assertEqual(details["v1.36.0"]["fixed_by_tag_name"], "v1.36.1")
+        self.assertEqual(result["failed"], 1)
+
+    def test_minor_after_other_line_is_compared_with_its_own_line(self):
+        # Como no vscode: tags v0.44.x de outro produto entre as 1.x.
+        result = cfr_entrega([release(1, "1.116.0", "2026-01-05T12:00:00Z"),
+                              release(2, "v0.44.1", "2026-01-06T12:00:00Z"),
+                              release(3, "1.117.0", "2026-01-07T12:00:00Z"),
+                              release(4, "v0.44.2", "2026-01-08T12:00:00Z")], END)
+        self.assertEqual([d["corrective"] for d in result["details"]], [False, True, False, True])
+        self.assertEqual([d["fixed_by_tag_name"] for d in result["details"]], [None, "v0.44.2", None, None])
 
     def test_unordered_input_undated_and_empty(self):
         result = cfr_entrega([release(2, "v1.0.1", "2026-01-06T12:00:00Z"),

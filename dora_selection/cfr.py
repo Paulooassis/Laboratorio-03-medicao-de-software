@@ -3,11 +3,16 @@
 Uma release falha quando é seguida, em até 7 dias, por uma release corretiva. O GitHub
 não marca releases corretivas, então `eh_corretiva` aplica a heurística v1:
 
-1. Se as tags da release e da anterior são SemVer comparáveis, decide o SemVer: é
-   corretiva quando muda apenas o patch (v2.3.0 → v2.3.1), nunca em major ou minor.
-2. Sem SemVer comparável (tag como `2024-05-10` ou sem release anterior), decidem os
-   commits: é corretiva quando ao menos metade das mensagens (primeira linha) cita
-   `fix`, `hotfix` ou `revert` como palavra inteira.
+1. Se a tag é SemVer, decide o SemVer: é corretiva quando, em relação à anterior, muda
+   apenas o patch (v2.3.0 → v2.3.1), nunca em major ou minor. Sem anterior menor que
+   ela (primeira release, backport de uma linha antiga, retag), decide o próprio patch.
+2. Se a tag não é SemVer (`2024-05-10`), decidem os commits: é corretiva quando ao
+   menos metade das mensagens (primeira linha) cita `fix`, `hotfix` ou `revert` como
+   palavra inteira.
+
+Repositórios que mantêm várias linhas ao mesmo tempo (v1.35.x e v1.36.x) intercalam
+releases: por isso `cfr_entrega` compara cada release com a anterior da mesma linha
+(`major.minor`) e só atribui a falha a uma release da mesma linha da corretiva.
 
 Funções puras, sem rede nem persistência, como em `metrics`.
 """
@@ -44,12 +49,21 @@ def eh_fix_commit(commit):
 
 
 def semver_patch_only(release, release_anterior):
-    """True/False quando o SemVer decide; None quando as tags não são comparáveis."""
+    """True/False quando a tag é SemVer; None quando não é e os commits decidem."""
     current = parse_semver((release or {}).get("tag_name"))
-    previous = parse_semver((release_anterior or {}).get("tag_name"))
-    if current is None or previous is None or current <= previous:
+    if current is None:
         return None
-    return current[:2] == previous[:2]
+    previous = parse_semver((release_anterior or {}).get("tag_name"))
+    if previous is not None and current > previous:
+        return current[:2] == previous[:2]
+    return current[2] > 0
+
+
+def same_line(release, other):
+    """Mesma linha `major.minor`; tags fora do SemVer não restringem a comparação."""
+    first = parse_semver((release or {}).get("tag_name"))
+    second = parse_semver((other or {}).get("tag_name"))
+    return first is None or second is None or first[:2] == second[:2]
 
 
 def eh_corretiva(release, release_anterior, commits):
@@ -79,13 +93,14 @@ def ordered_releases(releases):
 def cfr_entrega(releases, fim_janela):
     """Change Failure Rate (b) = releases que falharam / releases avaliáveis.
 
-    Uma release falha quando alguma release posterior publicada em até 7 dias é
-    corretiva. Releases publicadas nos últimos 7 dias da janela não têm 7 dias
+    Uma release falha quando alguma release posterior da mesma linha, publicada em até
+    7 dias, é corretiva. Releases publicadas nos últimos 7 dias da janela não têm 7 dias
     observados: ficam fora do denominador e são contadas em `censored`. Releases sem
     data entram em `ignored_missing_date`. Sem release avaliável, a taxa é None.
 
-    A primeira release da lista é comparada com `previous_tag_name`, que pode estar
-    fora da janela; as demais, com a release anterior da própria lista.
+    Cada release é comparada com a anterior mais recente da mesma linha; sem ela, com a
+    anterior da lista e, para a primeira, com `previous_tag_name`, que pode estar fora
+    da janela.
     """
     ordered, undated = ordered_releases(releases)
     end = moment(fim_janela)
@@ -97,13 +112,15 @@ def cfr_entrega(releases, fim_janela):
     corrective = []
     for index, (_, release) in enumerate(ordered):
         previous = ordered[index - 1][1] if index else {"tag_name": release.get("previous_tag_name")}
+        previous = next((earlier for _, earlier in reversed(ordered[:index])
+                         if parse_semver(earlier.get("tag_name")) and same_line(release, earlier)), previous)
         corrective.append(eh_corretiva(release, previous, release.get("commits")))
     result["corrective"] = sum(corrective)
     for index, (when, release) in enumerate(ordered):
         censored = when > end - FAILURE_WINDOW
         fixed_by = None if censored else next(
             (later for (later_when, later), is_fix in zip(ordered[index + 1:], corrective[index + 1:])
-             if is_fix and when < later_when <= when + FAILURE_WINDOW), None)
+             if is_fix and same_line(release, later) and when < later_when <= when + FAILURE_WINDOW), None)
         result["details"].append({
             "repository": release.get("repository"), "release_id": release.get("release_id"),
             "tag_name": release.get("tag_name"), "published_at": release.get("published_at"),
