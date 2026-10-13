@@ -948,3 +948,49 @@ Referências:
 [Fleiss (1971)](https://doi.org/10.1037/h0031619),
 [Landis & Koch (1977)](https://doi.org/10.2307/2529310),
 [`statsmodels.stats.inter_rater`](https://www.statsmodels.org/stable/generated/statsmodels.stats.inter_rater.fleiss_kappa.html).
+
+## Lab03S02 — S2-06: consenso e protocolo de desempate
+
+Transforma os rótulos dos três avaliadores em um rótulo único por item, que é a
+referência da avaliação da heurística (S2-08) e o fator "tipo do projeto" da RQ 06. A
+regra de desempate e o procedimento da reunião estão em
+[`validacao/PROTOCOLO.md`](validacao/PROTOCOLO.md).
+
+### Execução
+
+Depois de medir a concordância (S2-05), com as mesmas planilhas em `validacao/rotulos/`:
+
+```bash
+python -m validacao.consenso      # 1ª vez: gera a pauta da reunião
+# reunião: decisões registradas em validacao/decisoes.csv
+python -m validacao.consenso      # 2ª vez: gera o consenso
+```
+
+| Arquivo | Quando | Conteúdo |
+|---|---|---|
+| `validacao/resultados/pendencias.csv` | Sempre | Pauta: votos, motivo (`tie`, `uncertain_majority`, `uncertain_vote`), maioria e rótulo decidido |
+| `validacao/consenso.csv` | Sem itens pendentes | Rótulo final de cada item, `method` (`unanimous`, `majority`, `meeting`), votos e justificativa |
+| `validacao/resultados/tipo_projeto.csv` | Sem itens pendentes | `repository`, `project_type` consensual, para a RQ 06 |
+
+Termina com 1 enquanto houver itens sem rótulo (empate 1-1-1 ou maioria `uncertain` sem
+decisão registrada) e com 2 em erro de entrada. `--decisions`, `--output`, `--pending`
+e `--project-type` mudam os caminhos.
+
+### Regras
+
+- Maioria simples: o rótulo com mais da metade dos votos é o final.
+- Empate 1-1-1 (`tie`) e maioria `uncertain` (`uncertain_majority`) ficam sem rótulo
+  até a reunião; um voto `uncertain` isolado (`uncertain_vote`) mantém a maioria, mas
+  entra na pauta para revisão.
+- `validacao/decisoes.csv` (`dimension`, `repository`, `release_id`, `label`,
+  `justification`) prevalece sobre a maioria. Cada linha precisa de justificativa, de um
+  item existente nas planilhas e de um valor permitido; `release_id` fica vazio nas
+  dimensões do repositório. As planilhas individuais nunca são editadas, então o
+  consenso é sempre regenerável a partir dos arquivos versionados.
+
+### Testes
+
+`tests/test_consenso.py` cobre maioria, unanimidade, empate 1-1-1, maioria `uncertain`,
+voto `uncertain` isolado, decisões que resolvem a pauta, decisão que revisa uma maioria,
+cada erro do arquivo de decisões e as duas execuções da linha de comando (com e sem
+pendências).
