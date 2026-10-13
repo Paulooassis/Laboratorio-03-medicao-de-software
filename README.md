@@ -9,9 +9,9 @@ abaixo, detalham as regras de cada etapa; aqui está só o necessário para roda
 
 ### 1. Instalação
 
-Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
-dependências instaladas servem aos testes e à validação manual da amostra-ouro
-(`statsmodels`, para o kappa de Fleiss).
+Requer Python 3.10 ou superior. PyYAML lê a configuração do pipeline; as demais
+dependências servem aos testes e à validação da amostra-ouro (statsmodels,
+scikit-learn e ijson).
 
 ```bash
 git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
@@ -963,30 +963,27 @@ Referências:
 
 ## Lab03S02 — S2-06: consenso e protocolo de desempate
 
-Transforma os rótulos dos três avaliadores em um rótulo único por item, que é a
-referência da avaliação da heurística (S2-08) e o fator "tipo do projeto" da RQ 06. A
-regra de desempate e o procedimento da reunião estão em
-[`validacao/PROTOCOLO.md`](validacao/PROTOCOLO.md).
+Consolida `validacao/rotulos/rotulos_grupo.csv` em um rótulo por item, usado como
+referência da avaliação da heurística (S2-08) e como fator "tipo do projeto" da RQ 06.
+O fluxo de maioria e desempate continua disponível quando várias planilhas são
+passadas explicitamente.
 
 ### Execução
 
-Depois de medir a concordância (S2-05), com as mesmas planilhas em `validacao/rotulos/`:
+Com a planilha coletiva completa:
 
 ```bash
-python -m validacao.consenso      # 1ª vez: gera a pauta da reunião
-# reunião: decisões registradas em validacao/decisoes.csv
-python -m validacao.consenso      # 2ª vez: gera o consenso
+python -m validacao.consenso
 ```
 
 | Arquivo | Quando | Conteúdo |
 |---|---|---|
 | `validacao/resultados/pendencias.csv` | Sempre | Pauta: votos, motivo (`tie`, `uncertain_majority`, `uncertain_vote`), maioria e rótulo decidido |
-| `validacao/consenso.csv` | Sem itens pendentes | Rótulo final de cada item, `method` (`unanimous`, `majority`, `meeting`), votos e justificativa |
+| `validacao/consenso.csv` | Sem células vazias | Rótulo final de cada item, `method` (`group`), voto e justificativa |
 | `validacao/resultados/tipo_projeto.csv` | Sem itens pendentes | `repository`, `project_type` consensual, para a RQ 06 |
 
-Termina com 1 enquanto houver itens sem rótulo (empate 1-1-1 ou maioria `uncertain` sem
-decisão registrada) e com 2 em erro de entrada. `--decisions`, `--output`, `--pending`
-e `--project-type` mudam os caminhos.
+Uma célula obrigatória vazia ou inválida encerra a execução com erro. `--output`,
+`--pending` e `--project-type` mudam os caminhos.
 
 ### Regras
 
@@ -1006,3 +1003,18 @@ e `--project-type` mudam os caminhos.
 voto `uncertain` isolado, decisões que resolvem a pauta, decisão que revisa uma maioria,
 cada erro do arquivo de decisões e as duas execuções da linha de comando (com e sem
 pendências).
+
+## Lab03S02 — S2-08: avaliação da heurística
+
+Após gerar o consenso humano completo:
+
+```powershell
+py -3.13 validacao/avaliar_heuristica.py
+```
+
+O script avalia as 300 releases, calcula precisão, recall e F1, gera a matriz de
+confusão e lista falsos positivos/negativos. O histórico e a ameaça à validade do
+refinamento estão em [validacao/heuristica_versoes.md](validacao/heuristica_versoes.md).
+`--approve` registra a versão oficial no `config.yaml` quando F1 >= 0,70, ou com
+justificativa documentada para uma exceção. Sem consenso, `--predict-only` produz
+somente previsões e mantém a aprovação pendente.

@@ -1,5 +1,9 @@
-# O pipeline usa apenas a biblioteca padrão; pytest e pytest-cov são só para os testes.
+# Dependências de testes e validação; PyYAML também lê a configuração do pipeline.
 pytest>=8.0
 pytest-cov>=5.0
 # Validação manual da amostra-ouro (validacao/): kappa de Fleiss.
 statsmodels>=0.14
+# S2-08: avaliação, leitura do arquivo de coleta e configuração da versão oficial.
+scikit-learn>=1.5.2,<2
+ijson>=3.3,<4
+PyYAML>=6,<7

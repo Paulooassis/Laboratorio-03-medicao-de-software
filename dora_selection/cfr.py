@@ -17,6 +17,8 @@ releases: por isso `cfr_entrega` compara cada release com a anterior da mesma li
 Funções puras, sem rede nem persistência, como em `metrics`.
 """
 import re
+import hashlib
+import inspect
 from datetime import timedelta
 from .metrics import moment
 
@@ -90,6 +92,56 @@ def ordered_releases(releases):
     return [(when, release) for when, _, release in dated], undated
 
 
+def classify_releases(releases):
+    """Aplica a regra com o mesmo predecessor usado no CFR, incluindo backports."""
+    ordered, undated = ordered_releases(releases)
+    corrective = []
+    for index, (_, release) in enumerate(ordered):
+        previous = ordered[index - 1][1] if index else {"tag_name": release.get("previous_tag_name")}
+        previous = next((earlier for _, earlier in reversed(ordered[:index])
+                         if parse_semver(earlier.get("tag_name")) and same_line(release, earlier)), previous)
+        corrective.append(eh_corretiva(release, previous, release.get("commits")))
+    return ordered, undated, corrective
+
+
+def rule_fingerprint():
+    """Detecta mudança na regra: alterar a implementação exige reavaliação."""
+    text = '\n'.join(inspect.getsource(function) for function in
+                     (parse_semver, eh_fix_commit, semver_patch_only, same_line, eh_corretiva,
+                      ordered_releases, classify_releases))
+    text += repr((SEMVER.pattern, SEMVER.flags, FIX_WORDS.pattern, FIX_WORDS.flags,
+                  FIX_COMMIT_SHARE, MAX_MAJOR))
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def official_version(path):
+    """Versão aprovada no config.yaml; None enquanto não houver avaliação humana."""
+    import yaml
+    try:
+        config = yaml.safe_load(path.read_text(encoding='utf-8'))
+    except yaml.YAMLError as exc:
+        raise ValueError(f'Configuração YAML inválida: {exc}') from exc
+    if not isinstance(config, dict) or not isinstance(config.get('heuristica_corretiva'), dict):
+        raise ValueError('Configuração sem heuristica_corretiva.')
+    section = config['heuristica_corretiva']
+    version = section.get('versao_oficial')
+    if version is None:
+        return None
+    if version != HEURISTIC_VERSION:
+        raise ValueError(f'Versão oficial não implementada: {version}.')
+    evaluation = section.get('avaliacao') or {}
+    if not isinstance(evaluation, dict):
+        raise ValueError('Registro de avaliação oficial inválido.')
+    f1 = evaluation.get('f1')
+    if not isinstance(f1, (int, float)) or isinstance(f1, bool) or not 0 <= f1 <= 1:
+        raise ValueError('F1 da versão oficial ausente ou inválido.')
+    if f1 < 0.70 and not (evaluation.get('justificativa') or '').strip():
+        raise ValueError('F1 abaixo de 0,70 sem justificativa documentada.')
+    if evaluation.get('regra_sha256') != rule_fingerprint():
+        raise ValueError('A regra mudou ou não possui avaliação registrada; reavalie antes de usar.')
+    return version
+
+
 def cfr_entrega(releases, fim_janela):
     """Change Failure Rate (b) = releases que falharam / releases avaliáveis.
 
@@ -102,19 +154,13 @@ def cfr_entrega(releases, fim_janela):
     anterior da lista e, para a primeira, com `previous_tag_name`, que pode estar fora
     da janela.
     """
-    ordered, undated = ordered_releases(releases)
+    ordered, undated, corrective = classify_releases(releases)
     end = moment(fim_janela)
     if end is None:
         raise ValueError("fim_janela precisa ser um instante com fuso horário.")
     result = {"heuristic": HEURISTIC_VERSION, "releases": len(ordered) + undated,
               "ignored_missing_date": undated, "corrective": 0, "evaluated": 0, "failed": 0,
               "censored": 0, "change_failure_rate": None, "details": []}
-    corrective = []
-    for index, (_, release) in enumerate(ordered):
-        previous = ordered[index - 1][1] if index else {"tag_name": release.get("previous_tag_name")}
-        previous = next((earlier for _, earlier in reversed(ordered[:index])
-                         if parse_semver(earlier.get("tag_name")) and same_line(release, earlier)), previous)
-        corrective.append(eh_corretiva(release, previous, release.get("commits")))
     result["corrective"] = sum(corrective)
     for index, (when, release) in enumerate(ordered):
         censored = when > end - FAILURE_WINDOW

@@ -12,6 +12,7 @@ from pathlib import Path
 from .api import APIError, GitHubClient, LOGGER
 from .deployments import collect_repositories
 from .metrics import aggregate_metrics, repository_metrics
+from .cfr import HEURISTIC_VERSION, cfr_entrega, official_version
 from .output import dora_row, save_dora, save_json, save_output
 from .rating import classify_repository, classify_sample
 from .resilience import (Checkpoint, add_resilience_arguments, client_options, collection_report,
@@ -51,8 +52,10 @@ def select_repositories(search, collector, target, checkpoint=None, rows=None):
     return None
 
 
-def compute_dora(window, selected, deployments, workflow_runs):
+def compute_dora(window, selected, deployments, workflow_runs, corrective_version=None):
     """Cards 5 e 6: métricas e classificação de cada repositório selecionado."""
+    if corrective_version not in (None, HEURISTIC_VERSION):
+        raise ValueError(f'Versão de CFR (b) não implementada: {corrective_version}.')
     releases = {repo["full_name"].casefold(): repo for repo in deployments}
     runs = {repo["full_name"].casefold(): repo for repo in workflow_runs}
     rows, metrics, classifications = [], [], []
@@ -61,6 +64,8 @@ def compute_dora(window, selected, deployments, workflow_runs):
         workflows = runs.get(repo["full_name"].casefold()) or {}
         measured = repository_metrics(window, deployment.get("releases"), workflows.get("workflows"),
                                       repo["full_name"])
+        if corrective_version is not None:
+            measured['change_failure_rate_b'] = cfr_entrega(deployment.get('releases'), window.end)
         classification = classify_repository(measured)
         # Erro de comparação entre duas releases já é caso especial do Card 6, não coleta incompleta.
         complete = (bool(workflows.get("complete")) and bool(deployment)
@@ -72,7 +77,7 @@ def compute_dora(window, selected, deployments, workflow_runs):
 
 
 def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=False, checkpoints=None,
-                 workers=1):
+                 workers=1, corrective_version=None):
     """Executa as etapas em ordem e devolve o resumo gravado em `summary.json`."""
     output = Path(output)
     checkpoints = checkpoints or {}
@@ -80,6 +85,7 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
                "target": target, "min_stars": min_stars, "status": "incomplete", "stage": STAGES[0],
                "selection": None, "deployments": None, "workflow_runs": None, "metrics": None,
                "classification": None, "api": {}}
+    summary['corrective_heuristic_version'] = corrective_version
     rows, deployments, workflow_runs = [], [], []
     search = CandidateSearch(client, min_stars)
     error = None
@@ -136,7 +142,7 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
 
         summary["stage"] = "metrics"
         LOGGER.info("Etapa 4 de 4: métricas e classificação DORA.")
-        table, metrics, classifications = compute_dora(window, selected, deployments, workflow_runs)
+        table, metrics, classifications = compute_dora(window, selected, deployments, workflow_runs, corrective_version)
         save_dora(output, table, metrics, classifications)
         summary["metrics"] = aggregate_metrics(metrics)
         summary["classification"] = classify_sample(classifications)
@@ -206,6 +212,8 @@ def main(argv=None):
     parser.add_argument("--min-stars", type=int, default=1001)
     parser.add_argument("--output", default="outputs/pipeline", help="Pasta de saída (padrão outputs/pipeline)")
     parser.add_argument("--tag-dates", action="store_true", help="Consultar também commit.author.date de cada tag")
+    parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1]/'config.yaml',
+                        help='Configuração da versão oficial do CFR (b)')
     parser.add_argument("--workers", type=int, default=4,
                         help="Consultas simultâneas dentro de cada repositório (padrão 4; 1 desliga)")
     add_resilience_arguments(parser)
@@ -217,13 +225,16 @@ def main(argv=None):
         window = Window(timestamp(args.start), timestamp(args.end))
         if window.start.microsecond or window.end.microsecond:
             raise ValueError("Use precisão de segundos, sem frações.")
+        corrective_version = official_version(args.config)
+        if corrective_version is None:
+            LOGGER.info('CFR (b) pendente: nenhuma versão oficial validada em config.yaml.')
         client = GitHubClient(**client_options(args))
         checkpoints = open_checkpoints(args, window)
-    except (APIError, ValueError, OSError) as exc:
+    except (APIError, ValueError, OSError, ImportError) as exc:
         parser.error(str(exc))
     try:
         summary = run_pipeline(client, window, args.output, args.target, args.min_stars, args.tag_dates,
-                               checkpoints, args.workers)
+                               checkpoints, args.workers, corrective_version)
     except OSError as exc:
         LOGGER.error("Erro de persistência: %s", exc)
         return 1
