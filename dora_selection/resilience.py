@@ -72,7 +72,7 @@ class ResponseCache:
             with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent,
                                              prefix=path.stem, suffix=".tmp", delete=False) as file:
                 temporary = file.name
-                json.dump(entry, file, ensure_ascii=False)
+                file.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")))
                 file.flush()
                 os.fsync(file.fileno())
             os.replace(temporary, path)
@@ -167,7 +167,7 @@ class Checkpoint:
             self.path.write_text("".join(line + "\n" for line in valid), encoding="utf-8")
 
     def _write(self, entry):
-        json.dump(entry, self._file, ensure_ascii=False)
+        self._file.write(json.dumps(entry, ensure_ascii=False, separators=(",", ":")))
         self._file.write("\n")
         self._file.flush()
         os.fsync(self._file.fileno())

@@ -483,7 +483,7 @@ class EndToEndTests(unittest.TestCase):
         if "per_page=1&" in request.full_url or request.full_url.endswith("per_page=1"):
             return Response({"total_count": 1}, {"X-RateLimit-Remaining": "4999",
                                                  "X-RateLimit-Reset": "0"})
-        return Response({"workflow_runs": [run(1)]}, {"X-RateLimit-Remaining": "4998",
+        return Response({"total_count": 1, "workflow_runs": [run(1)]}, {"X-RateLimit-Remaining": "4998",
                                                       "X-RateLimit-Reset": "0"})
 
     def command(self, *extra):
@@ -495,18 +495,18 @@ class EndToEndTests(unittest.TestCase):
         with patch("dora_selection.api.urlopen", side_effect=self.transport) as opener:
             with patch("sys.stdout"):
                 self.assertEqual(main(self.command()), 0)
-        self.assertEqual(opener.call_count, 3)  # 503, contagem e página
+        self.assertEqual(opener.call_count, 2)  # 503 e primeira página com contagem
         data = json.loads(next(self.output.glob("run-*/workflow_runs.json")).read_text())
         self.assertEqual(data[0]["summary"], {"success": 1, "failure": 0, "ignored": 0, "total": 1})
         summary = json.loads(next(self.output.glob("run-*/summary.json")).read_text())
-        self.assertEqual((summary["api"]["retries"], summary["api"]["requests"]), (1, 2))
+        self.assertEqual((summary["api"]["retries"], summary["api"]["requests"]), (1, 1))
         self.assertTrue(list((self.output / "cache").glob("*/*.json")))
         # Sem o diário, a coleta é refeita inteira e ainda assim não chama a API.
         with patch("dora_selection.api.urlopen", side_effect=AssertionError("não deve chamar")):
             with patch("sys.stdout"):
                 self.assertEqual(main(self.command("--no-resume")), 0)
         again = [json.loads(path.read_text()) for path in self.output.glob("run-*/summary.json")]
-        self.assertEqual(sorted(entry["api"]["cache_hits"] for entry in again), [0, 2])
+        self.assertEqual(sorted(entry["api"]["cache_hits"] for entry in again), [0, 1])
 
 
 class ReportTests(unittest.TestCase):

@@ -136,7 +136,7 @@ class MetadataCollector:
     def _runs(self, path, branch, start, end, verify_count=False):
         fmt = lambda d: d.isoformat(timespec="seconds").replace("+00:00", "Z")
         params = {"branch": branch, "event": "push", "created": f"{fmt(start)}..{fmt(end)}"}
-        probe, _ = self.client.get(path, {**params, "per_page": 1})
+        probe, headers = self.client.get(path, {**params, "per_page": 100})
         if (not isinstance(probe, dict) or type(probe.get("total_count")) is not int
                 or probe["total_count"] < 0):
             raise APIError("Resposta de workflow runs inválida.")
@@ -148,14 +148,18 @@ class MetadataCollector:
             yield from self._runs(path, branch, start, middle, verify_count)
             yield from self._runs(path, branch, middle + timedelta(seconds=1), end, verify_count)
         else:
+            if probe["total_count"] == 0:
+                return
+            # A consulta de contagem já trouxe a primeira página completa.
+            pagination = {"first_page": (probe, headers)} if "workflow_runs" in probe else {}
             if verify_count:
-                runs = list(self.client.pages(path, params, "workflow_runs"))
+                runs = list(self.client.pages(path, params, "workflow_runs", **pagination))
                 ids = {run["id"] for run in runs}
                 if len(ids) != probe["total_count"]:
                     raise APIError("Contagem de runs diverge da API; período incompleto, execute novamente.")
                 yield from runs
             else:
-                yield from self.client.pages(path, params, "workflow_runs")
+                yield from self.client.pages(path, params, "workflow_runs", **pagination)
 
     def _valid_runs(self, path, branch):
         """Contagem completa dos runs válidos da janela, sem duplicatas entre meses."""
@@ -197,8 +201,8 @@ class MetadataCollector:
                 row["contributors"] = sum(1 for _ in self.client.pages(path + "/contributors", {"anon": "true"}))
             else:
                 row["contributors"] = len(people)
-            workflows = list(self.client.pages(path + "/actions/workflows", key="workflows"))
-            row["uses_github_actions"] = bool(workflows)
+            workflows = self.client.pages(path + "/actions/workflows", key="workflows")
+            row["uses_github_actions"] = next(workflows, None) is not None
             # Cada filtro só é consultado se o anterior passou: releases e runs de um
             # repositório já descartado custariam chamadas sem mudar o resultado.
             if row["uses_github_actions"]:
