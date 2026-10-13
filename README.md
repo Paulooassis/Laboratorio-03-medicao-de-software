@@ -10,7 +10,8 @@ abaixo, detalham as regras de cada etapa; aqui está só o necessário para roda
 ### 1. Instalação
 
 Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
-dependências instaladas servem somente aos testes.
+dependências instaladas servem aos testes e à validação manual da amostra-ouro
+(`statsmodels`, para o kappa de Fleiss).
 
 ```bash
 git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
@@ -113,7 +114,8 @@ python -m pytest
 ```
 
 Os testes são offline: não usam rede nem token real. O comando já mede a cobertura
-de `dora_selection/metrics.py` e `dora_selection/rating.py`, lista as linhas não
+de `dora_selection/metrics.py`, `dora_selection/rating.py`, `dora_selection/cfr.py`
+e `validacao/`, lista as linhas não
 cobertas e **falha se a cobertura ficar abaixo de 80%** (configuração em
 `pyproject.toml`). Variações úteis:
 
@@ -881,3 +883,68 @@ GitHub não é validado por mocks.
 Referências oficiais:
 [rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
 [boas práticas de uso da API](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api).
+
+## Lab03S02 — S2-05: concordância entre avaliadores
+
+Antes de usar os rótulos humanos como referência, o script mede o quanto os três
+avaliadores concordam entre si, separadamente para cada dimensão rotulada.
+
+### Execução
+
+Com as três planilhas preenchidas em `validacao/rotulos/rotulos_{X}.csv` (S2-04):
+
+```bash
+python -m validacao.concordancia
+python -m validacao.concordancia caminho/a.csv caminho/b.csv caminho/c.csv   # outras planilhas
+```
+
+O resultado vai para `validacao/resultados/kappa.csv` (`--output` muda o destino).
+Termina com erro, sem gravar nada, se alguma planilha tiver célula vazia, valor fora
+dos permitidos, release duplicada ou itens diferentes das demais.
+
+### Entrada
+
+As planilhas seguem o formato gerado por `python -m dora_selection.gold_sample`: uma
+linha por release, com as colunas do repositório repetidas. Os valores permitidos são
+os de `MANUAL_VALUES` em `dora_selection/gold_sample.py`; maiúsculas e espaços nas
+pontas são ignorados, e arquivos salvos pelo Excel com `;` como separador também são
+aceitos. Colunas extras, como `observacao`, são ignoradas.
+
+| Dimensão | Itens | Valores |
+|---|---|---|
+| `project_type` | 1 por repositório (60) | `library/framework`, `application/service`, `cli`, `other` |
+| `releases_represent_deliveries` | 1 por repositório (60) | `yes`, `no`, `uncertain` |
+| `is_corrective` | 1 por release (300) | `yes`, `no` |
+
+As duas dimensões do repositório podem ser preenchidas em apenas uma das linhas dele;
+valores diferentes entre as linhas do mesmo repositório são erro.
+
+### Saída
+
+| Coluna | Descrição |
+|---|---|
+| `dimension`, `level` | Dimensão e nível do item (`repository` ou `release`) |
+| `items`, `raters` | Número de itens e de avaliadores |
+| `categories_used` | Categorias que aparecem em pelo menos um rótulo |
+| `fleiss_kappa` | Kappa de Fleiss (`aggregate_raters` + `fleiss_kappa` do `statsmodels`); vazio quando indefinido |
+| `interpretation` | Faixa de Landis & Koch (1977): pobre (< 0), leve (≤ 0,20), razoável (≤ 0,40), moderada (≤ 0,60), substancial (≤ 0,80), quase perfeita |
+| `unanimous_agreement` | Fração de itens em que todos os avaliadores deram o mesmo rótulo |
+| `pairwise_agreement` | Concordância média entre pares de avaliadores (o P̄ de Fleiss) |
+
+As duas concordâncias brutas servem de contraste com o kappa, que desconta a
+concordância esperada por acaso. Quando todos usam uma única categoria em uma dimensão,
+a concordância esperada é 1 e o kappa fica indefinido (0/0): a coluna fica vazia e a
+interpretação é `indefinido`, em vez de um valor numérico enganoso.
+
+### Testes
+
+`tests/test_concordancia.py` usa uma amostra com kappa calculado à mão: 4 releases e
+3 avaliadores com κ = 1/3, concordância perfeita com κ = 1, discordância sistemática
+com κ = −1 e uma dimensão com categoria única (kappa indefinido). Também cobre as
+bordas da escala de Landis & Koch, planilhas do Excel com `;`, rótulos do repositório
+em uma só linha, e cada erro de validação.
+
+Referências:
+[Fleiss (1971)](https://doi.org/10.1037/h0031619),
+[Landis & Koch (1977)](https://doi.org/10.2307/2529310),
+[`statsmodels.stats.inter_rater`](https://www.statsmodels.org/stable/generated/statsmodels.stats.inter_rater.fleiss_kappa.html).

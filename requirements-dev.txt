@@ -1,3 +1,5 @@
-# O pipeline usa apenas a biblioteca padrão; estas dependências são só para os testes.
+# O pipeline usa apenas a biblioteca padrão; pytest e pytest-cov são só para os testes.
 pytest>=8.0
 pytest-cov>=5.0
+# Validação manual da amostra-ouro (validacao/): kappa de Fleiss.
+statsmodels>=0.14
