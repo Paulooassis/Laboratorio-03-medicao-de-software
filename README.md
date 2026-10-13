@@ -88,6 +88,18 @@ aguarda sozinho o reset e continua. Para chegar perto desse limite sem desperdí
   consultados em paralelo (`--workers`), sempre poucos por vez, como o GitHub pede;
 - as respostas trafegam comprimidas (gzip).
 
+Na coleta de commits, pares de releases com as mesmas referências compartilham
+uma única comparação, preservando os identificadores de cada release na saída.
+Tags com SHA idêntico não precisam consultar compare: o conjunto de commits entre
+elas é vazio. O log informa o número de pares e de consultas únicas por repositório.
+O ganho depende da quantidade de referências repetidas; pares distintos ainda
+exigem paginação completa para calcular as métricas corretamente.
+
+Cache e diários serializam cada registro JSON em bloco, sem espaços entre campos,
+reduzindo o custo de escrita. As respostas completas e as garantias de escrita
+atômica do cache são preservadas; os arquivos antigos continuam compatíveis.
+Isso melhora o processamento local, sem reduzir a quantidade de chamadas à API.
+
 O progresso aparece no console e em `collection.log`, uma linha por repositório
 concluído. A coleta pode ser interrompida com `Ctrl+C` a qualquer momento: repetir
 **o mesmo comando** retoma do ponto em que parou, sem refazer chamadas já

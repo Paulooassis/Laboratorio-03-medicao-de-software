@@ -176,8 +176,8 @@ class GitHubClient:
         self.stats["rate_limit_remaining"] = None
         return wait
 
-    def pages(self, path, params=None, key=None):
-        data, headers = self.get(path, {**(params or {}), "per_page": 100})
+    def pages(self, path, params=None, key=None, first_page=None):
+        data, headers = first_page if first_page is not None else self.get(path, {**(params or {}), "per_page": 100})
         while True:
             items = data.get(key) if key and isinstance(data, dict) else data
             if not isinstance(items, list):

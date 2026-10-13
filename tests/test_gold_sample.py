@@ -159,3 +159,17 @@ def test_window_validation(tmp_path):
     (tmp_path / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
     with pytest.raises(ValueError, match="difere"):
         observation_window(path, "2025-01-02T00:00:00Z", summary["window_end"])
+
+
+def test_first_historical_release_uses_collected_sha(dataset):
+    repositories, deployments, window = dataset
+    for repo in deployments:
+        repo["releases"] = [{**repo["releases"][0], "comparison_status": "no_previous_release",
+                             "previous_release_id": None, "previous_tag_name": None,
+                             "commit_sha": "abc123"}]
+    rows = sample_records(repositories, deployments, window, count=1, releases_per_repository=1)[1]
+    assert rows[0]["commits_url"] == f"https://github.com/{rows[0]['repository']}/commits/abc123"
+    for repo in deployments:
+        repo["releases"][0]["commit_sha"] = None
+    with pytest.raises(ValueError, match="SHA da primeira release"):
+        sample_records(repositories, deployments, window, count=1, releases_per_repository=1)

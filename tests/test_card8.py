@@ -186,7 +186,7 @@ def test_stages_share_one_cache(github, execute):
     # Releases e runs pedidos na seleção não são pedidos de novo nas etapas seguintes:
     # uma listagem de releases e, para o único mês da janela, a contagem e a página de runs.
     assert github.requests.count("/repos/owner/one/releases") == 1
-    assert github.requests.count("/repos/owner/one/actions/runs") == 2
+    assert github.requests.count("/repos/owner/one/actions/runs") == 1
 
 
 def test_discarded_candidate_costs_no_further_requests(github, execute, tmp_path):
