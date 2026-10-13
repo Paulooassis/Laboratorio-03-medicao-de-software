@@ -71,11 +71,13 @@ DORA_FIELDS = ["repository", "stars", "language", "created_at", "contributors", 
                "considered_runs", "change_failure_rate", "recovery_hours", "censored_episodes",
                "deployment_frequency_level", "lead_time_level", "change_failure_rate_level",
                "recovery_time_level", "median_score", "overall"]
+DORA_FIELDS += ['cfr_b', 'cfr_b_version', 'cfr_b_censored']
 
 
 def dora_row(repo, metrics, classification, complete):
     """Uma linha por repositório: metadados, valores das métricas e classificações."""
     ratings = classification["ratings"]
+    cfr_b = metrics.get('change_failure_rate_b') or {}
     return {"repository": repo["full_name"], "stars": repo.get("stars"), "language": repo.get("language"),
             "created_at": repo.get("created_at"), "contributors": repo.get("contributors"),
             "collection_complete": complete,
@@ -85,6 +87,8 @@ def dora_row(repo, metrics, classification, complete):
             "release_lead_time_hours": metrics["lead_time_per_release"]["median_hours"],
             "considered_runs": metrics["change_failure_rate"]["considered"],
             "change_failure_rate": metrics["change_failure_rate"]["change_failure_rate"],
+            'cfr_b': cfr_b.get('change_failure_rate'), 'cfr_b_version': cfr_b.get('heuristic'),
+            'cfr_b_censored': cfr_b.get('censored'),
             "recovery_hours": metrics["recovery_time"]["median_recovery_hours"],
             "censored_episodes": metrics["recovery_time"]["censored"],
             **{f"{name}_level": rating["level"] for name, rating in ratings.items()},
