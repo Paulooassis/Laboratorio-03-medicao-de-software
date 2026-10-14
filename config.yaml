@@ -1,3 +1,12 @@
+coleta:
+  inicio: '2025-01-01T00:00:00Z'
+  fim: '2025-12-31T23:59:59Z'
+  alvo: 300
+  min_estrelas: 1001
+  saida: outputs/pipeline
+  processados: data/processed
+  tipo_projeto: validacao/resultados/tipo_projeto.csv
+  workers: 4
 heuristica_corretiva:
   versao_candidata: v1
   versao_oficial: v1

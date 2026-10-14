@@ -1,9 +1,9 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# A cobertura mínima vale para os módulos de métricas, CFR (b), classificação DORA
+# A cobertura mínima vale para os módulos de métricas, CFR (b), dataset final, classificação DORA
 # e validação manual;
 # abaixo de 80% a execução termina com erro.
-addopts = "--cov=dora_selection.metrics --cov=dora_selection.rating --cov=dora_selection.cfr --cov=validacao --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=dora_selection.metrics --cov=dora_selection.rating --cov=dora_selection.cfr --cov=dora_selection.dataset --cov=validacao --cov-report=term-missing --cov-fail-under=80"
 
 [tool.coverage.run]
 branch = true
