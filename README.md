@@ -172,7 +172,8 @@ O workflow `.github/workflows/tests.yml` executa o mesmo `python -m pytest` em t
 
 ### 5. Dados e cache
 
-O dataset final fica em `data/processed`, descrito na seção
+O dataset final fica em `data/processed`, com cada coluna documentada no
+[dicionário de dados](docs/dicionario_de_dados.md) e descrito na seção
 [S2-10](#lab03s02--s2-10-métricas-em-todas-as-variantes-e-dataset-final). Os dados
 brutos ficam na pasta de saída (`outputs/pipeline` por padrão), ignorada pelo Git:
 
@@ -1106,6 +1107,9 @@ as três releases ficam fora do Lead Time e continuam na frequência.
 `dora_selection/dataset.py` achata os resultados de `metrics.py`, `cfr.py` e `rating.py`
 em três tabelas, sem recalcular nada. Célula vazia significa métrica sem amostra, nunca
 zero.
+
+Nome, tipo, unidade, fórmula e origem na API de cada coluna estão no
+[dicionário de dados](docs/dicionario_de_dados.md).
 
 | Arquivo em `data/processed` | Uma linha por | Uso |
 | --- | --- | --- |
