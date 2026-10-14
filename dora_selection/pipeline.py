@@ -1,4 +1,4 @@
-"""Card 8: seleção, coleta, métricas e classificação em um único comando.
+"""Card 8: seleção, coleta, métricas, classificação e dataset final em um único comando.
 
 Reúne os Cards 1 a 6 sem mudar nenhuma regra: um só cliente, um só cache e um diário
 de retomada por etapa. Cada etapa é persistida ao terminar, de modo que uma execução
@@ -10,6 +10,7 @@ import json
 import sys
 from pathlib import Path
 from .api import APIError, GitHubClient, LOGGER
+from .dataset import build_dataset, censoring, collection_checks, load_project_types, save_dataset
 from .deployments import collect_repositories
 from .metrics import aggregate_metrics, repository_metrics
 from .cfr import HEURISTIC_VERSION, cfr_entrega, official_version
@@ -77,9 +78,10 @@ def compute_dora(window, selected, deployments, workflow_runs, corrective_versio
 
 
 def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=False, checkpoints=None,
-                 workers=1, corrective_version=None):
+                 workers=1, corrective_version=None, processed=None, project_types=None):
     """Executa as etapas em ordem e devolve o resumo gravado em `summary.json`."""
     output = Path(output)
+    processed = Path(processed) if processed else output / "processed"
     checkpoints = checkpoints or {}
     summary = {"window_start": window.start.isoformat(), "window_end": window.end.isoformat(),
                "target": target, "min_stars": min_stars, "status": "incomplete", "stage": STAGES[0],
@@ -141,11 +143,16 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
                 LOGGER.error("%s: %s", repo["full_name"], item["error"])
 
         summary["stage"] = "metrics"
-        LOGGER.info("Etapa 4 de 4: métricas e classificação DORA.")
+        LOGGER.info("Etapa 4 de 4: métricas, classificação DORA e dataset final.")
         table, metrics, classifications = compute_dora(window, selected, deployments, workflow_runs, corrective_version)
         save_dora(output, table, metrics, classifications)
         summary["metrics"] = aggregate_metrics(metrics)
         summary["classification"] = classify_sample(classifications)
+        dataset = build_dataset(window, selected, deployments, metrics, classifications, table, project_types)
+        summary["dataset"] = {"files": save_dataset(processed, dataset, summary["selection"]),
+                              **{name: len(rows) for name, rows in dataset.items()},
+                              "censoring": censoring(dataset["repositories"])}
+        summary["collection_checks"] = collection_checks(deployments, workflow_runs)
         summary["incomplete_repositories"] = [row["repository"] for row in table
                                               if not row["collection_complete"]]
         if summary["selection"]["target_reached"] and not summary["incomplete_repositories"]:
@@ -214,6 +221,9 @@ def main(argv=None):
     parser.add_argument("--tag-dates", action="store_true", help="Consultar também commit.author.date de cada tag")
     parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1]/'config.yaml',
                         help='Configuração da versão oficial do CFR (b)')
+    parser.add_argument("--processed", help="Pasta do dataset final em CSV (padrão <output>/processed)")
+    parser.add_argument("--project-types", type=Path,
+                        help="CSV repository,project_type do consenso da amostra-ouro (fator da RQ 06)")
     parser.add_argument("--workers", type=int, default=4,
                         help="Consultas simultâneas dentro de cada repositório (padrão 4; 1 desliga)")
     add_resilience_arguments(parser)
@@ -228,13 +238,14 @@ def main(argv=None):
         corrective_version = official_version(args.config)
         if corrective_version is None:
             LOGGER.info('CFR (b) pendente: nenhuma versão oficial validada em config.yaml.')
+        project_types = load_project_types(args.project_types) if args.project_types else None
         client = GitHubClient(**client_options(args))
         checkpoints = open_checkpoints(args, window)
     except (APIError, ValueError, OSError, ImportError) as exc:
         parser.error(str(exc))
     try:
         summary = run_pipeline(client, window, args.output, args.target, args.min_stars, args.tag_dates,
-                               checkpoints, args.workers, corrective_version)
+                               checkpoints, args.workers, corrective_version, args.processed, project_types)
     except OSError as exc:
         LOGGER.error("Erro de persistência: %s", exc)
         return 1
@@ -242,6 +253,7 @@ def main(argv=None):
     print(json.dumps({"status": summary["status"], "stage": summary["stage"],
                       "selected": selection.get("included"), "target": summary["target"],
                       "classification": (summary["classification"] or {}).get("by_overall"),
+                      "dataset": (summary.get("dataset") or {}).get("files"),
                       "output": str(args.output)}, ensure_ascii=False, indent=2))
     return 0 if summary["status"] == "complete" else 1
 
