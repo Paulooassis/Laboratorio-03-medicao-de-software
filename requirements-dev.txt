@@ -3,3 +3,7 @@ pytest>=8.0
 pytest-cov>=5.0
 # Validação manual da amostra-ouro (validacao/): kappa de Fleiss.
 statsmodels>=0.14
+# Análises estatísticas da Sprint 3 (analise/): leitura dos CSVs, mediana/IQR e figuras.
+# matplotlib 3.9 é o mínimo por causa de `boxplot(tick_labels=...)`.
+pandas>=2.2
+matplotlib>=3.9
