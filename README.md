@@ -10,8 +10,9 @@ abaixo, detalham as regras de cada etapa; aqui está só o necessário para roda
 ### 1. Instalação
 
 Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
-dependências instaladas servem aos testes e à validação manual da amostra-ouro
-(`statsmodels`, para o kappa de Fleiss).
+dependências instaladas servem aos testes, à validação manual da amostra-ouro
+(`statsmodels`, para o kappa de Fleiss) e às análises estatísticas da Sprint 3
+(`pandas` e `matplotlib`, para `python -m analise`).
 
 ```bash
 git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
@@ -1006,3 +1007,125 @@ e `--project-type` mudam os caminhos.
 voto `uncertain` isolado, decisões que resolvem a pauta, decisão que revisa uma maioria,
 cada erro do arquivo de decisões e as duas execuções da linha de comando (com e sem
 pendências).
+
+## Lab03S03 — RQ 01 a RQ 04: estatística descritiva (mediana, IQR e censura)
+
+Responde "quanto valem as métricas DORA nos repositórios populares que usam CI/CD" a
+partir dos CSVs do pipeline, sem nenhuma coleta nova. Toda métrica é resumida por
+**mediana e IQR** — nunca por média e desvio-padrão — e as RQ 02 e 03 trazem as duas
+variantes obrigatórias lado a lado. O que ficou de fora é publicado junto: releases
+ignoradas por motivo (incluindo o `compare` com 404), releases censuradas nos últimos
+7 dias e a proporção de episódios censurados por repositório.
+
+### Execução
+
+```bash
+python -m analise                                    # todas as análises registradas
+python -m analise --listar                           # nomes disponíveis
+python -m analise --dados data/processed --saida resultados --analise rq01_04
+```
+
+| Opção | Padrão | Efeito |
+| --- | --- | --- |
+| `--dados` | `data/processed` | Diretório dos três CSVs de entrada |
+| `--saida` | `resultados` | Destino das tabelas, figuras e rascunhos |
+| `--analise` | todas | Executa só a análise indicada; pode repetir |
+| `--listar` | — | Lista as análises registradas e termina |
+
+Termina com 2 quando algum CSV falta ou está sem as colunas obrigatórias, sem gravar
+nada. As análises são regeneráveis: rodar de novo reescreve todas as saídas a partir
+dos CSVs.
+
+### Entrada
+
+Três CSVs em `data/processed/`. Em todos eles só `repository` é obrigatória; as demais
+colunas, quando faltam, entram como vazio e a análise recalcula o valor a partir da
+tabela detalhada ou o registra como ausente — nunca como zero. Datas são lidas em UTC e
+`True`/`False` são aceitos em qualquer caixa.
+
+`repositorios.csv`, uma linha por repositório:
+
+| Coluna | Uso |
+| --- | --- |
+| `releases_per_week` | RQ 01 |
+| `release_lead_time_hours`, `commit_lead_time_hours` | RQ 02, variantes (a) e (b) |
+| `releases_no_previous`, `releases_compare_not_found`, `releases_compare_error`, `releases_no_new_commits`, `releases_no_commit_dates`, `releases_no_date` | Releases fora do Lead Time, por motivo |
+| `considered_runs`, `ignored_runs`, `change_failure_rate` | RQ 03, variante (a) |
+| `delivery_change_failure_rate` (apelido: `cfr_entrega`) | RQ 03, variante (b), quando `releases.csv` não traz o veredito |
+| `recovery_hours`, `censored_episodes` | RQ 04, quando `episodios_falha.csv` não existe |
+| `stars`, `language`, `created_at`, `contributors`, `window_start`, `window_end` | Metadados, usados pelas RQ 05 a 07 |
+
+`releases.csv`, uma linha por release:
+
+| Coluna | Uso |
+| --- | --- |
+| `published_at`, `status`, `comparison_status` | Releases fora do Lead Time quando o resumo não as conta |
+| `lead_time_hours`, `median_commit_lead_time_hours`, `first_commit_author_date`, `last_commit_author_date`, `commits` | Inspeção do commit antigo "esquecido" da RQ 02 |
+| `censored`, `failed`, `corrective`, `fixed_by_tag_name` | RQ 03, variante (b) |
+
+`episodios_falha.csv`, uma linha por episódio de falha:
+
+| Coluna | Uso |
+| --- | --- |
+| `recovery_hours`, `recovered`, `inconsistent` | Mediana da RQ 04 |
+| `observed_hours`, `censored` | Limite inferior do viés da censura |
+
+### Saídas
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/sintese_rq01_04.{csv,tex}` | Tabela-síntese: métrica × variante × (n, mediana, Q1, Q3, IQR, unidade) |
+| `resultados/tabelas/rq02_releases_ignoradas.{csv,tex}` | Releases fora do Lead Time por motivo, com a origem da contagem |
+| `resultados/tabelas/rq02_razao_lead_time.{csv,tex}` | Os 5 repositórios com maior razão (a)/(b) e a release que explica a divergência |
+| `resultados/tabelas/rq03_cobertura.{csv,tex}` | Runs considerados e ignorados; releases avaliadas, que falharam e censuradas |
+| `resultados/tabelas/rq03_cfr_entrega_por_repositorio.{csv,tex}` | CFR (b) por repositório, para as RQ 05 a 07 |
+| `resultados/tabelas/rq04_censura.{csv,tex}` | Episódios por desfecho, proporção censurada e tamanho do viés |
+| `resultados/tabelas/rq04_recuperacao_por_repositorio.{csv,tex}` | Recuperação mediana, censura e limite inferior por repositório |
+| `resultados/figuras/rq01_deployment_frequency.pdf` | Histograma e boxplot das releases por semana, em escala log |
+| `resultados/figuras/rq02_lead_time_variantes.pdf` | Boxplots (a) × (b) e dispersão com a diagonal a = b |
+| `resultados/figuras/rq03_cfr_variantes.pdf` | Boxplots das duas variantes do CFR e dispersão a × b |
+| `resultados/figuras/rq04_tempo_de_recuperacao.pdf` | Recuperação com e sem os censurados e a censura por repositório |
+| `resultados/texto/notas_rq01_04.md` | Rascunhos da seção de Resultados, com os números já no texto |
+| `resultados/rq01_04.json` | Todos os números da análise, inclusive as tabelas por repositório |
+
+Os `.tex` são `tabular` em LaTeX puro, prontos para o `\input{}` do template da SBC, com
+vírgula decimal e travessão no valor ausente. As figuras são PDF vetorial no tamanho de
+uma coluna do template, com o padrão visual de `analise/estilo.py`.
+
+### Regras
+
+- **RQ 01, Deployment Frequency.** Repositório sem release na janela entra na mediana
+  com zero — é um valor medido, não um dado ausente — e é contado à parte.
+- **RQ 02, Lead Time.** A variante (a), por release, vai do commit mais antigo do
+  intervalo até a publicação; a (b), por commit, de cada commit até a publicação. Basta
+  um commit antigo "esquecido" para (a) subir sem que o ritmo tenha mudado, então a
+  análise publica a razão (a)/(b) por repositório e inspeciona em `releases.csv`, nos 5
+  maiores, a release de maior intervalo: quando ela cobre pelo menos o dobro da mediana
+  dos seus próprios commits, o intervalo é dominado por um commit antigo.
+- **RQ 03, Change Failure Rate.** A variante (a) é proxy de CI (falhas sobre runs
+  considerados) e a (b), proxy de entrega (releases seguidas em até 7 dias por uma
+  corretiva da mesma linha). Falha de pipeline não é falha em produção: o rascunho em
+  `resultados/texto/` explica por que as duas divergem e por que comparar qualquer uma
+  delas direto com as faixas do relatório DORA superestima a taxa de falha.
+- **RQ 04, tempo de recuperação.** A mediana usa apenas episódios recuperados e
+  consistentes, o que **subestima** o tempo real: justamente os episódios mais longos
+  são os que não terminaram dentro da janela. O viés é quantificado por um limite
+  inferior que trata cada censurado como recuperado no fim da observação
+  (`observed_hours`); o valor real fica acima da primeira mediana.
+- Releases e episódios excluídos nunca são estimados nem tratados como zero: cada
+  exclusão aparece em uma tabela, com o motivo.
+
+### Testes
+
+`tests/test_analise_comum.py` cobre a leitura dos três CSVs (datas em UTC, vazio como
+ausente, coluna opcional faltando, apelido de coluna, arquivo e coluna obrigatória
+ausentes), `resumo` com quartis calculados à mão (amostra ímpar, par, com ausentes e
+vazia) e as saídas (`.tex` com escape e vírgula decimal, JSON com `null` no ausente).
+
+`tests/test_rq01_04.py` usa uma amostra de quatro repositórios com cada estatística
+calculável à mão — mediana 1,5 release por semana; Lead Time (a) 48 h e (b) 12 h, razão
+mediana 2×; CFR (a) 0,5 e (b) 0,5; recuperação 10 h contra 30 h no limite inferior — e
+cobre as duas variantes de cada RQ, a contagem de releases ignoradas por motivo (com e
+sem as colunas do resumo), o `compare` com 404 separado dos demais erros, o episódio
+inconsistente fora das duas medianas, o viés da censura, a amostra sem nenhuma linha e
+os quatro caminhos da linha de comando.
