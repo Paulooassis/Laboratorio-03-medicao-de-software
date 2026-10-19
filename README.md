@@ -1053,7 +1053,8 @@ tabela detalhada ou o registra como ausente — nunca como zero. Datas são lida
 | `considered_runs`, `ignored_runs`, `change_failure_rate` | RQ 03, variante (a) |
 | `delivery_change_failure_rate` (apelido: `cfr_entrega`) | RQ 03, variante (b), quando `releases.csv` não traz o veredito |
 | `recovery_hours`, `censored_episodes` | RQ 04, quando `episodios_falha.csv` não existe |
-| `stars`, `language`, `created_at`, `contributors`, `window_start`, `window_end` | Metadados, usados pelas RQ 05 a 07 |
+| `deployment_frequency_level`, `lead_time_level`, `change_failure_rate_level`, `recovery_time_level`, `median_score`, `overall` | Classificação gravada pelo pipeline, conferida pela C1 |
+| `stars`, `language`, `created_at`, `contributors`, `collection_complete`, `window_start`, `window_end` | Metadados, usados pelas RQ 05 a 07 |
 
 `releases.csv`, uma linha por release:
 
@@ -1129,3 +1130,92 @@ cobre as duas variantes de cada RQ, a contagem de releases ignoradas por motivo 
 sem as colunas do resumo), o `compare` com 404 separado dos demais erros, o episódio
 inconsistente fora das duas medianas, o viés da censura, a amostra sem nenhuma linha e
 os quatro caminhos da linha de comando.
+
+## Lab03S03 — C1: classificação DORA de referência
+
+A combinação **C1** é o ponto de comparação da análise de sensibilidade (RQ 07) e o
+resultado que resume as RQ 01 a 04 no artigo. Esta análise fixa a definição da C1,
+mostra que ela é reproduzível a partir do CSV e produz a distribuição das categorias.
+
+| Métrica | Definição na C1 | Coluna do CSV |
+| --- | --- | --- |
+| Deployment Frequency | deployment = release publicada | `releases_per_week` |
+| Lead Time | variante **(a) por release** | `release_lead_time_hours` |
+| Change Failure Rate | variante **(a) proxy de CI** | `change_failure_rate` |
+| Tempo de recuperação | primeira falha até o primeiro sucesso do mesmo workflow | `recovery_hours` |
+
+As faixas são as da tabela de referência do enunciado, implementadas em
+`dora_selection/rating.py`: a análise importa de lá em vez de reescrevê-las, para que
+exista uma definição só no repositório.
+
+### Execução
+
+```bash
+python -m analise --analise classificacao_c1
+```
+
+### As duas decisões que a C1 torna explícitas
+
+**1. O fallback do Lead Time.** `lead_time_rating` classifica pela variante (a) e, na
+falta dela, cai para a (b) por commit — e um repositório classificado assim não está, a
+rigor, na C1. **Decisão do grupo: opção (2)**, a C1 usa só a variante (a); sem ela o Lead
+Time fica sem classificação e o nível geral sai da mediana das outras três métricas. O
+motivo está na RQ 07, que compara a C1 com a C4 (release + (b) + (b)) justamente para
+separar o efeito de trocar a unidade de deploy do de trocar a variante da métrica: aceitar
+o fallback na referência colocaria repositórios híbridos C1/C4 dentro dela e contaminaria
+essa comparação. As duas leituras continuam lado a lado no CSV, com a contagem de quantos
+repositórios a escolha afeta.
+
+| Colunas | Leitura |
+| --- | --- |
+| `lead_time_level`, `median_score`, `overall_score`, `overall` | C1 **estrita**: só a variante (a); sem ela o Lead Time fica sem classificação |
+| `lead_time_level_com_fallback`, `overall_com_fallback` | A regra de hoje do pipeline |
+| `lead_time_apenas_com_b`, `overall_mudou_sem_fallback` | Os repositórios afetados pela escolha |
+
+A tabela e a figura da distribuição seguem a decisão acima. O rascunho em
+`resultados/texto/notas_classificacao_c1.md` registra a decisão e os números dos dois
+cenários; reproduzir a regra do pipeline na RQ 07 é trocar de coluna, sem refazer a
+análise.
+
+**2. Métrica sem classificação.** O nível geral é a **mediana das notas das métricas
+disponíveis** (Elite = 4 a Low = 1), arredondada para baixo. O repositório só fica sem
+nível geral quando nenhuma das quatro métricas foi classificada: uma métrica ausente não
+vira zero nem Elite e não entra na mediana, então um repositório com três métricas ainda
+recebe nível geral, calculado sobre essas três. Quantos repositórios caem em cada caso
+está em `classificacao_c1_cobertura.csv`.
+
+### Conferência com o pipeline
+
+Os níveis são recalculados a partir das colunas do CSV e comparados com os `*_level` e o
+`overall` que o pipeline gravou; a coluna `divergencias` nomeia cada diferença. A
+comparação usa a leitura com fallback, que é a regra implementada no pipeline. O tempo de
+recuperação de um repositório sem nenhum episódio recuperado é reconstruído do limite
+inferior dos censurados em `episodios_falha.csv`, como faz `recovery_time_rating` — sem
+isso o CSV sozinho não reproduziria esse caso. Um `repositorios.csv` sem as colunas do
+pipeline é reportado como **não verificável**, não como divergente.
+
+### Saídas
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `resultados/classificacao_c1.csv` | Uma linha por repositório: valores, níveis da C1, leitura com fallback, colunas do pipeline e `divergencias`; reaproveitado pela RQ 07 |
+| `resultados/tabelas/classificacao_c1_distribuicao.{csv,tex}` | Elite / High / Medium / Low / sem classificação, por métrica e no geral (contagem) |
+| `resultados/tabelas/classificacao_c1_distribuicao_percentual.{csv,tex}` | A mesma distribuição em proporção |
+| `resultados/tabelas/classificacao_c1_cobertura.{csv,tex}` | Repositórios com 4, 3, 2, 1 ou nenhuma métrica classificada |
+| `resultados/tabelas/classificacao_c1_divergencias.{csv,tex}` | Repositórios cujo recálculo não bateu com o pipeline (vazia quando tudo bate) |
+| `resultados/figuras/classificacao_c1_distribuicao.pdf` | Barras empilhadas da distribuição por métrica e no geral |
+| `resultados/texto/notas_classificacao_c1.md` | As duas decisões, a conferência e a distribuição, com os números no texto |
+| `resultados/classificacao_c1.json` | Todos os números da análise |
+
+### Testes
+
+`tests/test_classificacao_c1.py` não inventa níveis: monta um repositório com as funções
+do pipeline (`repository_metrics` e `classify_repository`), grava os três CSVs a partir
+dessas estruturas e confere que a classificação recalculada bate métrica a métrica e no
+nível geral — inclusive no caso em que a recuperação só pode ser classificada pelo limite
+inferior dos censurados. Cobre também os casos de borda do enunciado (notas 4, 3, 3 e 1
+têm mediana 3 e dão High; 4, 3, 2 e 1 têm mediana 2,5, arredondada para baixo, e dão
+Medium), a métrica ausente fora da mediana, zero release como medição e não como ausência,
+as duas leituras do Lead Time, a distribuição com contagem e proporção, a cobertura por
+número de métricas, o nível trocado no CSV detectado como divergência e o CSV sem as
+colunas do pipeline tratado como não verificável.

@@ -10,6 +10,7 @@ entra como NaN, e cada RQ decide se recalcula o valor a partir das tabelas detal
 (`releases.csv` e `episodios_falha.csv`) em vez de usar o resumo por repositório.
 """
 import json
+import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -50,9 +51,12 @@ REPOSITORIOS = Tabela(
                "releases_no_previous", "releases_compare_not_found", "releases_compare_error",
                "releases_no_new_commits", "releases_no_commit_dates", "releases_no_date",
                "considered_runs", "ignored_runs", "change_failure_rate",
-               "delivery_change_failure_rate", "recovery_hours", "censored_episodes"),
+               "delivery_change_failure_rate", "recovery_hours", "censored_episodes",
+               "median_score"),
     datas=("created_at", "window_start", "window_end"),
-    texto=("language",),
+    booleanas=("collection_complete",),
+    texto=("language", "deployment_frequency_level", "lead_time_level",
+           "change_failure_rate_level", "recovery_time_level", "overall"),
     apelidos=(("full_name", "repository"), ("cfr_entrega", "delivery_change_failure_rate"),
               ("change_failure_rate_delivery", "delivery_change_failure_rate")))
 
@@ -189,6 +193,25 @@ def salvar_tabela(quadro, diretorio, nome, casas=3):
     quadro.to_csv(csv, index=False)
     tex.write_text(tabela_latex(quadro, casas), encoding="utf-8")
     return csv, tex
+
+
+def paragrafo(texto, largura=90, recuo=""):
+    """Reflui um parágrafo do rascunho: o texto é escrito em uma linha e quebrado aqui."""
+    return textwrap.fill(" ".join(texto.split()), largura, subsequent_indent=recuo)
+
+
+def quantos(quantidade, singular, plural):
+    """Concordância de número nos rascunhos: "1 repositório", "3 repositórios"."""
+    return f"{quantidade} {singular if quantidade == 1 else plural}"
+
+
+def salvar_csv(quadro, diretorio, nome):
+    """Grava em `resultados/<nome>.csv` um artefato de dados, não uma tabela do artigo."""
+    diretorio = Path(diretorio)
+    diretorio.mkdir(parents=True, exist_ok=True)
+    caminho = diretorio / f"{nome}.csv"
+    quadro.to_csv(caminho, index=False)
+    return caminho
 
 
 def salvar_texto(conteudo, diretorio, nome):
