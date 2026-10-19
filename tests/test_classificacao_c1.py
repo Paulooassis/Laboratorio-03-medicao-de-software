@@ -307,7 +307,7 @@ class SaidasTests(unittest.TestCase):
             texto = (amostra.saida / "texto"
                      / "notas_classificacao_c1.md").read_text(encoding="utf-8")
         self.assertIn("1 de 1 repositórios batem", texto)
-        self.assertIn("A decisão do grupo precisa ser", texto)
+        self.assertIn("**Decisão registrada: opção (2)**", texto)
         self.assertIn("mediana das notas das métricas disponíveis", texto)
 
     def test_empty_sample_still_produces_the_tables(self):

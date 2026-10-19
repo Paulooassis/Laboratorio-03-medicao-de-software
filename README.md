@@ -1158,8 +1158,13 @@ python -m analise --analise classificacao_c1
 
 **1. O fallback do Lead Time.** `lead_time_rating` classifica pela variante (a) e, na
 falta dela, cai para a (b) por commit — e um repositório classificado assim não está, a
-rigor, na C1. A análise não escolhe pelo grupo: calcula as duas leituras lado a lado e
-conta quantos repositórios mudam de nível geral entre elas.
+rigor, na C1. **Decisão do grupo: opção (2)**, a C1 usa só a variante (a); sem ela o Lead
+Time fica sem classificação e o nível geral sai da mediana das outras três métricas. O
+motivo está na RQ 07, que compara a C1 com a C4 (release + (b) + (b)) justamente para
+separar o efeito de trocar a unidade de deploy do de trocar a variante da métrica: aceitar
+o fallback na referência colocaria repositórios híbridos C1/C4 dentro dela e contaminaria
+essa comparação. As duas leituras continuam lado a lado no CSV, com a contagem de quantos
+repositórios a escolha afeta.
 
 | Colunas | Leitura |
 | --- | --- |
@@ -1167,11 +1172,10 @@ conta quantos repositórios mudam de nível geral entre elas.
 | `lead_time_level_com_fallback`, `overall_com_fallback` | A regra de hoje do pipeline |
 | `lead_time_apenas_com_b`, `overall_mudou_sem_fallback` | Os repositórios afetados pela escolha |
 
-A tabela e a figura da distribuição usam a C1 estrita, que é a definição literal da
-combinação. A decisão do grupo — (1) manter o fallback e documentá-lo ou (2) deixar
-esses repositórios sem classificação de Lead Time — é registrada em
-`resultados/texto/notas_classificacao_c1.md`, com os números dos dois cenários; trocar de
-cenário na RQ 07 é trocar de coluna, sem refazer a análise.
+A tabela e a figura da distribuição seguem a decisão acima. O rascunho em
+`resultados/texto/notas_classificacao_c1.md` registra a decisão e os números dos dois
+cenários; reproduzir a regra do pipeline na RQ 07 é trocar de coluna, sem refazer a
+análise.
 
 **2. Métrica sem classificação.** O nível geral é a **mediana das notas das métricas
 disponíveis** (Elite = 4 a Low = 1), arredondada para baixo. O repositório só fica sem

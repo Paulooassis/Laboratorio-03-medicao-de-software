@@ -18,12 +18,16 @@ que a classificação é reproduzível sem refazer a coleta.
 
 Duas decisões ficam explícitas aqui, em vez de implícitas no código do pipeline:
 
-1. **Fallback do Lead Time.** `lead_time_rating` usa a variante (a) e, na falta dela,
-   cai para a (b) por commit. Um repositório classificado assim não está, a rigor, na
-   C1. O módulo calcula as duas leituras lado a lado — `lead_time_level` (C1 estrita,
-   só com a variante (a)) e `lead_time_level_com_fallback` (a regra do pipeline) — e
-   conta quantos repositórios mudam de nível geral entre as duas, para que a escolha
-   seja registrada no artigo com números.
+1. **Fallback do Lead Time — decidido pela opção (2).** `lead_time_rating` usa a
+   variante (a) e, na falta dela, cai para a (b) por commit; um repositório classificado
+   assim não está, a rigor, na C1. A C1 aqui usa **só a variante (a)**: sem ela o Lead
+   Time fica sem classificação e o nível geral sai da mediana das outras três métricas.
+   O motivo é a RQ 07, que compara a C1 com a C4 (release + (b) + (b)) justamente para
+   separar o efeito de trocar a unidade de deploy do de trocar a variante da métrica —
+   aceitar o fallback colocaria repositórios híbridos C1/C4 dentro da referência e
+   contaminaria essa comparação. A leitura do pipeline continua no CSV, em
+   `lead_time_level_com_fallback` e `overall_com_fallback`, com a contagem de quantos
+   repositórios a escolha afeta.
 2. **Métrica sem classificação.** O nível geral é a mediana das notas das métricas
    *disponíveis*, arredondada para baixo; o repositório só fica sem nível geral quando
    nenhuma das quatro foi classificada. Nenhuma métrica ausente vira zero ou Elite por
@@ -259,11 +263,13 @@ def notas(quadro, contagens, cobertura_, checagem):
                 "pipeline.", 88, "  "))),
         comum.paragrafo(
             f"A escolha muda o nível geral de {comum.quantos(mudam, 'repositório', 'repositórios')}. "
-            "**A decisão do grupo precisa ser registrada aqui**: (1) manter o fallback e "
-            "documentá-lo ou (2) deixar esses repositórios sem classificação de Lead Time na C1. "
-            "Enquanto ela não é tomada, a tabela e a figura da distribuição usam a C1 estrita, "
-            "que é a definição literal da combinação, e a coluna com fallback fica disponível "
-            "para a RQ 07 sem refazer a análise."),
+            "**Decisão registrada: opção (2)** — a C1 usa só a variante (a) e esses repositórios "
+            "ficam sem classificação de Lead Time. O motivo é a RQ 07: ela compara a C1 com a C4 "
+            "(release + (b) + (b)) justamente para separar o efeito de trocar a unidade de deploy "
+            "do de trocar a variante da métrica, e aceitar o fallback na referência colocaria "
+            "repositórios híbridos C1/C4 dentro dela, contaminando a comparação. A tabela e a "
+            "figura da distribuição seguem essa decisão; a leitura com fallback fica no CSV para "
+            "quem quiser reproduzir a regra do pipeline, sem refazer a análise."),
 
         "## Decisão 2 — métrica sem classificação",
         comum.paragrafo(
