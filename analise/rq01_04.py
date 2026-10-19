@@ -17,7 +17,6 @@ sem sucesso posterior ficam censurados na RQ 04. Em todos os casos o total exclu
 publicado junto com a estatística, e a RQ 04 traz também o limite inferior que trata
 os censurados como recuperados no fim da janela.
 """
-import textwrap
 from pathlib import Path
 
 import numpy as np
@@ -445,16 +444,6 @@ def censura_rq04(resultado):
         ("Viés da censura, horas", resultado["vies_da_censura_horas"])))
 
 
-def paragrafo(texto, largura=90):
-    """Reflui um parágrafo do rascunho: o texto é escrito em uma linha e quebrado aqui."""
-    return textwrap.fill(" ".join(texto.split()), largura)
-
-
-def quantos(quantidade, singular, plural):
-    """Concordância de número nos rascunhos: "1 repositório", "3 repositórios"."""
-    return f"{quantidade} {singular if quantidade == 1 else plural}"
-
-
 def notas(resultados):
     """Rascunhos com os números já no texto, para a seção de Resultados do artigo."""
     um, dois, tres, quatro = (resultados[chave] for chave in ("rq01", "rq02", "rq03", "rq04"))
@@ -464,7 +453,7 @@ def notas(resultados):
     ci, entrega = tres["a_ci"], tres["b_entrega"]
     recuperados, limite, episodios = (quatro["recuperados"], quatro["limite_inferior"],
                                       quatro["episodios"])
-    itens = [paragrafo(
+    itens = [comum.paragrafo(
         f"- `{linha['repository']}`: razão {valor(linha['razao_a_b'])}× ((a) "
         f"{valor(linha['lead_time_a_horas'])} h contra (b) {valor(linha['lead_time_b_horas'])} h); "
         f"maior intervalo em `{linha['tag_name']}`, {valor(linha['release_horas'])} h contra "
@@ -474,20 +463,20 @@ def notas(resultados):
         for _, linha in dois["maiores_razoes"].iterrows()]
     blocos = [
         "# RQ 01 a 04 — números e rascunhos para a seção de Resultados",
-        paragrafo("Gerado por `python -m analise`. Todos os valores vêm das tabelas em "
+        comum.paragrafo("Gerado por `python -m analise`. Todos os valores vêm das tabelas em "
                   "`resultados/tabelas/`; nenhum número aqui foi digitado à mão."),
 
         "## RQ 01 — Deployment Frequency",
-        paragrafo(
+        comum.paragrafo(
             f"Mediana de {valor(frequencia['mediana'])} releases por semana (IQR "
             f"{valor(frequencia['iqr'])}; Q1 {valor(frequencia['q1'])}, Q3 "
-            f"{valor(frequencia['q3'])}) em {quantos(frequencia['n'], 'repositório', 'repositórios')}. "
-            f"{quantos(sem_release, 'repositório não publicou', 'repositórios não publicaram')} "
+            f"{valor(frequencia['q3'])}) em {comum.quantos(frequencia['n'], 'repositório', 'repositórios')}. "
+            f"{comum.quantos(sem_release, 'repositório não publicou', 'repositórios não publicaram')} "
             f"nenhuma release na janela e {'entra' if sem_release == 1 else 'entram'} na mediana "
-            f"com zero; {quantos(frequencia['ausentes'], 'ficou sem valor', 'ficaram sem valor')}."),
+            f"com zero; {comum.quantos(frequencia['ausentes'], 'ficou sem valor', 'ficaram sem valor')}."),
 
         "## RQ 02 — Lead Time: por que (a) e (b) divergem",
-        paragrafo(
+        comum.paragrafo(
             "A variante (a), por release, mede o intervalo inteiro coberto pela release: do commit "
             "mais antigo do `compare` até a publicação. A variante (b), por commit, mede cada "
             "commit até a publicação da sua release. Como (a) é definida pelo commit mais antigo e "
@@ -496,7 +485,7 @@ def notas(resultados):
             "ritmo de trabalho tenha mudado. É por isso que as duas não medem a mesma coisa: (a) "
             "responde \"quanto tempo cabe dentro de uma entrega\" e (b), \"quanto tempo um commit "
             "típico espera para ser entregue\"."),
-        paragrafo(
+        comum.paragrafo(
             f"Medianas: (a) {valor(a_horas['mediana'])} h "
             f"({valor(dois['a_release']['dias']['mediana'])} d, IQR {valor(a_horas['iqr'])} h, "
             f"n = {a_horas['n']}) contra (b) {valor(b_horas['mediana'])} h "
@@ -504,24 +493,24 @@ def notas(resultados):
             f"n = {b_horas['n']}). A razão (a)/(b) por repositório tem mediana "
             f"{valor(dois['razao_a_b']['mediana'])}× (IQR {valor(dois['razao_a_b']['iqr'])}, "
             f"n = {dois['razao_a_b']['n']})."),
-        paragrafo(f"Os {len(dois['maiores_razoes'])} repositórios com maior razão, inspecionados "
+        comum.paragrafo(f"Os {len(dois['maiores_razoes'])} repositórios com maior razão, inspecionados "
                   "em `releases.csv`:") if itens else
-        paragrafo("Nenhum repositório tem as duas variantes, então não há razão (a)/(b) a inspecionar."),
+        comum.paragrafo("Nenhum repositório tem as duas variantes, então não há razão (a)/(b) a inspecionar."),
         *(["\n".join(itens)] if itens else []),
-        paragrafo(
+        comum.paragrafo(
             f"Em {dois['repositorios_com_commit_antigo_esquecido']} deles a release de maior "
             f"intervalo tem razão de pelo menos "
             f"{valor(LIMIAR_COMMIT_ESQUECIDO, 1)}× entre o intervalo da release e a mediana dos "
             "seus próprios commits, o indício de que um commit antigo — e não o ritmo de trabalho "
             "— define o Lead Time da variante (a)."),
-        paragrafo(
+        comum.paragrafo(
             f"Releases fora do Lead Time: {dois['releases_ignoradas_total']} de "
             f"{dois['releases_observadas']} observadas, detalhadas por motivo em "
             "`resultados/tabelas/rq02_releases_ignoradas.csv`. Nenhuma foi estimada nem tratada "
             "como intervalo zero."),
 
         "## RQ 03 — falha de pipeline não é falha em produção",
-        paragrafo(
+        comum.paragrafo(
             f"As duas variantes do Change Failure Rate medem objetos diferentes. A variante (a) é "
             f"um proxy de CI: falhas sobre {ci['runs_considerados']} workflow runs considerados "
             f"({ci['runs_ignorados']} ignorados, por estarem cancelados, em andamento ou com "
@@ -531,7 +520,7 @@ def notas(resultados):
             f"{entrega['releases_que_falharam']} de {entrega['releases_avaliadas']} releases "
             f"avaliadas, mediana {valor(entrega['resumo']['mediana'])} (IQR "
             f"{valor(entrega['resumo']['iqr'])}, n = {entrega['resumo']['n']})."),
-        paragrafo(
+        comum.paragrafo(
             "A diferença entre as duas é a própria interpretação da métrica. Um run vermelho é, na "
             "maior parte das vezes, um teste quebrado em um pull request: é barato, é detectado "
             "antes da entrega e muitas vezes é exatamente o CI fazendo o seu trabalho. Uma release "
@@ -545,19 +534,19 @@ def notas(resultados):
             "como sucesso."),
 
         "## RQ 04 — viés da censura no tempo de recuperação",
-        paragrafo(
+        comum.paragrafo(
             f"Mediana entre repositórios de {valor(recuperados['horas']['mediana'])} h "
             f"({valor(recuperados['dias']['mediana'])} d, IQR "
             f"{valor(recuperados['horas']['iqr'])} h, n = {recuperados['horas']['n']}), calculada "
             f"**apenas sobre episódios recuperados**: dos {episodios['total']} episódios de falha, "
             f"{episodios['recuperados']} foram recuperados — "
-            f"{quantos(episodios['inconsistentes'], 'deles tem', 'deles têm')} datas contraditórias "
+            f"{comum.quantos(episodios['inconsistentes'], 'deles tem', 'deles têm')} datas contraditórias "
             f"e também {'fica' if episodios['inconsistentes'] == 1 else 'ficam'} fora da mediana — e "
             f"{episodios['censurados']} ficaram censurados, "
             "sem nenhum sucesso posterior do mesmo workflow dentro da janela. A proporção censurada "
             f"por repositório tem mediana {valor(quatro['proporcao_censurada']['mediana'])} (IQR "
             f"{valor(quatro['proporcao_censurada']['iqr'])})."),
-        paragrafo(
+        comum.paragrafo(
             "Essa mediana subestima o tempo real de recuperação: justamente os episódios mais "
             "longos são os que não terminaram dentro da janela e, por isso, são os excluídos. Para "
             "medir o tamanho do viés, o limite inferior trata cada episódio censurado como "

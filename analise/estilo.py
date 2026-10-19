@@ -18,6 +18,10 @@ TAMANHO_SIMPLES = (LARGURA / 2, 2.6)
 TAMANHO_DUPLO = (LARGURA, 2.7)
 VARIANTE_A, VARIANTE_B = "#1f4e79", "#c1663f"
 NEUTRO, REFERENCIA = "#4d4d4d", "#9a9a9a"
+# Níveis DORA do melhor para o pior, mais o "sem classificação" em cinza: a escala é
+# ordinal, então a cor também caminha em uma direção só.
+NIVEIS = {"Elite": "#1f4e79", "High": "#4a7fb5", "Medium": "#e0b062", "Low": "#c1663f",
+          "Sem classificação": "#bdbdbd"}
 
 
 def aplicar():
@@ -42,9 +46,10 @@ def caixa(eixo, amostras, rotulos, cores):
     return eixo
 
 
-def contagem_inteira(eixo):
+def contagem_inteira(eixo, das_contagens="y"):
     """Eixo de contagem de repositórios só com inteiros: não existe "1,5 repositório"."""
-    eixo.yaxis.set_major_locator(MaxNLocator(integer=True))
+    escolhido = eixo.yaxis if das_contagens == "y" else eixo.xaxis
+    escolhido.set_major_locator(MaxNLocator(integer=True))
     return eixo
 
 

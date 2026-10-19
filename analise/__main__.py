@@ -9,10 +9,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import comum, rq01_04
+from . import classificacao_c1, comum, rq01_04
 
 
-ANALISES = {"rq01_04": rq01_04.executar}
+ANALISES = {"rq01_04": rq01_04.executar, "classificacao_c1": classificacao_c1.executar}
 
 
 def argumentos(argv):
