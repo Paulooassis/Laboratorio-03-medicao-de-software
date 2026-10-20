@@ -75,7 +75,7 @@ torna possível alimentar as etapas 2 e 3 com exatamente essa subamostra (ver Pa
   comando como está escrito instala no Python do sistema. Criei a venv por exigência da
   nossa própria replicação (ambiente limpo), não para contornar um defeito.
 - **Saiu do README:** não
-- **Issue aberta:** Issue 3 (documentação, baixa severidade)
+- **Issue aberta:** [#67](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/67) (e [#66](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/66), encontrada ao ler o README)
 
 ### Passo 3 — Estimar o consumo da API (README §4)
 
@@ -130,7 +130,7 @@ RuntimeError: GITHUB_TOKEN não definido (crie o arquivo .env com GITHUB_TOKEN=s
 - **Saiu do README:** **sim** — descobrir esse caminho exigiu ler `config.yaml` e
   `pipeline/__main__.py`; o README não documenta o formato de `repos.csv` nem que as
   etapas 2 e 3 o consomem.
-- **Issue aberta:** Issue 1 (execução/documentação, severidade alta)
+- **Issue aberta:** [#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65)
 
 ### Passo 6 — Coleta sobre a subamostra (etapas 2 a 4)
 
@@ -158,9 +158,9 @@ o obtido.
 
 | # | Problema | Tipo | Severidade | Link |
 | --- | --- | --- | --- | --- |
-| 1 | Não há como executar o pipeline sobre uma lista/subamostra dada de repositórios | execução e documentação | alta | _(a abrir)_ |
-| 2 | README §10 aponta para caminhos `file:///c:/Users/vitve/OneDrive/...`, quebrados fora da máquina do autor | documentação | média | _(a abrir)_ |
-| 3 | README §1 instala as dependências sem criar ambiente virtual | documentação | baixa | _(a abrir)_ |
+| 1 | Não há como executar o pipeline sobre uma lista/subamostra dada de repositórios | execução e documentação | alta | [#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65) |
+| 2 | README §10 aponta para caminhos `file:///c:/Users/vitve/OneDrive/...`, quebrados fora da máquina do autor | documentação | média | [#66](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/66) |
+| 3 | README §1 instala as dependências sem criar ambiente virtual | documentação | baixa | [#67](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/67) |
 
 ## 6. Resumo para o artigo
 
