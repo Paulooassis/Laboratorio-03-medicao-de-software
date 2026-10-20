@@ -1307,3 +1307,49 @@ Os resultados do artigo devem ser gerados com os CSVs da coleta do estudo.
 
 Referências: [documentação do SciPy](https://docs.scipy.org/doc/scipy-1.15.3/reference/generated/scipy.stats.spearmanr.html)
 e [DORA: métricas de desempenho de entrega](https://dora.dev/guides/dora-metrics/).
+
+## Lab03S03 — RQ 06: fatores associados ao desempenho DORA
+
+```powershell
+.\.venv\Scripts\python.exe -m analise --analise rq06
+```
+
+Também executada por `python -m analise`. Usa os CSVs de `data/processed/`
+ou do diretório informado por `--dados`, sem API ou imputação.
+
+Linguagem mantém até seis categorias com ao menos 15 repositórios e agrupa as
+demais conhecidas em Outras, absorvendo a menor categoria se necessário para
+atingir esse mínimo. Ausentes ficam fora. Estrelas, contribuidores e idade usam
+`pd.qcut(..., q=4, duplicates='drop')`, sem separar empates. Idade é medida
+entre `created_at` e `window_end`. Os cortes são fixados antes de excluir
+métricas ausentes e documentados em `rq06_grupos.csv` e `notas_rq06.md`.
+
+Holm é aplicado separadamente aos 16 testes principais (4 fatores × DF, LT (a),
+CFR (a) e recuperação), aos 8 suplementares (LT (b) e CFR (b)) e aos 4 exploratórios
+por tipo. Usa KW com ε² = H/(n−1), ou MW com Cliff para dois grupos. Só KW
+significativo após Holm abre post-hoc MW, com Holm dentro de cada fator/família.
+Testes sem dados suficientes ficam indefinidos; cada teste informa seu n efetivo.
+
+Tipo do projeto usa `validacao/resultados/tipo_projeto.csv`; se ausente, usa
+`validacao/rotulos/rotulos_grupo.csv`, identificado como coletivo e provisório.
+Rótulos repetidos por release contam uma vez por repositório; conflitos geram erro.
+Se algum tipo tiver menos de 5 valores válidos, comparam-se os dois maiores por MW.
+Sem rótulos, somente a família exploratória fica indefinida.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq06_testes_principal.{csv,tex}` | 16 testes, n, H/U, p, p Holm, ε²/δ e interpretação |
+| `resultados/tabelas/rq06_testes_suplementar.{csv,tex}` | Variantes (b), família de Holm separada |
+| `resultados/tabelas/rq06_testes_exploratoria.{csv,tex}` | Tipo do projeto, amostra e restrições próprias |
+| `resultados/tabelas/rq06_posthoc.{csv,tex}` | Pares, Holm por fator/família, Cliff e direção (CSV) |
+| `resultados/tabelas/rq06_grupos.{csv,tex}` | Grupos, limites dos quartis, unidades e contagens |
+| `resultados/figuras/rq06_*.pdf` | Boxplots vetoriais das combinações significativas após Holm |
+| `resultados/texto/notas_rq06.md` | Cortes, discussão calculada, proveniência dos tipos e limitações |
+
+Os CSVs mantêm precisão completa; LaTeX mostra H/ε² para KW e U/δ para MW.
+O post-hoc pode ser ajustado com `\resizebox{\textwidth}{!}{\input{...}}` (`graphicx`).
+Os PDFs seguem `analise/estilo.py`: CFR entre 0 e 1; DF e durações em `symlog`
+com limiares de 0,1 release/semana e 1 hora, preservando zeros e Lead Times negativos
+do pipeline. Figuras que perderam significância são removidas na reexecução.
+As convenções de efeito, referências e limitações estão em `notas_rq06.md`.
+`tests/test_rq06.py` usa dados sintéticos somente para verificar as contas e a execução.
