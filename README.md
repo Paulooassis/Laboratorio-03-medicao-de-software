@@ -1258,3 +1258,52 @@ Medium), a métrica ausente fora da mediana, zero release como medição e não 
 as duas leituras do Lead Time, a distribuição com contagem e proporção, a cobertura por
 número de métricas, o nível trocado no CSV detectado como divergência e o CSV sem as
 colunas do pipeline tratado como não verificável.
+
+## Lab03S03 — RQ 05: frequência de deploy e CFR
+
+```powershell
+.\.venv\Scripts\python.exe -m analise --analise rq05
+```
+
+A RQ 05 também é executada por `python -m analise`, junto das demais análises
+registradas. `--dados DIRETORIO` permite informar outra localização dos três CSVs.
+O script usa somente esses arquivos, sem coleta, preenchimento manual ou imputação.
+
+Calcula Spearman bilateral para DF × CFR (a) e DF × CFR (b), com um par por
+repositório, exclusão de ausentes par a par e `n` efetivo separado. O CFR (b)
+reutiliza a agregação da RQ 03 a partir dos vereditos das releases; usa o resumo por
+repositório quando os vereditos não estão disponíveis. Se faltam vereditos necessários
+de um repositório no detalhamento, o CFR (b) dele fica ausente. Variável constante
+ou menos de dois pares produz correlação indefinida, sem interpretar isso como zero.
+
+A força usa o valor absoluto de ρ: desprezível `< 0,10`, fraca `< 0,40`, moderada
+`< 0,70`, forte `< 0,90` e muito forte nos demais casos, seguindo a convenção de
+[Schober, Boer e Schwarte (2018)](https://doi.org/10.1213/ANE.0000000000002864).
+Os p-valores são os retornados por `scipy.stats.spearmanr`, sem ajuste por
+multiplicidade; a discussão registra seu caráter aproximado nesta amostra.
+
+Cada dispersão mantém CFR entre 0 e 1 e DF em `symlog` de base 10, com limiar de
+0,1 release/semana: zeros ficam no trecho linear e entram normalmente em Spearman,
+sem somar constantes. A escala logarítmica se aplica acima do limiar.
+
+O diagnóstico do artefato compara os quartis extremos de DF na amostra válida de
+DF × CFR (b): baixa DF ≤ Q1 e alta DF ≥ Q3. Compara a mediana e o IQR dos intervalos
+medianos por repositório, além da mediana da fração de intervalos de até sete dias.
+Releases simultâneas têm intervalo zero; menos de duas datas válidas implica ausência
+de intervalo. Quartis coincidentes não formam grupos sobrepostos. O contraste é
+descritivo e não quantifica a parcela da correlação causada pela construção do CFR.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq05_correlacoes.{csv,tex}` | Variante, n, ρ, p e força |
+| `resultados/tabelas/rq05_artefato_cfr_b.{csv,tex}` | Comparação dos intervalos entre baixa e alta DF |
+| `resultados/figuras/rq05_df_cfr_a.pdf`, `rq05_df_cfr_b.pdf` | Dispersões vetoriais, uma por variante |
+| `resultados/texto/notas_rq05.md` | Rascunho calculado da discussão, achado do artefato e limitações |
+| `resultados/rq05_por_repositorio.csv`, `rq05.json` | Dados auditáveis da análise e estatísticas completas |
+
+`tests/test_rq05.py` usa amostras sintéticas exclusivamente para verificar contas
+manuais, ausentes, empates, constantes, censura, quartis e geração dos artefatos.
+Os resultados do artigo devem ser gerados com os CSVs da coleta do estudo.
+
+Referências: [documentação do SciPy](https://docs.scipy.org/doc/scipy-1.15.3/reference/generated/scipy.stats.spearmanr.html)
+e [DORA: métricas de desempenho de entrega](https://dora.dev/guides/dora-metrics/).
