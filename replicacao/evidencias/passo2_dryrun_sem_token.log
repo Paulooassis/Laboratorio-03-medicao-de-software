@@ -1,0 +1,37 @@
+=================================================================
+ PIPELINE DE MINERACAO DORA - LAB03 
+ Janela: 2025-01-01 ate 2025-12-31
+ Limite de repositorios: 300
+ Criterio de inclusao: >= 5 releases e >= 50 runs
+=================================================================
+
+=================================================================
+ [DRY-RUN] ESTIMATIVA DE CHAMADAS À API DO GITHUB 
+=================================================================
+ Janela temporal: 2025-01-01 até 2025-12-31
+ Meta de repositórios: 300
+ Candidatos estimados para inspecionar: ~1200
+-----------------------------------------------------------------
+ Detalhamento por etapa:
+   1. Seleção e Funil:
+      - Busca por faixas: 50 requisições
+      - Verificação de workflows: ~1200 requisições
+      - Filtro de inclusão (releases): ~900 requisições
+      - Filtro de inclusão (runs): ~480 requisições
+      - Contribuidores (Link rel=last): ~300 requisições
+      > Subtotal Etapa 1: ~2930 requisições
+   2. Releases e Lead Time:
+      - Listagem de releases: 300 requisições
+      - Comparação de commits (compare): ~2700 requisições
+      > Subtotal Etapa 2: ~3000 requisições
+   3. Workflow Runs e Recuperação:
+      - Coleta mensal de runs (12 meses): 3600 requisições
+      > Subtotal Etapa 3: ~3600 requisições
+-----------------------------------------------------------------
+ TOTAL ESTIMADO: ~9,530 chamadas à API
+ Cota de Rate Limit: 5.000 requisições/hora por token pessoal
+ Tempo mínimo estimado (sem cache): ~1.91 horas
+ Nota: Com cache (.cache_http/ e checkpoints), requisições já salvas são ignoradas.
+=================================================================
+
+$S/replicacao/venv314/bin/python -m pipeline --dry-run  0.18s user 0.05s system 19% cpu 1.135 total
