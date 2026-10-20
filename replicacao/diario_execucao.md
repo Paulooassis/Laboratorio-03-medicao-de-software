@@ -155,27 +155,58 @@ sorteados, copiados do `data/repos.csv` deles com as mesmas colunas.
 #### Passo 6b — Etapa 3: workflow runs e recuperação
 
 - **Comando:** `python -m pipeline --config config_replicacao.yaml --etapa runs`
-- **Tempo:** _(em execução)_
-- **Saída relevante:** _(pendente)_
-- **Erro:** _(pendente)_
+- **Tempo:** **9 min 31 s** (19,0 s de CPU)
+- **Saída relevante:** `[30/30]` repositórios, coleta mensal com barra de progresso
+  mostrando a cota restante do token a cada requisição. Gerou `metricas_runs.csv`
+  (30 linhas, 7 colunas) e os checkpoints em `data_replicacao/runs/`. Evidência em
+  [`evidencias/passo6b_runs.log`](evidencias/passo6b_runs.log).
+- **Erro:** nenhum
 - **Saiu do README:** sim (o contorno do Passo 5)
-- **Issue aberta:** _(pendente)_
+- **Issue aberta:** nenhuma
 
 #### Passo 6c — Etapa 4: consolidação e proveniência
 
 - **Comando:** `python -m pipeline --config config_replicacao.yaml --etapa consolidar`
-- **Tempo:** _(pendente)_
-- **Saída relevante:** _(pendente)_
+- **Tempo:** **0,22 s**
+- **Saída relevante:** `dataset.csv` com 30 repositórios e 36 colunas, mais o
+  `MANIFEST.json` com hashes SHA-256 e metadados. As 36 colunas são **idênticas, na mesma
+  ordem**, às do `data/dataset.csv` publicado pelo grupo — o esquema reproduz
+  perfeitamente. O README §10 descreve 33 colunas, o que gerou a Issue
+  [#68](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/68). Evidência em
+  [`evidencias/passo6c_consolidar.log`](evidencias/passo6c_consolidar.log).
+- **Erro:** nenhum
 - **Saiu do README:** sim (o contorno do Passo 5)
-- **Issue aberta:** _(pendente)_
+- **Issue aberta:** [#68](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/68)
 
 ### Passo 7 — Análises e testes sem API (README §7 e §9)
 
-- **Comando:** _(pendente)_ `python -m analises.rq01_04` e `python -m pytest --cov=metricas --cov=pipeline`
-- **Tempo:** _(pendente)_
-- **Saída relevante:** _(pendente)_
+#### Passo 7a — Análises das RQ 01 a 04 e classificação C1
+
+- **Comando:** `python -m analises.rq01_04 --dataset data_replicacao/dataset.csv --saida analises/saida_replicacao`
+- **Tempo:** **2,4 s**
+- **Saída relevante:** gerou os nove artefatos que o README §7 promete
+  (`RESUMO_RQ01_04.md`, cinco CSVs e três figuras PNG). Medianas obtidas na subamostra:
+  Lead Time (a) 216,35 h e (b) 204,04 h, CFR (a) 0,025 e (b) 0,138, recuperação 18,84 h
+  em 23 dos 30 repositórios. Classificação geral: 3 Low, 13 Medium, 11 High e 3 Elite.
+  Evidência em [`evidencias/passo7a_analises.log`](evidencias/passo7a_analises.log).
+- **Erro:** nenhum
+- **Saiu do README:** **sim, parcialmente** — o README §7 mostra apenas
+  `python -m analises.rq01_04`, que leria o `data/dataset.csv` publicado por eles, não o
+  que obtivemos. A opção `--dataset` existe e aparece no `--help` do módulo, mas não está
+  documentada no README.
+- **Issue aberta:** nenhuma — é a mesma lacuna de parametrização da [#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65)
+
+#### Passo 7b — Suíte de testes do grupo
+
+- **Comando:** `python -m pytest --cov=metricas --cov=pipeline`
+- **Tempo:** **13,8 s**
+- **Saída relevante:** **159 testes passam**, 2 avisos, cobertura total de 77%. Todos os
+  módulos de `metricas/` ficam em 100%; a cobertura menor está em `pipeline/` (de 0% em
+  `__main__.py` a 91% em `http.py`). Evidência em
+  [`evidencias/passo7b_testes.log`](evidencias/passo7b_testes.log).
+- **Erro:** nenhum
 - **Saiu do README:** não
-- **Issue aberta:** _(pendente)_
+- **Issue aberta:** nenhuma
 
 ## 5. Issues abertas no repositório do grupo autor
 
@@ -188,28 +219,90 @@ o obtido.
 | 1 | Não há como executar o pipeline sobre uma lista/subamostra dada de repositórios | execução e documentação | alta | [#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65) |
 | 2 | README §10 aponta para caminhos `file:///c:/Users/vitve/OneDrive/...`, quebrados fora da máquina do autor | documentação | média | [#66](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/66) |
 | 3 | README §1 instala as dependências sem criar ambiente virtual | documentação | baixa | [#67](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/67) |
+| 4 | README §10 descreve o dataset com 33 colunas, mas o arquivo tem 36 | documentação | baixa | [#68](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/68) |
 
 ## 6. Resumo para o artigo
 
-- **O estudo foi executável?** Parcialmente, e o veredito final depende do Passo 6. Até
-  aqui: clone, instalação e `--dry-run` funcionaram sem nenhum atrito, em menos de 2
-  minutos somados e sem sair do README. A coleta falha sem `.env`, como o README avisa, e
-  a mensagem de erro é acionável. O obstáculo real não é defeito de código, é de escopo:
-  **o pipeline não aceita a subamostra como entrada**, então a replicação cruzada como o
-  enunciado a define não é executável seguindo só o README.
-- **Quanto tempo levou?** _(a completar com o Passo 6)_ Até o Passo 5: ~27 s de clone,
-  ~57 s de instalação, ~1 s de `--dry-run` e ~2 min investigando como restringir a
-  amostra.
-- **O que impediu ou dificultou?** Um ponto sério e dois menores. (1) Não existe forma de
-  rodar sobre um conjunto dado de repositórios; a Etapa 1 sempre re-seleciona pela busca
-  por estrelas, que muda com o tempo — o contorno exigiu ler o código. (2) Os links da
-  seção 10 do README apontam para o disco local do autor. (3) O README instala
-  dependências sem ambiente virtual. Em contrapartida, três pontos facilitaram: o
-  `--dry-run` dimensiona o custo da API antes da coleta, o erro de token é explícito, e
-  todas as dependências instalaram sem atrito em Python 3.14.
+### O estudo foi executável?
+
+**Sim, com um contorno que exigiu sair do README.** O pipeline rodou de ponta a ponta
+sobre os 30 repositórios sorteados e produziu todos os artefatos que o README promete:
+`dataset.csv` com 36 colunas **idênticas, na mesma ordem**, às do dataset publicado pelo
+grupo, mais `MANIFEST.json`, os CSVs intermediários e os nove artefatos das análises das
+RQ 01 a 04. A suíte de testes deles passa inteira (159 testes, 77% de cobertura).
+
+A ressalva é de escopo, não de código: **não existe forma, documentada ou não, de
+executar o pipeline sobre um conjunto dado de repositórios** (Issue
+[#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65)). A Etapa 1 sempre re-seleciona candidatos pela busca por faixas de
+estrelas, e `--limite 30` devolve outros 30 — instáveis entre execuções, porque a busca
+depende da contagem de estrelas do momento. Para rodar sobre a subamostra foi preciso ler
+`config.yaml` e `pipeline/__main__.py`, descobrir que as etapas 2 e 3 consomem
+`caminhos.repos_csv` e escrever à mão um `repos.csv` com os 30 sorteados. Seguindo
+**apenas** o README, a replicação cruzada como o enunciado a define não é executável.
+
+### Quanto tempo levou?
+
+**42 min 20 s** somando todos os comandos, dos quais **38 min 38 s (91%) foram espera da
+API do GitHub**. O tempo de CPU somado não chega a 1 minuto.
+
+| Etapa | Tempo |
+| --- | --- |
+| Clone | 27,4 s |
+| Instalação das dependências | 57,1 s |
+| `--dry-run` | 1,1 s |
+| Primeira tentativa sem `.env` | 0,2 s |
+| Investigar como restringir a amostra | ~2 min |
+| Sorteio da subamostra | 0,07 s |
+| Etapa 2 (releases e lead time) | **29 min 07 s** |
+| Etapa 3 (workflow runs e recuperação) | **9 min 31 s** |
+| Etapa 4 (consolidação) | 0,22 s |
+| Análises das RQ 01 a 04 | 2,4 s |
+| Suíte de testes | 13,8 s |
+
+Consumo de cota: cerca de **1.676 requisições** para as etapas 2 e 3 sobre 30
+repositórios (a cota do token caiu de 5.000 para 3.324). O `--dry-run` projeta 6.600
+requisições para essas duas etapas sobre 300 repositórios, o que daria ~660 para 30 — a
+estimativa subestima o consumo real em cerca de **2,5×**. Não abri Issue sobre isso
+porque a comparação supõe escala linear, que o próprio pipeline não promete.
+
+### O que impediu ou dificultou?
+
+Um ponto sério e três menores, todos registrados como Issue:
+
+1. **[#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65) (alta)** — impossível rodar sobre uma subamostra dada; exigiu ler o
+   código. É o único obstáculo que afeta a validade da replicação, e não um defeito de
+   implementação: é uma funcionalidade que o estudo precisa e não tem.
+2. **[#66](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/66) (média)** — os links da seção 10 do README apontam para o disco
+   local de um autor (`file:///c:/Users/vitve/OneDrive/...`), inclusive o do
+   `DICIONARIO_DADOS.md`, que é a referência das colunas do dataset.
+3. **[#67](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/67) (baixa)** — a seção 1 instala as dependências sem ambiente virtual.
+4. **[#68](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/68) (baixa)** — o README descreve 33 colunas; o arquivo tem 36.
+
+Em contrapartida, quatro pontos **facilitaram** bastante e merecem registro no artigo: o
+`--dry-run` permite dimensionar o custo da API antes de qualquer coleta; o erro de token
+ausente nomeia o arquivo e a variável a criar; as nove dependências instalaram sem atrito
+em Python 3.14/arm64, sem nenhum pin quebrado; e o cache (`.cache_http/`) mais os
+checkpoints por mês tornam a retomada transparente, exatamente como o README promete.
+
+Veredito para o artigo: **o estudo é reprodutível quanto ao cálculo das métricas e não
+quanto à seleção da amostra**. Quem replicar obtém o mesmo esquema de dados e o mesmo
+comportamento do pipeline, mas não consegue — seguindo a documentação — apontá-lo para os
+mesmos repositórios.
 
 ## 7. Resultados obtidos
 
-Os CSVs produzidos pela execução ficam em
-[`resultados_obtidos/`](resultados_obtidos/), como saíram do pipeline do outro grupo —
-sem edição, para que a comparação da Issue seguinte parta do arquivo original.
+Em [`resultados_obtidos/`](resultados_obtidos/), como saíram do pipeline do grupo
+replicado, sem nenhuma edição:
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `dataset.csv` | Dataset consolidado da subamostra: 30 repositórios, 36 colunas |
+| `MANIFEST.json` | Manifesto de proveniência com os hashes SHA-256 da execução |
+| `repos.csv` | Os 30 repositórios sorteados, no formato de entrada das etapas 2 e 3 |
+| `lead_time_release.csv` | Entregas, Lead Time (a) e (b), CFR (b) e Rework Rate |
+| `metricas_runs.csv` | CFR (a) e tempo de recuperação por repositório |
+| `releases_ignoradas_release.csv` | Releases fora do Lead Time, por motivo |
+| `analises/` | Os artefatos do README §7: `RESUMO_RQ01_04.md` e os cinco CSVs das RQ 01 a 04 e da classificação C1 |
+
+A comparação com os números publicados pelo grupo é o objeto da Issue seguinte (#52) e
+parte destes arquivos.

@@ -1,0 +1,17 @@
+   rq              metrica             variante  n   mediana        q1         q3 categoria_da_mediana
+RQ 01 Deployment frequency                    - 30   0.40275  0.186975   0.819825               Medium
+RQ 02            Lead time      (a) por release 30 216.35000 41.915000 624.875000               Medium
+RQ 02            Lead time       (b) por commit 30 204.03500 29.772500 468.417500               Medium
+RQ 03  Change failure rate      (a) proxy de CI 30   0.02535  0.002450   0.116800                Elite
+RQ 03  Change failure rate (b) proxy de entrega 30   0.13810  0.023150   0.336225                Elite
+RQ 04 Tempo de recuperação                    - 23  18.84000  3.305000  83.130000                 High
+
+    metrica  n_classificados  Low  Medium  High  Elite
+ frequencia               30    8      16     6      0
+  lead_time               30    7       9    10      4
+        cfr               30    0       2     2     26
+recuperacao               23    3       6    11      3
+      geral               30    3      13    11      3
+
+Resultados em analises/saida_replicacao
+$S/replicacao/venv314/bin/python -m analises.rq01_04 --dataset  --saida   1.41s user 0.24s system 67% cpu 2.432 total

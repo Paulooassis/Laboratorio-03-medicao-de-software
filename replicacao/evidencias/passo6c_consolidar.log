@@ -1,0 +1,13 @@
+=================================================================
+ PIPELINE DE MINERACAO DORA - LAB03 
+ Janela: 2025-01-01 ate 2025-12-31
+ Limite de repositorios: 30
+ Criterio de inclusao: >= 5 releases e >= 50 runs
+=================================================================
+
+>>> ETAPA 4: Consolidacao de Metricas em dataset.csv e MANIFEST.json
+Dataset consolidado com 30 repositórios salvo em: /private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/dataset.csv
+Manifesto de proveniência e integridade salvo em: /private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/MANIFEST.json
+
+ Pipeline executado com sucesso!
+$S/replicacao/venv314/bin/python -m pipeline --config config_replicacao.yaml   0.16s user 0.05s system 93% cpu 0.224 total

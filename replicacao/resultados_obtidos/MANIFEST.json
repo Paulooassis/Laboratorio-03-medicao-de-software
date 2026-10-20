@@ -1,0 +1,36 @@
+{
+  "data_coleta": "2026-10-20T23:27:45.658699+00:00",
+  "janela": {
+    "inicio": "2025-01-01",
+    "fim": "2025-12-31"
+  },
+  "git": {
+    "commit": "73b739fbd6527b37b7c2508da07beed49f272045",
+    "branch": "main"
+  },
+  "dataset": {
+    "caminho": "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/dataset.csv",
+    "sha256": "af28947b07365d3bebe3ddcf33ab12ed2367e5fad5de88cecfd9e535c494bc63",
+    "total_repositorios": 30,
+    "tamanho_bytes": 7030,
+    "colunas_qtd": 36
+  },
+  "fontes_dados": {
+    "repos_csv": {
+      "caminho": "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/repos.csv",
+      "sha256": "7305d359d09a46b2e2266b311c9ec103f446efc57c61ae2d3f8189d1a40d1d0f"
+    },
+    "lead_time_csv": {
+      "caminho": "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/lead_time_release.csv",
+      "sha256": "9507ecfb80691e1d1b4d18c009a2cdbb9c56b8d8df48a11b12e6587bbffc2f20"
+    },
+    "metricas_runs_csv": {
+      "caminho": "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/metricas_runs.csv",
+      "sha256": "a7fade2e1ae9f0f89bd64ed05bcf434242f6e94434911c08d0893f5de8557981"
+    }
+  },
+  "ambiente": {
+    "python_versao": "3.14.0",
+    "sistema_operacional": "darwin"
+  }
+}

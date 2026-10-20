@@ -1,0 +1,62 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.0, pytest-9.1.1, pluggy-1.7.0
+rootdir: /private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.1.0
+collected 159 items
+
+tests/test_classificacao.py .......................                      [ 14%]
+tests/test_coleta_runs.py ........                                       [ 19%]
+tests/test_consolidar.py ...                                             [ 21%]
+tests/test_corretiva.py .................                                [ 32%]
+tests/test_estatistica.py .......                                        [ 36%]
+tests/test_falhas.py ......                                              [ 40%]
+tests/test_frequencia_semver.py ................                         [ 50%]
+tests/test_http.py .........                                             [ 55%]
+tests/test_lead_time.py ........                                         [ 61%]
+tests/test_recuperacao.py .......                                        [ 65%]
+tests/test_releases.py ...........                                       [ 72%]
+tests/test_replicacao.py .....                                           [ 75%]
+tests/test_rotulagem.py ............                                     [ 83%]
+tests/test_rq01_04.py ........                                           [ 88%]
+tests/test_selecao_funil.py ...................                          [100%]
+
+=============================== warnings summary ===============================
+tests/test_estatistica.py::test_bootstrap_spearman_ci_amostra_pequena_ou_degenerada
+  /private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/metricas/estatistica.py:96: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+    r = spearmanr(x_arr[idx], y_arr[idx]).statistic
+
+tests/test_estatistica.py::test_bootstrap_spearman_ci_amostra_pequena_ou_degenerada
+  /private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/metricas/estatistica.py:86: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+    res_ponto = spearmanr(x_arr, y_arr)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.14.0-final-0 _______________
+
+Name                        Stmts   Miss  Cover
+-----------------------------------------------
+metricas/__init__.py            4      0   100%
+metricas/classificacao.py      81      0   100%
+metricas/corretiva.py          24      0   100%
+metricas/datas.py              17      0   100%
+metricas/estatistica.py        75      0   100%
+metricas/falhas.py             50      0   100%
+metricas/frequencia.py          7      0   100%
+metricas/lead_time.py          32      0   100%
+metricas/recuperacao.py        61      0   100%
+metricas/semver.py             23      0   100%
+pipeline/__init__.py            3      0   100%
+pipeline/__main__.py          113    113     0%
+pipeline/coleta_runs.py       204     41    80%
+pipeline/config_parser.py      72     11    85%
+pipeline/consolidar.py        127     18    86%
+pipeline/github_api.py        100     35    65%
+pipeline/http.py              121     11    91%
+pipeline/releases.py          126     59    53%
+pipeline/selecao.py           256     55    79%
+-----------------------------------------------
+TOTAL                        1496    343    77%
+======================= 159 passed, 2 warnings in 12.99s =======================
+$S/replicacao/venv314/bin/python -m pytest --cov=metricas --cov=pipeline  4.62s user 1.05s system 41% cpu 13.840 total

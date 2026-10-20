@@ -1,0 +1,6 @@
+metrica,n_classificados,sem_valor,Low,Low_pct,Medium,Medium_pct,High,High_pct,Elite,Elite_pct
+frequencia,30,0,8,26.7,16,53.3,6,20.0,0,0.0
+lead_time,30,0,7,23.3,9,30.0,10,33.3,4,13.3
+cfr,30,0,0,0.0,2,6.7,2,6.7,26,86.7
+recuperacao,23,7,3,13.0,6,26.1,11,47.8,3,13.0
+geral,30,0,3,10.0,13,43.3,11,36.7,3,10.0
