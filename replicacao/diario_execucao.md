@@ -134,11 +134,38 @@ RuntimeError: GITHUB_TOKEN não definido (crie o arquivo .env com GITHUB_TOKEN=s
 
 ### Passo 6 — Coleta sobre a subamostra (etapas 2 a 4)
 
-- **Comando:** _(pendente: exige `GITHUB_TOKEN`)_
-- **Tempo:** _(pendente)_
+Contorno do Passo 5 aplicado: `config_replicacao.yaml` com `caminhos.dados` apontando
+para `data_replicacao/` — assim os CSVs publicados pelo grupo em `data/` ficam intactos e
+os obtidos por nós saem separados — e `data_replicacao/repos.csv` contendo apenas os 30
+sorteados, copiados do `data/repos.csv` deles com as mesmas colunas.
+
+#### Passo 6a — Etapa 2: releases e lead time
+
+- **Comando:** `python -m pipeline --config config_replicacao.yaml --etapa releases`
+- **Tempo:** **29 min 07 s** (20,5 s de CPU; o resto é espera da API do GitHub)
+- **Saída relevante:** `[30/30]` repositórios processados, de 5 a 86 entregas na janela
+  por repositório, terminando com "Pipeline executado com sucesso!". Gerou
+  `lead_time_release.csv` (30 linhas, 14 colunas) e `releases_ignoradas_release.csv`.
+  Evidência em [`evidencias/passo6a_releases.log`](evidencias/passo6a_releases.log).
+- **Erro:** nenhum
+- **Contorno aplicado:** o do Passo 5
+- **Saiu do README:** sim (o contorno do Passo 5)
+- **Issue aberta:** nenhuma além da [#65](https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/issues/65)
+
+#### Passo 6b — Etapa 3: workflow runs e recuperação
+
+- **Comando:** `python -m pipeline --config config_replicacao.yaml --etapa runs`
+- **Tempo:** _(em execução)_
 - **Saída relevante:** _(pendente)_
 - **Erro:** _(pendente)_
-- **Contorno aplicado:** `repos.csv` restrito aos 30 sorteados, conforme o Passo 5
+- **Saiu do README:** sim (o contorno do Passo 5)
+- **Issue aberta:** _(pendente)_
+
+#### Passo 6c — Etapa 4: consolidação e proveniência
+
+- **Comando:** `python -m pipeline --config config_replicacao.yaml --etapa consolidar`
+- **Tempo:** _(pendente)_
+- **Saída relevante:** _(pendente)_
 - **Saiu do README:** sim (o contorno do Passo 5)
 - **Issue aberta:** _(pendente)_
 
