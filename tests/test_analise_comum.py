@@ -4,12 +4,17 @@ As séries dos testes têm quartis calculáveis à mão: `[1, 2, 3, 4, 5]` tem m
 Q1 2 e Q3 4 (interpolação linear, o padrão do pandas e do R), logo IQR 2.
 """
 import unittest
+import math
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pandas as pd
 
-from analise import comum
+from analise import comum, estilo
 
 
 REPOSITORIOS = """repository,releases_per_week,change_failure_rate,created_at
@@ -70,6 +75,24 @@ class ResumoTests(unittest.TestCase):
 
 
 class LeituraTests(unittest.TestCase):
+    def test_mixed_dates_are_normalized_to_utc_in_every_table(self):
+        with DiretorioDeDados(
+                repositorios="repository,created_at\na/r,2025-01-01T03:00:00+03:00\nb/r,2025-01-02\n",
+                releases="repository,published_at\na/r,2025-01-01T21:00:00-03:00\n",
+                episodios="repository,started_at,recovered_at\na/r,2025-01-01,\n") as diretorio:
+            dados = comum.carregar(diretorio)
+        self.assertEqual(dados.repositorios.created_at.iloc[0], pd.Timestamp("2025-01-01", tz="UTC"))
+        self.assertEqual(dados.repositorios.created_at.iloc[1], pd.Timestamp("2025-01-02", tz="UTC"))
+        self.assertEqual(dados.releases.published_at.iloc[0], pd.Timestamp("2025-01-02", tz="UTC"))
+        self.assertEqual(str(dados.episodios.started_at.dt.tz), "UTC")
+        self.assertTrue(pd.isna(dados.episodios.recovered_at.iloc[0]))
+
+    def test_whitespace_and_bom_are_accepted_without_turning_missing_text_into_a_category(self):
+        with DiretorioDeDados("\ufeffrepository,language,stars\na/r,  , \n") as diretorio:
+            dados = comum.carregar(diretorio)
+        self.assertTrue(pd.isna(dados.repositorios.language.iloc[0]))
+        self.assertTrue(pd.isna(dados.repositorios.stars.iloc[0]))
+
     def test_reads_the_three_files_with_the_declared_types(self):
         with DiretorioDeDados() as diretorio:
             dados = comum.carregar(diretorio)
@@ -165,6 +188,172 @@ class SaidaTests(unittest.TestCase):
         with TemporaryDirectory() as saida:
             caminho = comum.salvar_texto("rascunho", Path(saida), "notas")
             self.assertEqual(caminho.read_text(encoding="utf-8"), "rascunho\n")
+
+
+class EfeitoTests(unittest.TestCase):
+    def test_epsilon_uses_the_specified_formula(self):
+        # H = 3, n = 7: 3/(7-1) = 1/2; não subtrai o número de grupos.
+        self.assertEqual(comum.epsilon_quadrado(3, 7), 0.5)
+        self.assertEqual(comum.epsilon_quadrado(0, 7), 0.0)
+
+    def test_epsilon_without_observations_is_undefined(self):
+        for n in (0, 1):
+            self.assertTrue(math.isnan(comum.epsilon_quadrado(0, n)))
+        for h in (None, float("nan")):
+            self.assertTrue(math.isnan(comum.epsilon_quadrado(h, 4)))
+        with self.assertRaises(ValueError):
+            comum.epsilon_quadrado(-1, 4)
+
+    def test_delta_counts_wins_losses_and_ties_by_hand(self):
+        # x=[1,3], y=[2,3]: uma vitória, duas derrotas e um empate.
+        # U1 = 1 + 1/2 = 1,5; δ = 2*1,5/4 - 1 = -1/4.
+        self.assertEqual(comum.cliffs_delta([1, 3], [2, 3]), -0.25)
+        self.assertEqual(comum.cliffs_delta([2, 3], [1, 3]), 0.25)
+
+    def test_delta_extremes_and_identical_samples(self):
+        self.assertEqual(comum.cliffs_delta([3, 4], [1, 2]), 1.0)
+        self.assertEqual(comum.cliffs_delta([1, 2], [3, 4]), -1.0)
+        self.assertEqual(comum.cliffs_delta([2, 2], [2, 2]), 0.0)
+
+    def test_delta_excludes_missing_values_from_both_denominators(self):
+        self.assertEqual(comum.cliffs_delta([1, None, 3], [2, 3, float("nan")]), -0.25)
+        for x, y in (([], [1]), ([1], []), ([None], [1])):
+            self.assertTrue(math.isnan(comum.cliffs_delta(x, y)))
+
+    def test_romano_boundaries_are_symmetric_and_upper_category_is_inclusive(self):
+        for delta, esperado in ((0, "desprezível"), (0.1469, "desprezível"), (0.147, "pequeno"),
+                                (0.3299, "pequeno"), (0.33, "médio"), (0.4739, "médio"),
+                                (0.474, "grande"), (1, "grande")):
+            for sinal in (-1, 1):
+                self.assertEqual(comum.interpretar_cliffs_delta(sinal * delta), esperado)
+        self.assertEqual(comum.interpretar_cliffs_delta(float("nan")), "indefinido")
+        self.assertEqual(comum.interpretar_cliffs_delta(None), "indefinido")
+        with self.assertRaises(ValueError):
+            comum.interpretar_cliffs_delta(1.01)
+
+
+class TestesNaoParametricosTests(unittest.TestCase):
+    def test_kruskal_wallis_ranks_calculated_by_hand(self):
+        # Postos [1,2] e [3,4]: H = 12/(4*5)*(3²/2+7²/2)-3*5 = 2,4.
+        resultado = comum.kruskal_wallis([1, 2, None], [3, 4])
+        self.assertEqual(resultado["n"], 4)
+        self.assertAlmostEqual(resultado["h"], 2.4)
+        self.assertAlmostEqual(resultado["epsilon_quadrado"], 0.8)
+        self.assertAlmostEqual(resultado["p"], math.erfc(math.sqrt(1.2)))
+
+    def test_kruskal_constant_or_empty_groups(self):
+        self.assertEqual(comum.kruskal_wallis([1, 1], [1]),
+                         {"n": 3, "h": 0.0, "p": 1.0, "epsilon_quadrado": 0.0})
+        self.assertTrue(math.isnan(comum.kruskal_wallis([], [1])["p"]))
+        with self.assertRaises(ValueError):
+            comum.kruskal_wallis([1])
+
+    def test_mann_whitney_exact_probability_and_direction(self):
+        # [1,2] vs [3,4]: U1=0, δ=-1. Entre C(4,2)=6 partições,
+        # duas são tão extremas quanto a observada: p bilateral = 2/6 = 1/3.
+        resultado = comum.mann_whitney([1, 2, None], [3, 4])
+        self.assertEqual((resultado["n1"], resultado["n2"], resultado["u"]), (2, 2, 0.0))
+        self.assertAlmostEqual(resultado["p"], 1 / 3)
+        self.assertEqual((resultado["delta"], resultado["interpretacao"]), (-1, "grande"))
+        self.assertEqual(comum.mann_whitney([1, 3], [2, 3])["delta"], -0.25)
+
+    def test_empty_mann_whitney_is_undefined(self):
+        resultado = comum.mann_whitney([], [1])
+        self.assertTrue(math.isnan(resultado["p"]))
+        self.assertEqual(resultado["interpretacao"], "indefinido")
+
+
+class HolmTests(unittest.TestCase):
+    def test_holm_restores_original_order_and_enforces_monotonicity(self):
+        # Ordenados: 0,01*3=0,03; 0,03*2=0,06; 0,04*1=0,04.
+        # Máximos acumulados: 0,03; 0,06; 0,06. Ordem original: 0,06; 0,03; 0,06.
+        resultado = comum.holm(pd.Series([0.04, 0.01, 0.03], index=["c", "a", "b"]))
+        self.assertEqual(list(resultado.index), ["c", "a", "b"])
+        for valor, esperado in zip(resultado.p_holm, [0.06, 0.03, 0.06]):
+            self.assertAlmostEqual(valor, esperado)
+        self.assertEqual(list(resultado.rejeita), [False, True, False])
+
+    def test_missing_p_is_kept_undefined_and_does_not_contaminate_valid_tests(self):
+        resultado = comum.holm([0.01, None, 0.04])
+        self.assertEqual(list(resultado.p_holm.dropna()), [0.02, 0.04])
+        self.assertTrue(pd.isna(resultado.rejeita.iloc[1]))
+        self.assertTrue(comum.holm([]).empty)
+        self.assertTrue(comum.holm([None]).p_holm.isna().all())
+
+    def test_holm_caps_at_one_and_respects_custom_alpha(self):
+        resultado = comum.holm([0.9, 0.8])
+        self.assertEqual(list(resultado.p_holm), [1.0, 1.0])
+        self.assertEqual(list(comum.holm([0.04], alpha=0.01).rejeita), [False])
+
+    def test_invalid_probabilities_and_alpha_are_rejected(self):
+        for p in (-0.1, 1.1, float("inf")):
+            with self.assertRaises(ValueError):
+                comum.holm([p])
+        for alpha in (0, 1, float("nan")):
+            with self.assertRaises(ValueError):
+                comum.holm([0.5], alpha=alpha)
+
+
+class KappaTests(unittest.TestCase):
+    def test_landis_koch_inclusive_boundaries(self):
+        for kappa, esperado in ((-0.1, "pobre"), (0, "leve"), (0.2, "leve"),
+                                (0.2001, "razoável"), (0.4, "razoável"), (0.4001, "moderada"),
+                                (0.6, "moderada"), (0.6001, "substancial"), (0.8, "substancial"),
+                                (0.8001, "quase perfeita"), (1, "quase perfeita")):
+            self.assertEqual(comum.landis_koch(kappa), esperado)
+        for kappa in (None, float("nan"), float("inf")):
+            self.assertEqual(comum.landis_koch(kappa), "indefinido")
+
+class ReproducaoTests(unittest.TestCase):
+    def test_clean_copy_with_only_source_and_csvs_runs_the_module_twice(self):
+        raiz = Path(__file__).resolve().parents[1]
+        with TemporaryDirectory() as temporario:
+            clone = Path(temporario)
+            for pacote in ("analise", "dora_selection", "validacao"):
+                shutil.copytree(raiz / pacote, clone / pacote,
+                                ignore=shutil.ignore_patterns("__pycache__", "*.csv"))
+            with DiretorioDeDados(repositorios=REPOSITORIOS.replace("owner/dois,,", "owner/dois,3,")) as dados:
+                shutil.copytree(dados, clone / "data/processed")
+            ambiente = dict(os.environ, MPLCONFIGDIR=str(clone / "mplconfig"), PYTHONUTF8="1")
+            ambiente.pop("GITHUB_TOKEN", None)
+            ambiente.pop("PYTHONPATH", None)
+            # A cópia é um programa independente: não deve misturar cobertura
+            # de fontes temporárias (apagadas depois) com a suíte do clone real.
+            for chave in tuple(ambiente):
+                if chave.startswith("COV_CORE_") or chave == "COVERAGE_PROCESS_START":
+                    ambiente.pop(chave)
+            comando = [sys.executable, "-m", "analise"]
+            primeira = subprocess.run(comando, cwd=clone, env=ambiente, capture_output=True, text=True,
+                                      encoding="utf-8", timeout=90)
+            self.assertEqual(primeira.returncode, 0, primeira.stdout + primeira.stderr)
+            self.assertIn("rq01_04:", primeira.stdout)
+            self.assertIn("classificacao_c1:", primeira.stdout)
+            saidas = {str(p.relative_to(clone)): p.read_bytes()
+                      for p in (clone / "resultados").rglob("*") if p.is_file()}
+            self.assertTrue(any(p.endswith(".csv") for p in saidas))
+            self.assertTrue(any(p.endswith(".tex") for p in saidas))
+            pdfs = [p for p in saidas if p.endswith(".pdf")]
+            self.assertGreaterEqual(len(pdfs), 5)
+            for p in pdfs:
+                self.assertTrue(saidas[p].startswith(b"%PDF-"))
+                self.assertNotIn(b"/Subtype /Image", saidas[p])
+                self.assertIn(b"/FontFile2", saidas[p])
+            segunda = subprocess.run(comando, cwd=clone, env=ambiente, capture_output=True, text=True,
+                                     encoding="utf-8", timeout=90)
+            self.assertEqual(segunda.returncode, 0, segunda.stdout + segunda.stderr)
+            self.assertEqual(saidas, {str(p.relative_to(clone)): p.read_bytes()
+                                     for p in (clone / "resultados").rglob("*") if p.is_file()})
+
+    def test_shared_figure_defaults_and_pdf_writer(self):
+        plt = estilo.aplicar()
+        self.assertEqual(list(plt.rcParams["figure.figsize"]), list(estilo.TAMANHO_SIMPLES))
+        self.assertEqual(plt.rcParams["font.size"], 8)
+        self.assertEqual(plt.rcParams["pdf.fonttype"], 42)
+        with TemporaryDirectory() as temporario:
+            fig, eixo = plt.subplots()
+            eixo.plot([1, 2], [2, 3])
+            caminho = estilo.salvar(fig, temporario, "exemplo")
+            self.assertTrue(caminho.read_bytes().startswith(b"%PDF-"))
 
 
 if __name__ == "__main__":

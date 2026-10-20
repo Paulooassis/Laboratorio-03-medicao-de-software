@@ -12,7 +12,7 @@ abaixo, detalham as regras de cada etapa; aqui está só o necessário para roda
 Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
 dependências instaladas servem aos testes, à validação manual da amostra-ouro
 (`statsmodels`, para o kappa de Fleiss) e às análises estatísticas da Sprint 3
-(`pandas` e `matplotlib`, para `python -m analise`).
+(`pandas`, `scipy` e `matplotlib`, para `python -m analise`).
 
 ```bash
 git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
@@ -1007,6 +1007,45 @@ e `--project-type` mudam os caminhos.
 voto `uncertain` isolado, decisões que resolvem a pauta, decisão que revisa uma maioria,
 cada erro do arquivo de decisões e as duas execuções da linha de comando (com e sem
 pendências).
+
+## Como reproduzir as análises
+
+Com os três CSVs do estudo em `data/processed/` (`repositorios.csv`,
+`releases.csv` e `episodios_falha.csv`), instale as dependências e execute:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m analise
+```
+
+No PowerShell, também é possível usar diretamente o ambiente virtual existente:
+
+```powershell
+.\.venv\Scripts\python.exe -m analise
+```
+
+O comando executa todas as análises registradas em `ANALISES`, de
+`analise/__main__.py`, usando somente os CSVs, sem token ou cache da API.
+Gera tabelas `.csv` e `.tex` em `resultados/tabelas/` (prontas para `\input{}`)
+e figuras PDF vetoriais em `resultados/figuras/`. `--dados` e `--saida` mudam os
+diretórios; `--listar` mostra as análises e `--analise NOME` seleciona uma delas.
+
+As RQs reutilizam `analise.comum`: `carregar`, `resumo`, `kruskal_wallis`,
+`mann_whitney`, `epsilon_quadrado`, `cliffs_delta`, `interpretar_cliffs_delta`,
+`holm` e `landis_koch`. Os quartis usam interpolação linear, ausentes são
+excluídos das amostras e resultados sem observações ficam indefinidos.
+`holm` retorna `p`, `p_holm` e `rejeita`, preservando ordem e índice; p ausente
+não participa da família. A interpretação de kappa reutiliza a validação existente.
+
+O contrato de tipos e unidades está em
+[`docs/dicionario_de_dados.md`](docs/dicionario_de_dados.md). O padrão visual de
+`analise.estilo` fixa tamanho, fontes e paleta; use `aplicar()` antes de criar
+figuras e `salvar()` para exportá-las. Eixos logarítmicos usam apenas valores
+positivos, com zeros e ausentes contabilizados separadamente.
+
+Para registrar uma análise, implemente `executar(dados, saida)` e adicione-a a
+`ANALISES`. Execute `python -m pytest` para validar a base comum, as contas manuais
+e a reprodução das saídas a partir dos CSVs em um diretório temporário limpo.
 
 ## Lab03S03 — RQ 01 a RQ 04: estatística descritiva (mediana, IQR e censura)
 

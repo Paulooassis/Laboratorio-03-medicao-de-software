@@ -5,6 +5,8 @@ Todas as figuras saem em PDF vetorial, no tamanho de uma coluna do template da S
 variantes obrigatórias das RQ 02 e 03 usam sempre as mesmas cores (`VARIANTE_A` e
 `VARIANTE_B`), para que as figuras possam ser lidas lado a lado.
 """
+from pathlib import Path
+
 import matplotlib
 from matplotlib.ticker import MaxNLocator
 
@@ -27,6 +29,8 @@ NIVEIS = {"Elite": "#1f4e79", "High": "#4a7fb5", "Medium": "#e0b062", "Low": "#c
 def aplicar():
     """Aplica o padrão visual; chamado por cada análise antes de criar figuras."""
     plt.rcParams.update({
+        "figure.figsize": TAMANHO_SIMPLES, "font.family": "DejaVu Sans",
+        "axes.prop_cycle": matplotlib.cycler(color=[VARIANTE_A, VARIANTE_B, NEUTRO, REFERENCIA]),
         "figure.dpi": 150, "savefig.bbox": "tight", "savefig.pad_inches": 0.02,
         "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8,
         "xtick.labelsize": 7, "ytick.labelsize": 7, "legend.fontsize": 7,
@@ -71,9 +75,9 @@ def diagonal(eixo, valores_x, valores_y):
 
 def salvar(figura, diretorio, nome):
     """Grava a figura em `resultados/figuras/<nome>.pdf` e devolve o caminho."""
-    diretorio = diretorio / "figuras"
+    diretorio = Path(diretorio) / "figuras"
     diretorio.mkdir(parents=True, exist_ok=True)
     caminho = diretorio / f"{nome}.pdf"
-    figura.savefig(caminho)
+    figura.savefig(caminho, format="pdf", metadata={"CreationDate": None, "ModDate": None})
     plt.close(figura)
     return caminho
