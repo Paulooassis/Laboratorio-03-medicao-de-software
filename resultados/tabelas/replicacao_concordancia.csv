@@ -1,0 +1,6 @@
+metrica,rotulo,n_total,n_pares,n_iguais,percentual_amostra,percentual_pares,kappa_linear
+categoria_dora_frequencia,DF,30,30,30,100.0,100.0,1.0
+categoria_dora_lead_time,LT C1,30,30,30,100.0,100.0,1.0
+categoria_dora_cfr,CFR C1,30,30,30,100.0,100.0,1.0
+categoria_dora_recuperacao,Recuperação,30,23,21,70.0,91.30434782608695,0.9065040650406504
+categoria_dora_geral,Geral,30,30,29,96.66666666666667,96.66666666666667,0.9598930481283422

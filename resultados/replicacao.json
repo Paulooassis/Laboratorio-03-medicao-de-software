@@ -1,0 +1,181 @@
+{
+  "original": {
+    "arquivo": "replicacao/resultados_originais/dataset.csv",
+    "sha256": "03a0e7fa1e95d8da3df2af12fca5f7b2d2055b453f121b44c43a687a88a6a89a",
+    "data_declarada": "2026-10-18T23:13:51.545292+00:00",
+    "commit_declarado": "925cc6f90ebebaf4f0e2ffda337f0c1997085fc4",
+    "sha256_declarado": "96e0a30b06d3452d4e29555f0df8e17d30119754a506f3471935deccdb1cb0f1",
+    "manifesto_confere": false
+  },
+  "obtido": {
+    "arquivo": "replicacao/resultados_obtidos/dataset.csv",
+    "sha256": "af28947b07365d3bebe3ddcf33ab12ed2367e5fad5de88cecfd9e535c494bc63",
+    "data_declarada": "2026-10-20T23:27:45.658699+00:00",
+    "commit_declarado": "73b739fbd6527b37b7c2508da07beed49f272045",
+    "sha256_declarado": "af28947b07365d3bebe3ddcf33ab12ed2367e5fad5de88cecfd9e535c494bc63",
+    "manifesto_confere": true
+  },
+  "amostra": {
+    "arquivo": "replicacao/subamostra.csv",
+    "sha256": "9b6e4d598053cffea1b421c67675f2db15fb86bfcd1e364affb39418eca8133b"
+  },
+  "resumo": [
+    {
+      "metrica": "deploy_frequency_semana",
+      "rotulo": "DF (semana)",
+      "n_total": 30,
+      "n_relativas": 30,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 0.0,
+      "n_iguais": 30,
+      "n_ambos_zero": 0,
+      "n_original_zero": 0,
+      "n_ausentes": 0
+    },
+    {
+      "metrica": "lead_time_release_h",
+      "rotulo": "LT release (h)",
+      "n_total": 30,
+      "n_relativas": 30,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 0.0,
+      "n_iguais": 30,
+      "n_ambos_zero": 0,
+      "n_original_zero": 0,
+      "n_ausentes": 0
+    },
+    {
+      "metrica": "lead_time_commit_h",
+      "rotulo": "LT commit (h)",
+      "n_total": 30,
+      "n_relativas": 30,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 0.0,
+      "n_iguais": 30,
+      "n_ambos_zero": 0,
+      "n_original_zero": 0,
+      "n_ausentes": 0
+    },
+    {
+      "metrica": "cfr_ci",
+      "rotulo": "CFR CI",
+      "n_total": 30,
+      "n_relativas": 23,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 0.1553398058252428,
+      "n_iguais": 21,
+      "n_ambos_zero": 7,
+      "n_original_zero": 0,
+      "n_ausentes": 0
+    },
+    {
+      "metrica": "cfr_entrega",
+      "rotulo": "CFR entrega",
+      "n_total": 30,
+      "n_relativas": 23,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 0.0,
+      "n_iguais": 30,
+      "n_ambos_zero": 7,
+      "n_original_zero": 0,
+      "n_ausentes": 0
+    },
+    {
+      "metrica": "tempo_recuperacao_h",
+      "rotulo": "Recuperação (h)",
+      "n_total": 30,
+      "n_relativas": 23,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 9.45072765072765,
+      "n_iguais": 18,
+      "n_ambos_zero": 0,
+      "n_original_zero": 0,
+      "n_ausentes": 7
+    },
+    {
+      "metrica": "rework_rate",
+      "rotulo": "Retrabalho",
+      "n_total": 30,
+      "n_relativas": 26,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "iqr": 0.0,
+      "max_abs_relativa": 0.0,
+      "n_iguais": 30,
+      "n_ambos_zero": 4,
+      "n_original_zero": 0,
+      "n_ausentes": 0
+    }
+  ],
+  "concordancia": [
+    {
+      "metrica": "categoria_dora_frequencia",
+      "rotulo": "DF",
+      "n_total": 30,
+      "n_pares": 30,
+      "n_iguais": 30,
+      "percentual_amostra": 100.0,
+      "percentual_pares": 100.0,
+      "kappa_linear": 1.0
+    },
+    {
+      "metrica": "categoria_dora_lead_time",
+      "rotulo": "LT C1",
+      "n_total": 30,
+      "n_pares": 30,
+      "n_iguais": 30,
+      "percentual_amostra": 100.0,
+      "percentual_pares": 100.0,
+      "kappa_linear": 1.0
+    },
+    {
+      "metrica": "categoria_dora_cfr",
+      "rotulo": "CFR C1",
+      "n_total": 30,
+      "n_pares": 30,
+      "n_iguais": 30,
+      "percentual_amostra": 100.0,
+      "percentual_pares": 100.0,
+      "kappa_linear": 1.0
+    },
+    {
+      "metrica": "categoria_dora_recuperacao",
+      "rotulo": "Recuperação",
+      "n_total": 30,
+      "n_pares": 23,
+      "n_iguais": 21,
+      "percentual_amostra": 70.0,
+      "percentual_pares": 91.30434782608695,
+      "kappa_linear": 0.9065040650406504
+    },
+    {
+      "metrica": "categoria_dora_geral",
+      "rotulo": "Geral",
+      "n_total": 30,
+      "n_pares": 30,
+      "n_iguais": 29,
+      "percentual_amostra": 96.66666666666667,
+      "percentual_pares": 96.66666666666667,
+      "kappa_linear": 0.9598930481283422
+    }
+  ]
+}
