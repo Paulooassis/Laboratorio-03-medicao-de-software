@@ -65,6 +65,7 @@ mesmas para todo o grupo:
 | `processados` | `data/processed` | Dataset final em CSV |
 | `tipo_projeto` | `validacao/resultados/tipo_projeto.csv` | Tipo do projeto consensual da amostra-ouro (S2-06) |
 | `workers` | `4` | Consultas simultâneas dentro de cada repositório |
+| `variantes` | `true` | Coleta também as unidades de deploy da RQ 07 (release + pré-release e tag) e grava `variantes.csv` e `deploys_variantes.csv`; `false` pula a etapa |
 
 A seção `heuristica_corretiva` registra a versão aprovada em S2-08, usada no CFR (b).
 Caminhos relativos valem a partir da pasta em que o comando é executado (a raiz do
@@ -85,6 +86,7 @@ e o que vier na linha de comando prevalece sobre o arquivo. Nesse comando `--sta
 | `--project-types` | nenhum | CSV `repository,project_type` da amostra-ouro |
 | `--tag-dates` | desligado | Consulta também a data do commit de cada tag |
 | `--workers` | `4` | Consultas simultâneas dentro de cada repositório; `1` desliga o paralelismo |
+| `--variants` | desligado | Coleta também as unidades de deploy da RQ 07 (veja [#41](#lab03s03--41-unidades-de-deploy-da-rq-07)) |
 | `--state` | `<output>/state` | Pasta dos diários de retomada, um por etapa |
 
 As opções de cache, retry e rate limit do Card 4 (`--cache-dir`, `--no-cache`,
@@ -1635,3 +1637,177 @@ cabeçalho) e **substitui a busca**, não os critérios de inclusão: um reposit
 que não passe nos critérios continua aparecendo no funil como excluído, com o motivo. A
 execução é considerada completa quando toda a lista foi avaliada, porque exclusão pelos
 critérios é resultado do estudo e não falha de execução.
+
+## Lab03S03 — #41: unidades de deploy da RQ 07
+
+A análise de sensibilidade (RQ 07) compara a classificação DORA sob unidades de deploy
+diferentes da definição principal. Esta etapa coleta o que faltava para calculá-las,
+sem alterar nenhuma regra da definição principal:
+
+| Unidade | Deploy | Data do deploy |
+| --- | --- | --- |
+| `release` | Release publicada (definição principal) | `published_at` |
+| `release_prerelease` | Release ou pré-release publicada na janela, numa só sequência | `published_at` |
+| `tag` | Commit apontado por uma ou mais tags da janela | `commit.author.date` do commit |
+
+Ligada por `variantes: true` na seção `coleta` do `config.yaml` (ou `--variants`), roda
+depois da coleta de workflow runs e grava `data/processed/variantes.csv` (uma linha por
+repositório e unidade) e `data/processed/deploys_variantes.csv` (uma linha por deploy).
+As colunas estão em [docs/dicionario_de_dados.md](docs/dicionario_de_dados.md).
+
+### Decisões
+
+- **Datas das tags pela API GraphQL.** O REST só devolve a data de uma tag com uma
+  chamada por commit. O GraphQL lista as tags ordenadas pela data do commit, 100 por
+  consulta, e a paginação para na primeira página anterior à janela; um repositório com
+  milhares de tags antigas custa poucas consultas. A cota do GraphQL é separada da REST
+  e o cliente respeita cada uma por conta própria.
+- **Tags no mesmo commit são um só deploy.** Um monorepo que marca vários pacotes de
+  uma vez multiplicaria a frequência. Na amostra, 36.264 tags da janela formam 24.564
+  deploys (32% das tags foram agrupadas); a coluna `tags` preserva a contagem original.
+- **Cada deploy é comparado com o anterior da própria unidade**, pela mesma função de
+  `compare` e com o mesmo cache da definição principal: pares já consultados não
+  geram nova chamada.
+- **Falha de coleta não vira "zero deploys".** Se as datas das tags de um repositório
+  não puderem ser lidas, a linha da unidade `tag` fica com `collection_complete = False`.
+- **CFR (a) e tempo de recuperação não mudam** com a unidade, pois usam workflow runs.
+
+### Custo da coleta completa (300 repositórios)
+
+Estimado antes de rodar, a partir de `deployments.json` e das datas das tags:
+
+| Item | Quantidade |
+| --- | ---: |
+| Consultas GraphQL (datas das tags) | 1.003 |
+| Deploys em `release_prerelease` | 21.778 (18.389 releases + 3.389 pré-releases) |
+| Deploys em `tag` | 24.564 |
+| Comparações novas, `release_prerelease` | 4.180 |
+| Comparações novas, `tag` | 8.583 |
+
+Cada comparação nova custa em média até 2,3 chamadas REST (a média observada nas
+comparações da definição principal), ou seja, até cerca de 29 mil chamadas, o que são
+6 horas de cota com 5.000 chamadas por hora. Os maiores custos são `pytorch/pytorch`
+(1.039 comparações novas), `vercel/next.js` (672), `metabase/metabase` (560),
+`zed-industries/zed` (554) e `electron/electron` (547). Interrompida por cota ou
+`Ctrl+C`, a coleta continua de onde parou com o mesmo comando. Sem `variantes`, o
+custo da definição principal não muda.
+
+### Testes
+
+`tests/test_variants.py` usa a API simulada do Card 8 e cobre: tags anotadas e tags que
+não apontam para commit; paginação do GraphQL que para na janela; tags no mesmo commit;
+tag base anterior à janela; sequência combinada de release e pré-release; primeiro
+deploy sem base; compare com 404 e com erro; SHA idêntico sem chamada; repositório com
+uma única release; falha das datas das tags sem perder a outra unidade; retomada pelo
+diário; e o cliente GraphQL (corpo e token, cache, erro não gravado, espera do reset,
+desistência quando o reset está longe, cotas REST e GraphQL separadas). O teste de
+ponta a ponta confere que a segunda execução reconstrói `variantes.csv` sem nenhuma
+chamada à API.
+
+## Lab03S03 — RQ 07: sensibilidade da classificação DORA
+
+Mede o quanto a classificação de um repositório (Elite/High/Medium/Low) depende da
+definição operacional. Cada repositório é classificado sob quatro combinações, com as
+mesmas faixas e a mesma mediana de notas da C1 (`dora_selection/rating.py`):
+
+| Combinação | Unidade de deploy | Lead time | CFR |
+| --- | --- | --- | --- |
+| C1 (referência) | release | (a) por release | (a) proxy de CI |
+| C2 | release + pré-release | (b) por commit | (b) proxy de entrega |
+| C3 | tag | (b) por commit | (a) proxy de CI |
+| C4 | release | (b) por commit | (b) proxy de entrega |
+
+A C4 é a combinação adicional que o enunciado deixa a critério do grupo. Ela muda só as
+variantes das métricas e mantém a unidade, e por isso separa dois efeitos que C1 × C2
+mistura: **C1 × C4** mede o efeito de trocar as variantes, e **C2 × C4**, o de trocar a
+unidade (release → release + pré-release).
+
+```bash
+python -m analise --analise rq07
+```
+
+Entrada: `data/processed/variantes.csv` (veja [#41](#lab03s03--41-unidades-de-deploy-da-rq-07))
+mais os três CSVs de sempre. Sem `variantes.csv` a análise não falha: grava
+`resultados/texto/notas_rq07.md` dizendo que está indisponível.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq07_pares.{csv,tex}` | Para cada um dos 6 pares e para o nível geral e cada métrica: n comparado, quantos mudaram, % que mudou e kappa de Cohen ponderado linear com a interpretação de Landis e Koch |
+| `resultados/tabelas/rq07_transicao_<Ci>_<Cj>.{csv,tex}` | Matriz de transição do nível geral (a última linha e coluna são "Sem classificação") |
+| `resultados/tabelas/rq07_distribuicao.{csv,tex}` | Distribuição do nível geral em cada combinação |
+| `resultados/tabelas/rq07_robustez_descritiva.{csv,tex}` | Mediana e IQR de DF, Lead Time e CFR sob cada combinação e a variação da mediana frente à C1 (RQ 01 a 03) |
+| `resultados/tabelas/rq07_robustez_spearman.{csv,tex}` | Spearman DF × CFR sob cada combinação e se o sinal e a significância da C1 se mantêm (RQ 05) |
+| `resultados/tabelas/rq07_robustez_rq06.{csv,tex}` | Testes da família principal da RQ 06 que rejeitam H0 após Holm em cada combinação, em comum com a C1, novos e perdidos |
+| `resultados/figuras/rq07_distribuicao.pdf` | Barras empilhadas do nível geral por combinação |
+| `resultados/figuras/rq07_transicao_C1_C{2,3,4}.pdf` | Mapas de calor das transições a partir da C1 |
+| `resultados/texto/notas_rq07.md` | Rascunho da seção, com todos os números calculados |
+
+### Decisões
+
+- **Repositório sem nível numa combinação fica de fora do par**, e a tabela traz quantos
+  ficaram só de um lado (`so_na_primeira`, `so_na_segunda`). Nenhuma métrica ausente vira
+  Low.
+- **Coleta falha numa unidade não vira "zero deploys".** Se `collection_complete` é falso, as
+  métricas da unidade ficam ausentes e o nível geral da combinação também: o CFR (a) e a
+  recuperação, que não dependem da unidade, não bastam para sustentar um nível sozinhos.
+- **Kappa indefinido** quando as duas combinações têm uma única categoria (0/0), em vez de
+  forçar 1 ou 0.
+- **A família da RQ 06 é a do Paulo** (`rq06.familia`, Holm sobre 4 fatores × 4 métricas),
+  reaproveitada; a partição em grupos não muda com a unidade de deploy.
+- **Conferência:** a unidade `release` de `variantes.csv` é comparada com
+  `repositorios.csv`, e a C1 daqui, com `classificacao_c1`; divergências saem em
+  `notas_rq07.md`.
+
+### Testes
+
+`tests/test_rq07.py` usa um cenário de 5 repositórios com os níveis, os percentuais e os
+kappas calculados à mão (3/7, 8/11, 0,8, 1/3 e 4/7), incluindo um repositório cuja coleta de
+tags falhou e outro ausente de `variantes.csv`. Cobre também o kappa nos casos de borda, a
+matriz de transição, a robustez da RQ 05 (inclusive o CFR constante, que torna a correlação
+indefinida), da RQ 06 e das medianas, a unidade duplicada, a unidade ausente e o comando sem
+`variantes.csv`.
+
+## Lab03S03 — RQ 08 (bônus): rework rate
+
+A *deployment rework rate* que o DORA acrescentou em 2024: a proporção de entregas não
+planejadas, feitas para corrigir problemas. Aqui é `releases corretivas ÷ releases
+avaliadas` por repositório, com a heurística `v1` da RQ 03 (b).
+
+```bash
+python -m analise --analise rq08
+```
+
+**Em que difere do CFR (b).** O CFR (b) marca a release que *falhou* (a seguida por uma
+corretiva em até 7 dias); o rework rate marca a *própria correção*, sem janela de tempo.
+Por isso: uma correção tardia é retrabalho aqui e passa despercebida lá; o rework rate não
+censura os últimos 7 dias da janela; e uma só corretiva pode marcar várias falhas no CFR
+(b). A primeira release da história de cada repositório, que não tem anterior para ser
+corrigida, fica fora do denominador e é contada à parte.
+
+A função pura é `dora_selection.cfr.rework_rate`, e o pipeline grava `rework_rate`,
+`rework_evaluated`, `rework_corrective` e `rework_no_previous` em `repositorios.csv`
+(documentadas no [dicionário](docs/dicionario_de_dados.md#rework-rate-rq-08)). A análise
+recalcula a taxa a partir de `releases.csv` e confere com a coluna do pipeline.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq08_resumo.{csv,tex}` | n, mediana, Q1, Q3 e IQR do rework rate e do CFR (b) |
+| `resultados/tabelas/rq08_correlacao.{csv,tex}` | Spearman rework rate × CFR (b): ρ, p, n e força |
+| `resultados/tabelas/rq08_divergencias.{csv,tex}` | Os 10 repositórios em que as duas métricas mais se afastam, com as contagens |
+| `resultados/figuras/rq08_distribuicao.pdf` | Histograma do rework rate por repositório |
+| `resultados/figuras/rq08_rework_cfr_b.pdf` | Dispersão rework rate × CFR (b) com a reta de igualdade |
+| `resultados/texto/notas_rq08.md` | Rascunho com a definição, a diferença para o CFR (b), a correlação e a confiança |
+
+Sobre os 300 repositórios, a mediana do rework rate é 0,70 (IQR 0,41), contra 0,27 do CFR
+(b), e a heurística marca 65% das releases como corretivas. Como a precisão da `v1` na
+amostra-ouro (0,70) é menor que o recall (0,82), a taxa observada tende a superestimar o
+retrabalho: o rascunho traz a correção por P/R como ordem de grandeza.
+
+### Testes
+
+`tests/test_cfr.py` cobre `rework_rate` (repositório sem corretivas, só corretivas, primeira
+release da história, release única, sem releases, sem censura, release sem data, `compare`
+em erro e tags fora do SemVer), e `tests/test_rq08.py` cobre a análise com um cenário feito
+à mão: a taxa por repositório, o denominador, os totais e a reconciliação com o CFR (b), a
+origem alternativa dos dados, a conferência com o pipeline, o Spearman à mão, as
+divergências, o ajuste por precisão e recall e o comando de ponta a ponta.
