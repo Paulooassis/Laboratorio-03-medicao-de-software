@@ -29,9 +29,13 @@ METRICAS = (
     ("recuperacao", "Tempo de recuperação\n(horas)", "recovery_hours", True),
 )
 # Colunas da matriz de correlação, na ordem em que entram no artigo.
-CORRELACAO = (("DF", "releases_per_week"), ("LT (a)", "release_lead_time_hours"),
-              ("LT (b)", "commit_lead_time_hours"), ("CFR (a)", "change_failure_rate"),
-              ("CFR (b)", "delivery_change_failure_rate"), ("Recup.", "recovery_hours"))
+# Rótulos por extenso: o artigo não usa siglas de métrica.
+CORRELACAO = (("Frequência", "releases_per_week"),
+              ("Lead time (a)", "release_lead_time_hours"),
+              ("Lead time (b)", "commit_lead_time_hours"),
+              ("Taxa de falha (a)", "change_failure_rate"),
+              ("Taxa de falha (b)", "delivery_change_failure_rate"),
+              ("Recuperação", "recovery_hours"))
 
 
 def mapa_divergente():
@@ -118,7 +122,7 @@ def figura_correlacao(quadro, saida):
     plt = estilo.aplicar()
     spearman, tamanhos = coeficientes(quadro, "spearman")
     pearson, _ = coeficientes(quadro, "pearson")
-    figura, eixos = plt.subplots(1, 2, figsize=(estilo.LARGURA, 3.1))
+    figura, eixos = plt.subplots(1, 2, figsize=(estilo.LARGURA, 3.4))
     norma = TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
     desenho = None
     for posicao, (eixo, (titulo, matriz)) in enumerate(

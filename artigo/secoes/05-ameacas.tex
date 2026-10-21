@@ -12,8 +12,8 @@ rotuladas representam entregas reais ao usuário, 5 ficaram incertas e nenhuma f
 como "não" --- a suposição se sustenta nesta amostra. Ela permanece, porém, para as 95
 releases de bibliotecas e \emph{frameworks}, em que publicar no registro não implica que
 alguém atualizou a dependência. A segunda equivalência é o objeto da Seção
-\ref{sec:discussao} e não foi mitigada, e sim \emph{medida}: as duas variantes do CFR
-discordam em 72,3\% dos repositórios. A heurística corretiva que sustenta o CFR (b) tem
+\ref{sec:discussao} e não foi mitigada, e sim \emph{medida}: as duas variantes da taxa de falha
+discordam em 72,3\% dos repositórios. A heurística corretiva que sustenta a taxa de falha (b) tem
 F1 de 0,754, com 55 falsos positivos e 27 falsos negativos, e superdetecta corretivas ---
 marca 65,4\% das releases contra 51\% na rotulagem manual. Além disso,
 \texttt{commit.author.date} é vulnerável a \emph{rebase} e \emph{squash merge}, que reescrevem
@@ -26,7 +26,7 @@ portanto, aferir a confiabilidade da rotulagem que sustenta o F1 relatado.
 
 \textbf{Validade Interna.} O principal confundidor identificado é a própria cadência: um
 repositório que publica com frequência tem mais oportunidades de ter uma release corretiva
-dentro de sete dias, o que infla o CFR (b) independentemente da qualidade. Esse mecanismo
+dentro de sete dias, o que infla a taxa de falha (b) independentemente da qualidade. Esse mecanismo
 foi quantificado (87,7\% contra 25,0\% dos intervalos dentro da janela) e é reportado junto
 do coeficiente, não omitido. Releases publicadas por robôs de automação ---
 \emph{release-please}, \emph{semantic-release}, Dependabot --- entram como qualquer outra e
@@ -35,7 +35,7 @@ pois não distinguimos autor humano de robô. Execuções agendadas são excluí
 evento \texttt{push}, mas execuções com matriz de combinações contam como um único
 \emph{run}. O truncamento no fim da janela foi tratado por censura explícita, e não por
 descarte, em ambos os pontos em que ocorre: 196 episódios de recuperação (0,97\%) e 246
-releases do CFR (b) (1,3\%).
+releases da taxa de falha (b) (1,3\%).
 
 \textbf{Validade Externa.} A amostra é deliberadamente estreita: repositórios públicos com
 pelo menos 1.001 estrelas, que usam GitHub Actions, observados em uma única janela anual. O

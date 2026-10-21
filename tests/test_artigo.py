@@ -52,7 +52,7 @@ class CorrelacaoTests(unittest.TestCase):
     def test_spearman_is_one_and_pearson_is_lower_on_a_monotone_curve(self):
         with Amostra(monotona_nao_linear()) as amostra:
             tabela = artigo.tabela_correlacao(amostra.carregar().repositorios)
-        linha = tabela.set_index("par").loc["DF × LT (a)"]
+        linha = tabela.set_index("par").loc["Frequência × Lead time (a)"]
         self.assertAlmostEqual(linha["spearman"], 1.0, places=9)
         self.assertLess(linha["pearson"], 0.95)
         self.assertGreater(linha["diferenca"], 0.05)
@@ -69,14 +69,15 @@ class CorrelacaoTests(unittest.TestCase):
             matriz, tamanhos = artigo.coeficientes(amostra.carregar().repositorios, "spearman")
         for rotulo in matriz.index:
             self.assertAlmostEqual(matriz.loc[rotulo, rotulo], 1.0, places=9)
-        self.assertAlmostEqual(matriz.loc["DF", "CFR (a)"], matriz.loc["CFR (a)", "DF"])
-        self.assertEqual(tamanhos.loc["DF", "LT (a)"], 12)
+        self.assertAlmostEqual(matriz.loc["Frequência", "Taxa de falha (a)"],
+                               matriz.loc["Taxa de falha (a)", "Frequência"])
+        self.assertEqual(tamanhos.loc["Frequência", "Lead time (a)"], 12)
 
     def test_a_constant_metric_has_no_coefficient_instead_of_zero(self):
         linhas = [{**linha, "cfr_a": 0.5} for linha in monotona_nao_linear()]
         with Amostra(linhas) as amostra:
             matriz, _ = artigo.coeficientes(amostra.carregar().repositorios, "pearson")
-        valor = matriz.loc["DF", "CFR (a)"]
+        valor = matriz.loc["Frequência", "Taxa de falha (a)"]
         self.assertNotEqual(valor, valor)  # NaN: indefinido, não zero
 
     def test_a_sample_too_small_for_a_coefficient_is_left_empty(self):

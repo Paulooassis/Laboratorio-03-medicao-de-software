@@ -18,14 +18,14 @@ H1 & Frequência alta, em \emph{Elite}/\emph{High} &
 H2 & As variantes de lead time são próximas &
      Medianas de 324,9 h e 411,8 h; $\rho = 0{,}71$, mas IQR de 880 h contra 1.716 h &
      Parcial \\
-H3 & CFR baixo e variantes concordantes &
-     CFR (a) mediana 0,056 (\emph{Elite}), mas as variantes discordam em 72,3\% dos
+H3 & Taxa de falha baixa e variantes concordantes &
+     Taxa de falha (a) mediana 0,056 (\emph{Elite}), mas as variantes discordam em 72,3\% dos
      repositórios, com $\kappa = -0{,}015$ & Parcial \\
 H4 & Recuperação abaixo de um dia &
      Mediana de 4,94 h; 181 dos 300 em \emph{High} e 33 em \emph{Elite} &
      Confirmada \\
 H5 & Sem \emph{trade-off} velocidade × estabilidade &
-     Confirma-se com o CFR (a) ($\rho = 0{,}07$); com o CFR (b), $\rho = 0{,}62$ por
+     Confirma-se com a variante (a) ($\rho = 0{,}07$); com a (b), $\rho = 0{,}62$ por
      artefato de construção & Parcial \\
 H6 & Estrelas associadas a melhor desempenho &
      Nenhuma das quatro métricas se associa a estrelas após Holm; linguagem e
@@ -33,8 +33,8 @@ H6 & Estrelas associadas a melhor desempenho &
 H7 & Conclusões robustas à definição &
      Até 31,3\% mudam de categoria; trocar a variante pesa quase 4× mais que trocar a
      unidade & Refutada \\
-H8 & Retrabalho baixo e próximo do CFR (b) &
-     Mediana de 0,70 (alta) e correlação apenas fraca com o CFR (b)
+H8 & Retrabalho baixo e próximo da taxa de falha (b) &
+     Mediana de 0,70 (alta) e correlação apenas fraca com a taxa de falha (b)
      ($\rho = 0{,}36$) & Refutada \\
 \bottomrule
 \end{tabular}
@@ -58,7 +58,7 @@ típico espera para ser entregue".
 
 \subsection{Falha de Pipeline Não é Falha em Produção (H3 e H4)}
 
-A H3 foi \textbf{parcialmente confirmada}: a taxa é baixa pelo \emph{proxy} de CI (5,63\%,
+A H3 foi \textbf{parcialmente confirmada}: a taxa é baixa pelo \emph{proxy} de integração contínua (5,63\%,
 \emph{Elite}, com 234 dos 300 nessa faixa), mas a previsão de concordância entre as variantes
 erra por larga margem --- elas discordam de faixa em 72,3\% dos repositórios, com
 $\kappa = -0{,}015$. A diferença não é de calibração, é de objeto: uma execução de CI
@@ -72,7 +72,7 @@ das 24 h previstas, com 181 repositórios em \emph{High}.
 
 \subsection{O \emph{Trade-off} que é Artefato de Construção (H5)}
 
-Com o \emph{proxy} de CI, a ausência de \emph{trade-off} se confirma ($\rho = 0{,}07$, não
+Com o \emph{proxy} de integração contínua, a ausência de \emph{trade-off} se confirma ($\rho = 0{,}07$, não
 significativo). Com o de entrega, a correlação é positiva e moderada ($\rho = 0{,}62$), o que
 contradiria o DORA e sugeriria que entregar mais causa mais falhas. O diagnóstico da janela
 de sete dias mostra que a leitura é um \textbf{artefato da própria métrica}: no quartil
@@ -95,13 +95,13 @@ C4, que diferem apenas na unidade de deploy, 7,3\% mudam de categoria
 ($\kappa = 0{,}878$); entre C1 e C4, que diferem apenas nas variantes, 28,3\%
 ($\kappa = 0{,}546$). Ou seja, \textbf{trocar a variante da métrica desloca a classificação
 quase quatro vezes mais do que trocar a unidade de deploy}. A discussão sobre se \emph{tag} ou
-release conta como deploy importa menos do que a escolha entre CFR de CI e CFR de entrega.
+release conta como deploy importa menos do que a escolha entre a taxa de falha de integração contínua e a de entrega.
 
 A H8 foi \textbf{refutada} nas duas partes: o retrabalho não é baixo (mediana de 70,0\%) e sua
-correlação com o CFR de entrega é apenas fraca ($\rho = 0{,}36$), embora ambos derivem da
+correlação com a taxa de falha de entrega é apenas fraca ($\rho = 0{,}36$), embora ambos derivem da
 mesma heurística. A diferença está na janela: o retrabalho conta toda release corretiva do
-período, enquanto o CFR (b) só conta as que \emph{seguem} outra release em até sete dias ---
-repositórios que corrigem com calma produzem retrabalho alto e CFR (b) baixo.
+período, enquanto a taxa de falha (b) só conta as que \emph{seguem} outra release em até sete dias ---
+repositórios que corrigem com calma produzem retrabalho alto e taxa de falha (b) baixa.
 
 Soma-se um achado não previsto: 86,3\% dos repositórios mudam de categoria se uma única
 métrica avançar um degrau (Seção \ref{sec:resultados}). A classificação em faixas discretiza

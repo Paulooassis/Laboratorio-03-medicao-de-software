@@ -66,9 +66,10 @@ execuções independentes não constituem, por si, erro de cálculo.
 
 As práticas de entrega contínua consolidaram o programa \emph{DevOps Research and
 Assessment} (DORA) como a taxonomia padrão de medição de desempenho de entrega
-\cite{forsgren2018}. Os quatro construtos --- \emph{deployment frequency} (DF),
-\emph{lead time for changes} (LT), \emph{change failure rate} (CFR) e tempo de recuperação
-após falha --- sustentam a tese de que equipes maduras entregam rápido \emph{e} com
+\cite{forsgren2018}. Os quatro construtos --- \emph{deployment frequency}
+(frequência de deploy), \emph{lead time for changes} (tempo entre o commit e a entrega),
+\emph{change failure rate} (taxa de falha das mudanças) e tempo de recuperação após falha
+--- sustentam a tese de que equipes maduras entregam rápido \emph{e} com
 estabilidade, rompendo o \emph{trade-off} clássico entre velocidade e confiabilidade
 \cite{dora2024}.
 
@@ -90,21 +91,21 @@ Registramos, antes de observar os dados, uma hipótese informal por questão de 
 acompanhada da razão de esperá-la:
 
 \begin{itemize}
-  \item \textbf{RQ 01 (DF).} \emph{H1:} concentração em \emph{Elite}/\emph{High}, por serem
+  \item \textbf{RQ 01 (frequência de deploy).} \emph{H1:} concentração em \emph{Elite}/\emph{High}, por serem
     projetos de CI maduro e publicação automatizada.
-  \item \textbf{RQ 02 (LT).} \emph{H2:} as duas variantes produzem valores próximos, por
+  \item \textbf{RQ 02 (tempo entre o commit e a entrega).} \emph{H2:} as duas variantes produzem valores próximos, por
     medirem o mesmo intervalo por caminhos distintos.
-  \item \textbf{RQ 03 (CFR).} \emph{H3:} taxa baixa (\emph{Elite}) e variantes concordantes,
+  \item \textbf{RQ 03 (taxa de falha das mudanças).} \emph{H3:} taxa baixa (\emph{Elite}) e variantes concordantes,
     por haver suítes extensas e revisão antes da integração.
-  \item \textbf{RQ 04 (Recuperação).} \emph{H4:} mediana inferior a 24 h, porque uma
+  \item \textbf{RQ 04 (tempo de recuperação).} \emph{H4:} mediana inferior a 24 h, porque uma
     \emph{build} quebrada no \emph{default branch} bloqueia todos os contribuidores.
-  \item \textbf{RQ 05 (DF $\times$ CFR).} \emph{H5:} sem \emph{trade-off} entre velocidade e
+  \item \textbf{RQ 05 (frequência de deploy $\times$ taxa de falha).} \emph{H5:} sem \emph{trade-off} entre velocidade e
     estabilidade, como sustenta o relatório DORA.
-  \item \textbf{RQ 06 (Fatores).} \emph{H6:} popularidade associa-se a melhor desempenho,
+  \item \textbf{RQ 06 (fatores estruturais).} \emph{H6:} popularidade associa-se a melhor desempenho,
     por atrair mantenedores e investimento em automação.
-  \item \textbf{RQ 07 (Sensibilidade).} \emph{H7:} conclusões robustas à definição, por todas
+  \item \textbf{RQ 07 (análise de sensibilidade).} \emph{H7:} conclusões robustas à definição, por todas
     tentarem capturar o mesmo fenômeno.
-  \item \textbf{RQ 08 (Retrabalho).} \emph{H8:} taxa baixa e fortemente correlacionada ao CFR
+  \item \textbf{RQ 08 (taxa de retrabalho).} \emph{H8:} taxa baixa e fortemente correlacionada à taxa de falha
     de entrega, por derivarem da mesma heurística.
 \end{itemize}
 
@@ -165,7 +166,7 @@ RQ 07. A \textbf{data de commit} vem de \texttt{commit.author.date}. A \textbf{f
 (RQ 02), os commits de cada release $R$ vêm de \texttt{compare/\{anterior\}...\{R\}}: a
 variante (a) é a publicação de $R$ menos o commit mais antigo nela incluído, e a (b) atribui a
 cada commit a diferença até a publicação da sua release, com mediana por repositório em ambas.
-No \textbf{CFR} (RQ 03), a variante (a) é falhas sobre falhas mais sucessos dos \emph{runs}
+Na \textbf{taxa de falha das mudanças} (RQ 03), a variante (a) é falhas sobre falhas mais sucessos dos \emph{runs}
 considerados --- \texttt{failure}, \texttt{timed\_out} e \texttt{startup\_failure} contam como
 falha, enquanto \texttt{cancelled}, \texttt{skipped}, \texttt{neutral},
 \texttt{action\_required}, \texttt{stale} e execuções em andamento são ignorados --- e a (b)
@@ -197,12 +198,12 @@ unidade.
 \footnotesize
 \begin{tabular}{llll}
 \toprule
-\textbf{Combinação} & \textbf{Unidade de deploy} & \textbf{Lead time} & \textbf{CFR} \\
+\textbf{Combinação} & \textbf{Unidade de deploy} & \textbf{Lead time} & \textbf{Taxa de falha} \\
 \midrule
-C1 (referência) & release & (a) por release & (a) proxy de CI \\
-C2 & release + pré-release & (b) por commit & (b) proxy de entrega \\
-C3 & tag & (b) por commit & (a) proxy de CI \\
-C4 & release & (b) por commit & (b) proxy de entrega \\
+C1 (referência) & release & (a) por release & (a) de integração contínua \\
+C2 & release + pré-release & (b) por commit & (b) de entrega \\
+C3 & tag & (b) por commit & (a) de integração contínua \\
+C4 & release & (b) por commit & (b) de entrega \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -278,8 +279,8 @@ quatro são fortemente assimétricas, e o lead time (a) varia de 1,2 h a mais de
 RQ 01 & Frequência (rel./sem.) & 300 & 0,460 & 0,230 & 1,002 & 0,772 & \emph{Medium} \\
 RQ 02 & Lead time (a) release & 300 & 324,9 h & 116,7 h & 996,9 h & 880,2 h & \emph{Medium} \\
 RQ 02 & Lead time (b) commit & 300 & 411,8 h & 128,2 h & 1.844,3 h & 1.716,2 h & \emph{Medium} \\
-RQ 03 & CFR (a) proxy de CI & 300 & 5,63\% & 1,33\% & 13,29\% & 11,96\% & \emph{Elite} \\
-RQ 03 & CFR (b) proxy de entrega & 300 & 26,92\% & 10,54\% & 50,00\% & 39,46\% & \emph{High} \\
+RQ 03 & Taxa de falha (a) de integração contínua & 300 & 5,63\% & 1,33\% & 13,29\% & 11,96\% & \emph{Elite} \\
+RQ 03 & Taxa de falha (b) de entrega & 300 & 26,92\% & 10,54\% & 50,00\% & 39,46\% & \emph{High} \\
 RQ 04 & Recuperação (horas) & 264 & 4,94 h & 1,75 h & 18,75 h & 17,00 h & \emph{High} \\
 \bottomrule
 \end{tabular}
@@ -296,7 +297,7 @@ painel, e três delas estão em escala logarítmica.}
 
 A distribuição dos 300 repositórios na classificação geral C1 resultou em \emph{Elite}: 9
 (3,0\%), \emph{High}: 110 (36,7\%), \emph{Medium}: 154 (51,3\%) e \emph{Low}: 27 (9,0\%). Por
-métrica (Tabela \ref{tab:c1}), chama atenção a concentração do CFR (a): 234 dos 300
+métrica (Tabela \ref{tab:c1}), chama atenção a concentração da taxa de falha (a): 234 dos 300
 repositórios caem em \emph{Elite}.
 
 \begin{table}[ht]
@@ -311,7 +312,7 @@ repositórios caem em \emph{Elite}.
 \midrule
 Deployment frequency & 6 & 69 & 152 & 73 & 0 \\
 Lead time (a) & 25 & 81 & 93 & 101 & 0 \\
-Change failure rate (a) & 234 & 47 & 8 & 11 & 0 \\
+Taxa de falha das mudanças (a) & 234 & 47 & 8 & 11 & 0 \\
 Tempo de recuperação & 33 & 181 & 33 & 21 & 32 \\
 \midrule
 \textbf{Classificação geral} & \textbf{9} & \textbf{110} & \textbf{154} & \textbf{27} & \textbf{0} \\
@@ -322,8 +323,8 @@ Tempo de recuperação & 33 & 181 & 33 & 21 & 32 \\
 \textbf{Auditoria de integridade e censura.} Nada foi estimado para fechar conta. No lead
 time, 3.052 das 18.389 releases (16,6\%) ficaram fora por motivo explícito, sendo 3.026 por
 não trazerem commits novos, 23 por não terem release anterior e 3 por erro de
-\texttt{compare} (2 deles 404). No CFR (a) entraram 730.432 \emph{workflow runs} e foram
-ignorados 60.959 (7,7\%). No CFR (b), 246 releases (1,3\%) dos últimos 7 dias ficaram fora do
+\texttt{compare} (2 deles 404). Na taxa de falha (a) entraram 730.432 \emph{workflow runs} e foram
+ignorados 60.959 (7,7\%). Na taxa de falha (b), 246 releases (1,3\%) dos últimos 7 dias ficaram fora do
 denominador, restando 18.143 avaliadas, das quais 10.974 falharam. Na RQ 04, dos 20.117
 episódios, 19.921 foram recuperados, 196 censurados e 124 com datas contraditórias; 36 dos
 300 repositórios (12,0\%) ficam sem mediana por não terem episódio recuperado e consistente.
@@ -334,7 +335,7 @@ como recuperado no fim da observação --- limite inferior do viés --- eleva a 
 \subsection{Velocidade $\times$ Estabilidade (RQ 05)}
 
 A correlação de Spearman revelou comportamento assimétrico entre os dois \emph{proxies}
-(Figura \ref{fig:dispersao}). Com o \emph{proxy} de CI, a associação é desprezível e não
+(Figura \ref{fig:dispersao}). Com o \emph{proxy} de integração contínua, a associação é desprezível e não
 significativa ($\rho = 0{,}071$; $p = 0{,}222$; $n = 300$). Com o \emph{proxy} de entrega, é
 moderada e fortemente significativa ($\rho = 0{,}615$; $p = 1{,}2 \times 10^{-32}$).
 
@@ -353,7 +354,8 @@ superior, o intervalo mediano é de 1,39 dia e 87,7\% cabem na janela.
 
 A Figura \ref{fig:correlacao} estende a análise a todos os pares de métricas, com Spearman e
 Pearson lado a lado. A diferença entre os dois coeficientes é sistemática: em
-DF $\times$ LT (a), $\rho = -0{,}575$ contra $r = -0{,}066$; em LT (a) $\times$ CFR (b),
+frequência $\times$ lead time (a), $\rho = -0{,}575$ contra $r = -0{,}066$; em lead
+time (a) $\times$ taxa de falha (b),
 $-0{,}717$ contra $-0{,}263$.
 
 \begin{figure}[ht]
@@ -396,8 +398,8 @@ repositórios que mudam de categoria geral e o $\kappa$ ponderado correspondente
 \textbf{$\kappa$ pond. linear} \\
 \midrule
 C1 $\times$ C2 & unidade e ambas as variantes & 94 & 31,3 & 0,506 (moderada) \\
-C3 $\times$ C4 & unidade e variante do CFR & 103 & 34,3 & 0,492 (moderada) \\
-C2 $\times$ C3 & unidade e variante do CFR & 100 & 33,3 & 0,507 (moderada) \\
+C3 $\times$ C4 & unidade e variante da taxa de falha & 103 & 34,3 & 0,492 (moderada) \\
+C2 $\times$ C3 & unidade e variante da taxa de falha & 100 & 33,3 & 0,507 (moderada) \\
 C1 $\times$ C4 & \textbf{só as variantes} & 85 & 28,3 & 0,546 (moderada) \\
 C1 $\times$ C3 & unidade e variante do lead time & 73 & 24,3 & 0,651 (substancial) \\
 C2 $\times$ C4 & \textbf{só a unidade de deploy} & 22 & 7,3 & 0,878 (quase perfeita) \\
@@ -407,13 +409,13 @@ C2 $\times$ C4 & \textbf{só a unidade de deploy} & 22 & 7,3 & 0,878 (quase perf
 
 Por métrica isolada, o \emph{change failure rate} é o que mais se desloca: entre C1 e C2 ele
 muda de faixa em 72,3\% dos repositórios, com $\kappa = -0{,}015$, ou seja, concordância
-nula. A mediana do CFR passa de 5,63\% na C1 para 27,45\% na C2, um aumento de 3,88 vezes.
+nula. A mediana da taxa de falha passa de 5,63\% na C1 para 27,45\% na C2, um aumento de 3,88 vezes.
 Em contraste, a frequência de deploy entre C1 e C4 --- que compartilham a unidade --- é
 idêntica ($\kappa = 1{,}000$).
 
 Para a RQ 08 (bônus), a \emph{deployment rework rate} registrou mediana de 70,0\%
 (IQR = 40,6\%; $n = 300$): 12.020 das 18.366 releases avaliadas foram classificadas como
-corretivas pela heurística v1, uma taxa agregada de 65,4\%. Sua correlação com o CFR de
+corretivas pela heurística v1, uma taxa agregada de 65,4\%. Sua correlação com a taxa de falha de
 entrega é apenas fraca ($\rho = 0{,}359$; $p = 1{,}5 \times 10^{-10}$).
 
 \subsection{Fragilidade da Classificação nas Fronteiras de Faixa}
@@ -443,14 +445,14 @@ H1 & Frequência alta, em \emph{Elite}/\emph{High} &
 H2 & As variantes de lead time são próximas &
      Medianas de 324,9 h e 411,8 h; $\rho = 0{,}71$, mas IQR de 880 h contra 1.716 h &
      Parcial \\
-H3 & CFR baixo e variantes concordantes &
-     CFR (a) mediana 0,056 (\emph{Elite}), mas as variantes discordam em 72,3\% dos
+H3 & Taxa de falha baixa e variantes concordantes &
+     Taxa de falha (a) mediana 0,056 (\emph{Elite}), mas as variantes discordam em 72,3\% dos
      repositórios, com $\kappa = -0{,}015$ & Parcial \\
 H4 & Recuperação abaixo de um dia &
      Mediana de 4,94 h; 181 dos 300 em \emph{High} e 33 em \emph{Elite} &
      Confirmada \\
 H5 & Sem \emph{trade-off} velocidade × estabilidade &
-     Confirma-se com o CFR (a) ($\rho = 0{,}07$); com o CFR (b), $\rho = 0{,}62$ por
+     Confirma-se com a variante (a) ($\rho = 0{,}07$); com a (b), $\rho = 0{,}62$ por
      artefato de construção & Parcial \\
 H6 & Estrelas associadas a melhor desempenho &
      Nenhuma das quatro métricas se associa a estrelas após Holm; linguagem e
@@ -458,8 +460,8 @@ H6 & Estrelas associadas a melhor desempenho &
 H7 & Conclusões robustas à definição &
      Até 31,3\% mudam de categoria; trocar a variante pesa quase 4× mais que trocar a
      unidade & Refutada \\
-H8 & Retrabalho baixo e próximo do CFR (b) &
-     Mediana de 0,70 (alta) e correlação apenas fraca com o CFR (b)
+H8 & Retrabalho baixo e próximo da taxa de falha (b) &
+     Mediana de 0,70 (alta) e correlação apenas fraca com a taxa de falha (b)
      ($\rho = 0{,}36$) & Refutada \\
 \bottomrule
 \end{tabular}
@@ -483,7 +485,7 @@ típico espera para ser entregue".
 
 \subsection{Falha de Pipeline Não é Falha em Produção (H3 e H4)}
 
-A H3 foi \textbf{parcialmente confirmada}: a taxa é baixa pelo \emph{proxy} de CI (5,63\%,
+A H3 foi \textbf{parcialmente confirmada}: a taxa é baixa pelo \emph{proxy} de integração contínua (5,63\%,
 \emph{Elite}, com 234 dos 300 nessa faixa), mas a previsão de concordância entre as variantes
 erra por larga margem --- elas discordam de faixa em 72,3\% dos repositórios, com
 $\kappa = -0{,}015$. A diferença não é de calibração, é de objeto: uma execução de CI
@@ -497,7 +499,7 @@ das 24 h previstas, com 181 repositórios em \emph{High}.
 
 \subsection{O \emph{Trade-off} que é Artefato de Construção (H5)}
 
-Com o \emph{proxy} de CI, a ausência de \emph{trade-off} se confirma ($\rho = 0{,}07$, não
+Com o \emph{proxy} de integração contínua, a ausência de \emph{trade-off} se confirma ($\rho = 0{,}07$, não
 significativo). Com o de entrega, a correlação é positiva e moderada ($\rho = 0{,}62$), o que
 contradiria o DORA e sugeriria que entregar mais causa mais falhas. O diagnóstico da janela
 de sete dias mostra que a leitura é um \textbf{artefato da própria métrica}: no quartil
@@ -520,13 +522,13 @@ C4, que diferem apenas na unidade de deploy, 7,3\% mudam de categoria
 ($\kappa = 0{,}878$); entre C1 e C4, que diferem apenas nas variantes, 28,3\%
 ($\kappa = 0{,}546$). Ou seja, \textbf{trocar a variante da métrica desloca a classificação
 quase quatro vezes mais do que trocar a unidade de deploy}. A discussão sobre se \emph{tag} ou
-release conta como deploy importa menos do que a escolha entre CFR de CI e CFR de entrega.
+release conta como deploy importa menos do que a escolha entre a taxa de falha de integração contínua e a de entrega.
 
 A H8 foi \textbf{refutada} nas duas partes: o retrabalho não é baixo (mediana de 70,0\%) e sua
-correlação com o CFR de entrega é apenas fraca ($\rho = 0{,}36$), embora ambos derivem da
+correlação com a taxa de falha de entrega é apenas fraca ($\rho = 0{,}36$), embora ambos derivem da
 mesma heurística. A diferença está na janela: o retrabalho conta toda release corretiva do
-período, enquanto o CFR (b) só conta as que \emph{seguem} outra release em até sete dias ---
-repositórios que corrigem com calma produzem retrabalho alto e CFR (b) baixo.
+período, enquanto a taxa de falha (b) só conta as que \emph{seguem} outra release em até sete dias ---
+repositórios que corrigem com calma produzem retrabalho alto e taxa de falha (b) baixa.
 
 Soma-se um achado não previsto: 86,3\% dos repositórios mudam de categoria se uma única
 métrica avançar um degrau (Seção \ref{sec:resultados}). A classificação em faixas discretiza
@@ -547,8 +549,8 @@ rotuladas representam entregas reais ao usuário, 5 ficaram incertas e nenhuma f
 como "não" --- a suposição se sustenta nesta amostra. Ela permanece, porém, para as 95
 releases de bibliotecas e \emph{frameworks}, em que publicar no registro não implica que
 alguém atualizou a dependência. A segunda equivalência é o objeto da Seção
-\ref{sec:discussao} e não foi mitigada, e sim \emph{medida}: as duas variantes do CFR
-discordam em 72,3\% dos repositórios. A heurística corretiva que sustenta o CFR (b) tem
+\ref{sec:discussao} e não foi mitigada, e sim \emph{medida}: as duas variantes da taxa de falha
+discordam em 72,3\% dos repositórios. A heurística corretiva que sustenta a taxa de falha (b) tem
 F1 de 0,754, com 55 falsos positivos e 27 falsos negativos, e superdetecta corretivas ---
 marca 65,4\% das releases contra 51\% na rotulagem manual. Além disso,
 \texttt{commit.author.date} é vulnerável a \emph{rebase} e \emph{squash merge}, que reescrevem
@@ -561,7 +563,7 @@ portanto, aferir a confiabilidade da rotulagem que sustenta o F1 relatado.
 
 \textbf{Validade Interna.} O principal confundidor identificado é a própria cadência: um
 repositório que publica com frequência tem mais oportunidades de ter uma release corretiva
-dentro de sete dias, o que infla o CFR (b) independentemente da qualidade. Esse mecanismo
+dentro de sete dias, o que infla a taxa de falha (b) independentemente da qualidade. Esse mecanismo
 foi quantificado (87,7\% contra 25,0\% dos intervalos dentro da janela) e é reportado junto
 do coeficiente, não omitido. Releases publicadas por robôs de automação ---
 \emph{release-please}, \emph{semantic-release}, Dependabot --- entram como qualquer outra e
@@ -570,7 +572,7 @@ pois não distinguimos autor humano de robô. Execuções agendadas são excluí
 evento \texttt{push}, mas execuções com matriz de combinações contam como um único
 \emph{run}. O truncamento no fim da janela foi tratado por censura explícita, e não por
 descarte, em ambos os pontos em que ocorre: 196 episódios de recuperação (0,97\%) e 246
-releases do CFR (b) (1,3\%).
+releases da taxa de falha (b) (1,3\%).
 
 \textbf{Validade Externa.} A amostra é deliberadamente estreita: repositórios públicos com
 pelo menos 1.001 estrelas, que usam GitHub Actions, observados em uma única janela anual. O
@@ -627,7 +629,7 @@ replicação cruzada como o estudo a define não é executável naquele \emph{pi
 
 A reprodução dos valores foi praticamente exata: diferença relativa mediana de
 \textbf{0,0\% nas sete métricas}, com concordância de categoria de 100\% em frequência, lead
-time e CFR, e de 91,3\% na recuperação ($\kappa$ ponderado de 0,907). As divergências
+time e taxa de falha, e de 91,3\% na recuperação ($\kappa$ ponderado de 0,907). As divergências
 concentram-se em repositórios com poucos episódios, em que um episódio a mais desloca a
 mediana --- o maior desvio relativo chega a 945\% nesse cenário. Abrimos quatro Issues no
 repositório do grupo autor: uma de execução e documentação (ausência de parâmetro para a
@@ -676,7 +678,7 @@ desloca a classificação quase quatro vezes mais do que trocar a \textbf{unidad
 degrau, porque as faixas discretizam medidas contínuas sem sinalizar quem está na fronteira.
 
 Decorrem daí três consequências práticas: relatar uma classificação DORA sem explicitar as
-definições adotadas não é informativo; o CFR calculado sobre falhas de CI não é comparável às
+definições adotadas não é informativo; a taxa de falha calculada sobre falhas de integração contínua não é comparável às
 faixas do relatório DORA, que tratam de produção; e comparações de categoria entre estudos ou
 execuções precisam reportar quantos repositórios estavam próximos de um limite, sob pena de
 atribuir a erro de cálculo o que é efeito da discretização --- lição que a replicação cruzada

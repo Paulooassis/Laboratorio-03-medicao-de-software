@@ -48,7 +48,7 @@ RQ 07. A \textbf{data de commit} vem de \texttt{commit.author.date}. A \textbf{f
 (RQ 02), os commits de cada release $R$ vêm de \texttt{compare/\{anterior\}...\{R\}}: a
 variante (a) é a publicação de $R$ menos o commit mais antigo nela incluído, e a (b) atribui a
 cada commit a diferença até a publicação da sua release, com mediana por repositório em ambas.
-No \textbf{CFR} (RQ 03), a variante (a) é falhas sobre falhas mais sucessos dos \emph{runs}
+Na \textbf{taxa de falha das mudanças} (RQ 03), a variante (a) é falhas sobre falhas mais sucessos dos \emph{runs}
 considerados --- \texttt{failure}, \texttt{timed\_out} e \texttt{startup\_failure} contam como
 falha, enquanto \texttt{cancelled}, \texttt{skipped}, \texttt{neutral},
 \texttt{action\_required}, \texttt{stale} e execuções em andamento são ignorados --- e a (b)
@@ -80,12 +80,12 @@ unidade.
 \footnotesize
 \begin{tabular}{llll}
 \toprule
-\textbf{Combinação} & \textbf{Unidade de deploy} & \textbf{Lead time} & \textbf{CFR} \\
+\textbf{Combinação} & \textbf{Unidade de deploy} & \textbf{Lead time} & \textbf{Taxa de falha} \\
 \midrule
-C1 (referência) & release & (a) por release & (a) proxy de CI \\
-C2 & release + pré-release & (b) por commit & (b) proxy de entrega \\
-C3 & tag & (b) por commit & (a) proxy de CI \\
-C4 & release & (b) por commit & (b) proxy de entrega \\
+C1 (referência) & release & (a) por release & (a) de integração contínua \\
+C2 & release + pré-release & (b) por commit & (b) de entrega \\
+C3 & tag & (b) por commit & (a) de integração contínua \\
+C4 & release & (b) por commit & (b) de entrega \\
 \bottomrule
 \end{tabular}
 \end{table}

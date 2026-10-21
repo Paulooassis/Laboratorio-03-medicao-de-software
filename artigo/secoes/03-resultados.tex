@@ -24,8 +24,8 @@ quatro são fortemente assimétricas, e o lead time (a) varia de 1,2 h a mais de
 RQ 01 & Frequência (rel./sem.) & 300 & 0,460 & 0,230 & 1,002 & 0,772 & \emph{Medium} \\
 RQ 02 & Lead time (a) release & 300 & 324,9 h & 116,7 h & 996,9 h & 880,2 h & \emph{Medium} \\
 RQ 02 & Lead time (b) commit & 300 & 411,8 h & 128,2 h & 1.844,3 h & 1.716,2 h & \emph{Medium} \\
-RQ 03 & CFR (a) proxy de CI & 300 & 5,63\% & 1,33\% & 13,29\% & 11,96\% & \emph{Elite} \\
-RQ 03 & CFR (b) proxy de entrega & 300 & 26,92\% & 10,54\% & 50,00\% & 39,46\% & \emph{High} \\
+RQ 03 & Taxa de falha (a) de integração contínua & 300 & 5,63\% & 1,33\% & 13,29\% & 11,96\% & \emph{Elite} \\
+RQ 03 & Taxa de falha (b) de entrega & 300 & 26,92\% & 10,54\% & 50,00\% & 39,46\% & \emph{High} \\
 RQ 04 & Recuperação (horas) & 264 & 4,94 h & 1,75 h & 18,75 h & 17,00 h & \emph{High} \\
 \bottomrule
 \end{tabular}
@@ -42,7 +42,7 @@ painel, e três delas estão em escala logarítmica.}
 
 A distribuição dos 300 repositórios na classificação geral C1 resultou em \emph{Elite}: 9
 (3,0\%), \emph{High}: 110 (36,7\%), \emph{Medium}: 154 (51,3\%) e \emph{Low}: 27 (9,0\%). Por
-métrica (Tabela \ref{tab:c1}), chama atenção a concentração do CFR (a): 234 dos 300
+métrica (Tabela \ref{tab:c1}), chama atenção a concentração da taxa de falha (a): 234 dos 300
 repositórios caem em \emph{Elite}.
 
 \begin{table}[ht]
@@ -57,7 +57,7 @@ repositórios caem em \emph{Elite}.
 \midrule
 Deployment frequency & 6 & 69 & 152 & 73 & 0 \\
 Lead time (a) & 25 & 81 & 93 & 101 & 0 \\
-Change failure rate (a) & 234 & 47 & 8 & 11 & 0 \\
+Taxa de falha das mudanças (a) & 234 & 47 & 8 & 11 & 0 \\
 Tempo de recuperação & 33 & 181 & 33 & 21 & 32 \\
 \midrule
 \textbf{Classificação geral} & \textbf{9} & \textbf{110} & \textbf{154} & \textbf{27} & \textbf{0} \\
@@ -68,8 +68,8 @@ Tempo de recuperação & 33 & 181 & 33 & 21 & 32 \\
 \textbf{Auditoria de integridade e censura.} Nada foi estimado para fechar conta. No lead
 time, 3.052 das 18.389 releases (16,6\%) ficaram fora por motivo explícito, sendo 3.026 por
 não trazerem commits novos, 23 por não terem release anterior e 3 por erro de
-\texttt{compare} (2 deles 404). No CFR (a) entraram 730.432 \emph{workflow runs} e foram
-ignorados 60.959 (7,7\%). No CFR (b), 246 releases (1,3\%) dos últimos 7 dias ficaram fora do
+\texttt{compare} (2 deles 404). Na taxa de falha (a) entraram 730.432 \emph{workflow runs} e foram
+ignorados 60.959 (7,7\%). Na taxa de falha (b), 246 releases (1,3\%) dos últimos 7 dias ficaram fora do
 denominador, restando 18.143 avaliadas, das quais 10.974 falharam. Na RQ 04, dos 20.117
 episódios, 19.921 foram recuperados, 196 censurados e 124 com datas contraditórias; 36 dos
 300 repositórios (12,0\%) ficam sem mediana por não terem episódio recuperado e consistente.
@@ -80,7 +80,7 @@ como recuperado no fim da observação --- limite inferior do viés --- eleva a 
 \subsection{Velocidade $\times$ Estabilidade (RQ 05)}
 
 A correlação de Spearman revelou comportamento assimétrico entre os dois \emph{proxies}
-(Figura \ref{fig:dispersao}). Com o \emph{proxy} de CI, a associação é desprezível e não
+(Figura \ref{fig:dispersao}). Com o \emph{proxy} de integração contínua, a associação é desprezível e não
 significativa ($\rho = 0{,}071$; $p = 0{,}222$; $n = 300$). Com o \emph{proxy} de entrega, é
 moderada e fortemente significativa ($\rho = 0{,}615$; $p = 1{,}2 \times 10^{-32}$).
 
@@ -99,7 +99,8 @@ superior, o intervalo mediano é de 1,39 dia e 87,7\% cabem na janela.
 
 A Figura \ref{fig:correlacao} estende a análise a todos os pares de métricas, com Spearman e
 Pearson lado a lado. A diferença entre os dois coeficientes é sistemática: em
-DF $\times$ LT (a), $\rho = -0{,}575$ contra $r = -0{,}066$; em LT (a) $\times$ CFR (b),
+frequência $\times$ lead time (a), $\rho = -0{,}575$ contra $r = -0{,}066$; em lead
+time (a) $\times$ taxa de falha (b),
 $-0{,}717$ contra $-0{,}263$.
 
 \begin{figure}[ht]
@@ -142,8 +143,8 @@ repositórios que mudam de categoria geral e o $\kappa$ ponderado correspondente
 \textbf{$\kappa$ pond. linear} \\
 \midrule
 C1 $\times$ C2 & unidade e ambas as variantes & 94 & 31,3 & 0,506 (moderada) \\
-C3 $\times$ C4 & unidade e variante do CFR & 103 & 34,3 & 0,492 (moderada) \\
-C2 $\times$ C3 & unidade e variante do CFR & 100 & 33,3 & 0,507 (moderada) \\
+C3 $\times$ C4 & unidade e variante da taxa de falha & 103 & 34,3 & 0,492 (moderada) \\
+C2 $\times$ C3 & unidade e variante da taxa de falha & 100 & 33,3 & 0,507 (moderada) \\
 C1 $\times$ C4 & \textbf{só as variantes} & 85 & 28,3 & 0,546 (moderada) \\
 C1 $\times$ C3 & unidade e variante do lead time & 73 & 24,3 & 0,651 (substancial) \\
 C2 $\times$ C4 & \textbf{só a unidade de deploy} & 22 & 7,3 & 0,878 (quase perfeita) \\
@@ -153,13 +154,13 @@ C2 $\times$ C4 & \textbf{só a unidade de deploy} & 22 & 7,3 & 0,878 (quase perf
 
 Por métrica isolada, o \emph{change failure rate} é o que mais se desloca: entre C1 e C2 ele
 muda de faixa em 72,3\% dos repositórios, com $\kappa = -0{,}015$, ou seja, concordância
-nula. A mediana do CFR passa de 5,63\% na C1 para 27,45\% na C2, um aumento de 3,88 vezes.
+nula. A mediana da taxa de falha passa de 5,63\% na C1 para 27,45\% na C2, um aumento de 3,88 vezes.
 Em contraste, a frequência de deploy entre C1 e C4 --- que compartilham a unidade --- é
 idêntica ($\kappa = 1{,}000$).
 
 Para a RQ 08 (bônus), a \emph{deployment rework rate} registrou mediana de 70,0\%
 (IQR = 40,6\%; $n = 300$): 12.020 das 18.366 releases avaliadas foram classificadas como
-corretivas pela heurística v1, uma taxa agregada de 65,4\%. Sua correlação com o CFR de
+corretivas pela heurística v1, uma taxa agregada de 65,4\%. Sua correlação com a taxa de falha de
 entrega é apenas fraca ($\rho = 0{,}359$; $p = 1{,}5 \times 10^{-10}$).
 
 \subsection{Fragilidade da Classificação nas Fronteiras de Faixa}

@@ -1,105 +1,105 @@
 {
   "correlacoes": [
     {
-      "par": "LT (a) × CFR (b)",
+      "par": "Lead time (a) × Taxa de falha (b)",
       "n": 300.0,
       "spearman": -0.7171934325810674,
       "pearson": -0.2626808495137104,
       "diferenca": -0.454512583067357
     },
     {
-      "par": "LT (a) × LT (b)",
+      "par": "Lead time (a) × Lead time (b)",
       "n": 300.0,
       "spearman": 0.7067727419193546,
       "pearson": 0.337622860124797,
       "diferenca": 0.3691498817945576
     },
     {
-      "par": "DF × CFR (b)",
+      "par": "Frequência × Taxa de falha (b)",
       "n": 300.0,
       "spearman": 0.6153900737242854,
       "pearson": 0.3754475057805974,
       "diferenca": 0.23994256794368807
     },
     {
-      "par": "DF × LT (a)",
+      "par": "Frequência × Lead time (a)",
       "n": 300.0,
       "spearman": -0.5746693148841385,
       "pearson": -0.0664349132743436,
       "diferenca": -0.5082344016097949
     },
     {
-      "par": "LT (b) × CFR (b)",
+      "par": "Lead time (b) × Taxa de falha (b)",
       "n": 300.0,
       "spearman": -0.439862174830045,
       "pearson": -0.1465565869168858,
       "diferenca": -0.2933055879131592
     },
     {
-      "par": "DF × LT (b)",
+      "par": "Frequência × Lead time (b)",
       "n": 300.0,
       "spearman": -0.3904160273462511,
       "pearson": -0.03458086742635467,
       "diferenca": -0.3558351599198964
     },
     {
-      "par": "CFR (a) × Recup.",
+      "par": "Taxa de falha (a) × Recuperação",
       "n": 264.0,
       "spearman": 0.16547627918217672,
       "pearson": 0.06778211829524972,
       "diferenca": 0.097694160886927
     },
     {
-      "par": "DF × Recup.",
+      "par": "Frequência × Recuperação",
       "n": 264.0,
       "spearman": -0.1562663999098152,
       "pearson": -0.044388191539911886,
       "diferenca": -0.11187820836990331
     },
     {
-      "par": "CFR (a) × CFR (b)",
+      "par": "Taxa de falha (a) × Taxa de falha (b)",
       "n": 300.0,
       "spearman": 0.09412162468261717,
       "pearson": 0.03133253888194683,
       "diferenca": 0.06278908580067034
     },
     {
-      "par": "LT (a) × CFR (a)",
+      "par": "Lead time (a) × Taxa de falha (a)",
       "n": 300.0,
       "spearman": -0.07229689090942311,
       "pearson": -0.014124773919678393,
       "diferenca": -0.05817211698974471
     },
     {
-      "par": "CFR (b) × Recup.",
+      "par": "Taxa de falha (b) × Recuperação",
       "n": 264.0,
       "spearman": -0.07095502592892096,
       "pearson": -0.040767767510553596,
       "diferenca": -0.030187258418367363
     },
     {
-      "par": "DF × CFR (a)",
+      "par": "Frequência × Taxa de falha (a)",
       "n": 300.0,
       "spearman": 0.07063861290938683,
       "pearson": 0.004854089417179436,
       "diferenca": 0.0657845234922074
     },
     {
-      "par": "LT (a) × Recup.",
+      "par": "Lead time (a) × Recuperação",
       "n": 264.0,
       "spearman": 0.06255372434438362,
       "pearson": -0.0344323718003805,
       "diferenca": 0.09698609614476413
     },
     {
-      "par": "LT (b) × Recup.",
+      "par": "Lead time (b) × Recuperação",
       "n": 264.0,
       "spearman": 0.02263237874113833,
       "pearson": -0.010573656393407373,
       "diferenca": 0.0332060351345457
     },
     {
-      "par": "LT (b) × CFR (a)",
+      "par": "Lead time (b) × Taxa de falha (a)",
       "n": 300.0,
       "spearman": -0.022165917450615417,
       "pearson": -0.007131928659521551,

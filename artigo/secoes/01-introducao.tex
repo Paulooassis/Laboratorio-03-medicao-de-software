@@ -2,9 +2,10 @@
 
 As práticas de entrega contínua consolidaram o programa \emph{DevOps Research and
 Assessment} (DORA) como a taxonomia padrão de medição de desempenho de entrega
-\cite{forsgren2018}. Os quatro construtos --- \emph{deployment frequency} (DF),
-\emph{lead time for changes} (LT), \emph{change failure rate} (CFR) e tempo de recuperação
-após falha --- sustentam a tese de que equipes maduras entregam rápido \emph{e} com
+\cite{forsgren2018}. Os quatro construtos --- \emph{deployment frequency}
+(frequência de deploy), \emph{lead time for changes} (tempo entre o commit e a entrega),
+\emph{change failure rate} (taxa de falha das mudanças) e tempo de recuperação após falha
+--- sustentam a tese de que equipes maduras entregam rápido \emph{e} com
 estabilidade, rompendo o \emph{trade-off} clássico entre velocidade e confiabilidade
 \cite{dora2024}.
 
@@ -26,21 +27,21 @@ Registramos, antes de observar os dados, uma hipótese informal por questão de 
 acompanhada da razão de esperá-la:
 
 \begin{itemize}
-  \item \textbf{RQ 01 (DF).} \emph{H1:} concentração em \emph{Elite}/\emph{High}, por serem
+  \item \textbf{RQ 01 (frequência de deploy).} \emph{H1:} concentração em \emph{Elite}/\emph{High}, por serem
     projetos de CI maduro e publicação automatizada.
-  \item \textbf{RQ 02 (LT).} \emph{H2:} as duas variantes produzem valores próximos, por
+  \item \textbf{RQ 02 (tempo entre o commit e a entrega).} \emph{H2:} as duas variantes produzem valores próximos, por
     medirem o mesmo intervalo por caminhos distintos.
-  \item \textbf{RQ 03 (CFR).} \emph{H3:} taxa baixa (\emph{Elite}) e variantes concordantes,
+  \item \textbf{RQ 03 (taxa de falha das mudanças).} \emph{H3:} taxa baixa (\emph{Elite}) e variantes concordantes,
     por haver suítes extensas e revisão antes da integração.
-  \item \textbf{RQ 04 (Recuperação).} \emph{H4:} mediana inferior a 24 h, porque uma
+  \item \textbf{RQ 04 (tempo de recuperação).} \emph{H4:} mediana inferior a 24 h, porque uma
     \emph{build} quebrada no \emph{default branch} bloqueia todos os contribuidores.
-  \item \textbf{RQ 05 (DF $\times$ CFR).} \emph{H5:} sem \emph{trade-off} entre velocidade e
+  \item \textbf{RQ 05 (frequência de deploy $\times$ taxa de falha).} \emph{H5:} sem \emph{trade-off} entre velocidade e
     estabilidade, como sustenta o relatório DORA.
-  \item \textbf{RQ 06 (Fatores).} \emph{H6:} popularidade associa-se a melhor desempenho,
+  \item \textbf{RQ 06 (fatores estruturais).} \emph{H6:} popularidade associa-se a melhor desempenho,
     por atrair mantenedores e investimento em automação.
-  \item \textbf{RQ 07 (Sensibilidade).} \emph{H7:} conclusões robustas à definição, por todas
+  \item \textbf{RQ 07 (análise de sensibilidade).} \emph{H7:} conclusões robustas à definição, por todas
     tentarem capturar o mesmo fenômeno.
-  \item \textbf{RQ 08 (Retrabalho).} \emph{H8:} taxa baixa e fortemente correlacionada ao CFR
+  \item \textbf{RQ 08 (taxa de retrabalho).} \emph{H8:} taxa baixa e fortemente correlacionada à taxa de falha
     de entrega, por derivarem da mesma heurística.
 \end{itemize}
 
