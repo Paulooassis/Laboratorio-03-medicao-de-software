@@ -12,7 +12,7 @@ abaixo, detalham as regras de cada etapa; aqui está só o necessário para roda
 Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
 dependências instaladas servem aos testes, à validação manual da amostra-ouro
 (`statsmodels`, para o kappa de Fleiss) e às análises estatísticas da Sprint 3
-(`pandas` e `matplotlib`, para `python -m analise`).
+(`pandas`, `scipy` e `matplotlib`, para `python -m analise`).
 
 ```bash
 git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
@@ -1008,6 +1008,45 @@ voto `uncertain` isolado, decisões que resolvem a pauta, decisão que revisa um
 cada erro do arquivo de decisões e as duas execuções da linha de comando (com e sem
 pendências).
 
+## Como reproduzir as análises
+
+Com os três CSVs do estudo em `data/processed/` (`repositorios.csv`,
+`releases.csv` e `episodios_falha.csv`), instale as dependências e execute:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m analise
+```
+
+No PowerShell, também é possível usar diretamente o ambiente virtual existente:
+
+```powershell
+.\.venv\Scripts\python.exe -m analise
+```
+
+O comando executa todas as análises registradas em `ANALISES`, de
+`analise/__main__.py`, usando somente os CSVs, sem token ou cache da API.
+Gera tabelas `.csv` e `.tex` em `resultados/tabelas/` (prontas para `\input{}`)
+e figuras PDF vetoriais em `resultados/figuras/`. `--dados` e `--saida` mudam os
+diretórios; `--listar` mostra as análises e `--analise NOME` seleciona uma delas.
+
+As RQs reutilizam `analise.comum`: `carregar`, `resumo`, `kruskal_wallis`,
+`mann_whitney`, `epsilon_quadrado`, `cliffs_delta`, `interpretar_cliffs_delta`,
+`holm` e `landis_koch`. Os quartis usam interpolação linear, ausentes são
+excluídos das amostras e resultados sem observações ficam indefinidos.
+`holm` retorna `p`, `p_holm` e `rejeita`, preservando ordem e índice; p ausente
+não participa da família. A interpretação de kappa reutiliza a validação existente.
+
+O contrato de tipos e unidades está em
+[`docs/dicionario_de_dados.md`](docs/dicionario_de_dados.md). O padrão visual de
+`analise.estilo` fixa tamanho, fontes e paleta; use `aplicar()` antes de criar
+figuras e `salvar()` para exportá-las. Eixos logarítmicos usam apenas valores
+positivos, com zeros e ausentes contabilizados separadamente.
+
+Para registrar uma análise, implemente `executar(dados, saida)` e adicione-a a
+`ANALISES`. Execute `python -m pytest` para validar a base comum, as contas manuais
+e a reprodução das saídas a partir dos CSVs em um diretório temporário limpo.
+
 ## Lab03S03 — RQ 01 a RQ 04: estatística descritiva (mediana, IQR e censura)
 
 Responde "quanto valem as métricas DORA nos repositórios populares que usam CI/CD" a
@@ -1219,6 +1258,101 @@ Medium), a métrica ausente fora da mediana, zero release como medição e não 
 as duas leituras do Lead Time, a distribuição com contagem e proporção, a cobertura por
 número de métricas, o nível trocado no CSV detectado como divergência e o CSV sem as
 colunas do pipeline tratado como não verificável.
+
+## Lab03S03 — RQ 05: frequência de deploy e CFR
+
+```powershell
+.\.venv\Scripts\python.exe -m analise --analise rq05
+```
+
+A RQ 05 também é executada por `python -m analise`, junto das demais análises
+registradas. `--dados DIRETORIO` permite informar outra localização dos três CSVs.
+O script usa somente esses arquivos, sem coleta, preenchimento manual ou imputação.
+
+Calcula Spearman bilateral para DF × CFR (a) e DF × CFR (b), com um par por
+repositório, exclusão de ausentes par a par e `n` efetivo separado. O CFR (b)
+reutiliza a agregação da RQ 03 a partir dos vereditos das releases; usa o resumo por
+repositório quando os vereditos não estão disponíveis. Se faltam vereditos necessários
+de um repositório no detalhamento, o CFR (b) dele fica ausente. Variável constante
+ou menos de dois pares produz correlação indefinida, sem interpretar isso como zero.
+
+A força usa o valor absoluto de ρ: desprezível `< 0,10`, fraca `< 0,40`, moderada
+`< 0,70`, forte `< 0,90` e muito forte nos demais casos, seguindo a convenção de
+[Schober, Boer e Schwarte (2018)](https://doi.org/10.1213/ANE.0000000000002864).
+Os p-valores são os retornados por `scipy.stats.spearmanr`, sem ajuste por
+multiplicidade; a discussão registra seu caráter aproximado nesta amostra.
+
+Cada dispersão mantém CFR entre 0 e 1 e DF em `symlog` de base 10, com limiar de
+0,1 release/semana: zeros ficam no trecho linear e entram normalmente em Spearman,
+sem somar constantes. A escala logarítmica se aplica acima do limiar.
+
+O diagnóstico do artefato compara os quartis extremos de DF na amostra válida de
+DF × CFR (b): baixa DF ≤ Q1 e alta DF ≥ Q3. Compara a mediana e o IQR dos intervalos
+medianos por repositório, além da mediana da fração de intervalos de até sete dias.
+Releases simultâneas têm intervalo zero; menos de duas datas válidas implica ausência
+de intervalo. Quartis coincidentes não formam grupos sobrepostos. O contraste é
+descritivo e não quantifica a parcela da correlação causada pela construção do CFR.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq05_correlacoes.{csv,tex}` | Variante, n, ρ, p e força |
+| `resultados/tabelas/rq05_artefato_cfr_b.{csv,tex}` | Comparação dos intervalos entre baixa e alta DF |
+| `resultados/figuras/rq05_df_cfr_a.pdf`, `rq05_df_cfr_b.pdf` | Dispersões vetoriais, uma por variante |
+| `resultados/texto/notas_rq05.md` | Rascunho calculado da discussão, achado do artefato e limitações |
+| `resultados/rq05_por_repositorio.csv`, `rq05.json` | Dados auditáveis da análise e estatísticas completas |
+
+`tests/test_rq05.py` usa amostras sintéticas exclusivamente para verificar contas
+manuais, ausentes, empates, constantes, censura, quartis e geração dos artefatos.
+Os resultados do artigo devem ser gerados com os CSVs da coleta do estudo.
+
+Referências: [documentação do SciPy](https://docs.scipy.org/doc/scipy-1.15.3/reference/generated/scipy.stats.spearmanr.html)
+e [DORA: métricas de desempenho de entrega](https://dora.dev/guides/dora-metrics/).
+
+## Lab03S03 — RQ 06: fatores associados ao desempenho DORA
+
+```powershell
+.\.venv\Scripts\python.exe -m analise --analise rq06
+```
+
+Também executada por `python -m analise`. Usa os CSVs de `data/processed/`
+ou do diretório informado por `--dados`, sem API ou imputação.
+
+Linguagem mantém até seis categorias com ao menos 15 repositórios e agrupa as
+demais conhecidas em Outras, absorvendo a menor categoria se necessário para
+atingir esse mínimo. Ausentes ficam fora. Estrelas, contribuidores e idade usam
+`pd.qcut(..., q=4, duplicates='drop')`, sem separar empates. Idade é medida
+entre `created_at` e `window_end`. Os cortes são fixados antes de excluir
+métricas ausentes e documentados em `rq06_grupos.csv` e `notas_rq06.md`.
+
+Holm é aplicado separadamente aos 16 testes principais (4 fatores × DF, LT (a),
+CFR (a) e recuperação), aos 8 suplementares (LT (b) e CFR (b)) e aos 4 exploratórios
+por tipo. Usa KW com ε² = H/(n−1), ou MW com Cliff para dois grupos. Só KW
+significativo após Holm abre post-hoc MW, com Holm dentro de cada fator/família.
+Testes sem dados suficientes ficam indefinidos; cada teste informa seu n efetivo.
+
+Tipo do projeto usa `validacao/resultados/tipo_projeto.csv`; se ausente, usa
+`validacao/rotulos/rotulos_grupo.csv`, identificado como coletivo e provisório.
+Rótulos repetidos por release contam uma vez por repositório; conflitos geram erro.
+Se algum tipo tiver menos de 5 valores válidos, comparam-se os dois maiores por MW.
+Sem rótulos, somente a família exploratória fica indefinida.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq06_testes_principal.{csv,tex}` | 16 testes, n, H/U, p, p Holm, ε²/δ e interpretação |
+| `resultados/tabelas/rq06_testes_suplementar.{csv,tex}` | Variantes (b), família de Holm separada |
+| `resultados/tabelas/rq06_testes_exploratoria.{csv,tex}` | Tipo do projeto, amostra e restrições próprias |
+| `resultados/tabelas/rq06_posthoc.{csv,tex}` | Pares, Holm por fator/família, Cliff e direção (CSV) |
+| `resultados/tabelas/rq06_grupos.{csv,tex}` | Grupos, limites dos quartis, unidades e contagens |
+| `resultados/figuras/rq06_*.pdf` | Boxplots vetoriais das combinações significativas após Holm |
+| `resultados/texto/notas_rq06.md` | Cortes, discussão calculada, proveniência dos tipos e limitações |
+
+Os CSVs mantêm precisão completa; LaTeX mostra H/ε² para KW e U/δ para MW.
+O post-hoc pode ser ajustado com `\resizebox{\textwidth}{!}{\input{...}}` (`graphicx`).
+Os PDFs seguem `analise/estilo.py`: CFR entre 0 e 1; DF e durações em `symlog`
+com limiares de 0,1 release/semana e 1 hora, preservando zeros e Lead Times negativos
+do pipeline. Figuras que perderam significância são removidas na reexecução.
+As convenções de efeito, referências e limitações estão em `notas_rq06.md`.
+`tests/test_rq06.py` usa dados sintéticos somente para verificar as contas e a execução.
 
 ## Final — Replicação cruzada: executar o pipeline de outro grupo
 

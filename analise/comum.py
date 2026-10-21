@@ -1,21 +1,25 @@
-"""Base comum das análises da Sprint 3: leitura dos CSVs e estatística descritiva.
+"""Base comum das análises da Sprint 3: leitura, estatística e exportação.
 
 Todas as RQs partem dos mesmos três arquivos em `data/processed/` e das mesmas
 estatísticas. Aqui ficam a leitura com os tipos corretos (datas em UTC, vazios como
-NaN, indicadores como booleano com NA) e `resumo`, que devolve mediana e IQR — nunca
-média e desvio-padrão, como pede o enunciado.
+NaN, indicadores como booleano com NA), mediana/IQR, testes não paramétricos,
+efeitos e correção de Holm. O contrato está em `docs/dicionario_de_dados.md`.
 
 Cada CSV declara as colunas obrigatórias e as opcionais. Uma coluna opcional ausente
 entra como NaN, e cada RQ decide se recalcula o valor a partir das tabelas detalhadas
 (`releases.csv` e `episodios_falha.csv`) em vez de usar o resumo por repositório.
 """
 import json
+import math
 import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+from scipy import stats
+from statsmodels.stats.multitest import multipletests
 
+from validacao.concordancia import landis_koch as _landis_koch
 
 DIRETORIO_PADRAO = Path("data/processed")
 VERDADEIRO = {"true", "1", "sim", "yes", "t", "y"}
@@ -24,6 +28,7 @@ FALSO = {"false", "0", "nao", "não", "no", "f", "n"}
 ESCAPES = (("\\", r"\textbackslash{}"), ("&", r"\&"), ("%", r"\%"), ("$", r"\$"), ("#", r"\#"),
            ("_", r"\_"), ("{", r"\{"), ("}", r"\}"), ("~", r"\textasciitilde{}"),
            ("^", r"\textasciicircum{}"))
+UNDEFINED = "indefinido"
 
 
 @dataclass(frozen=True)
@@ -110,7 +115,8 @@ def ler(diretorio, tabela):
     caminho = Path(diretorio) / tabela.arquivo
     if not caminho.is_file():
         raise FileNotFoundError(f"{caminho} não existe; gere os CSVs do pipeline antes da análise.")
-    quadro = pd.read_csv(caminho, dtype="object", keep_default_na=True)
+    quadro = pd.read_csv(caminho, dtype="object", keep_default_na=True, encoding="utf-8-sig")
+    quadro = quadro.replace(r"^\s*$", float("nan"), regex=True)
     quadro = quadro.rename(columns={velho: novo for velho, novo in tabela.apelidos
                                     if velho in quadro.columns and novo not in quadro.columns})
     ausentes = [coluna for coluna in tabela.obrigatorias if coluna not in quadro.columns]
@@ -151,6 +157,109 @@ def resumo(valores):
     q1, q3 = (float(presentes.quantile(quantil)) for quantil in (0.25, 0.75))
     return {"n": int(presentes.size), "ausentes": int(serie.size - presentes.size),
             "mediana": float(presentes.median()), "q1": q1, "q3": q3, "iqr": q3 - q1}
+
+
+def epsilon_quadrado(H, n):
+    """ε² = H / (n − 1), com n válido total do Kruskal-Wallis, sem truncamento.
+
+    Sem H ou com n ≤ 1, o efeito é indefinido (NaN).
+    """
+    if H is None or pd.isna(H) or n <= 1:
+        return float("nan")
+    if not math.isfinite(H) or H < 0 or not math.isfinite(n):
+        raise ValueError("H deve ser finito e não negativo; n deve ser finito.")
+    return float(H / (n - 1))
+
+
+def interpretar_cliffs_delta(delta):
+    """Magnitude de |δ| segundo Romano et al. (2006); o sinal indica a direção."""
+    if delta is None or pd.isna(delta):
+        return UNDEFINED
+    if not math.isfinite(delta) or abs(delta) > 1:
+        raise ValueError("Cliff's delta deve estar entre -1 e 1.")
+    for limite, rotulo in ((0.147, "desprezível"), (0.33, "pequeno"), (0.474, "médio")):
+        if abs(delta) < limite:
+            return rotulo
+    return "grande"
+
+
+def cliffs_delta(x, y):
+    """δ = 2 U₁ / (n₁ n₂) − 1; positivo quando x tende a ser maior que y.
+
+    Ausentes são removidos em cada amostra independentemente; amostra vazia
+    resulta em NaN. Empates contam como meia vitória no U₁ retornado pelo SciPy.
+    O método assintótico evita calcular p exato só para obter U₁.
+    """
+    x, y = (serie_numerica(amostra).dropna() for amostra in (x, y))
+    if x.empty or y.empty:
+        return float("nan")
+    u = stats.mannwhitneyu(x, y, alternative="two-sided", method="asymptotic").statistic
+    return float(2 * u / (len(x) * len(y)) - 1)
+
+
+def mann_whitney(x, y):
+    """Mann-Whitney bilateral com método auto do SciPy e efeito de Cliff.
+
+    O método é exato para amostras pequenas sem empates e assintótico com
+    correção de empates nos demais casos. Amostra vazia produz NaN em U e p.
+    """
+    x, y = (serie_numerica(amostra).dropna() for amostra in (x, y))
+    u, p = float("nan"), float("nan")
+    if not x.empty and not y.empty:
+        resultado = stats.mannwhitneyu(x, y, alternative="two-sided", method="auto")
+        u, p = float(resultado.statistic), float(resultado.pvalue)
+    delta = float(2 * u / (len(x) * len(y)) - 1) if len(x) * len(y) else float("nan")
+    return {"n1": len(x), "n2": len(y), "u": u, "p": p, "delta": delta,
+            "interpretacao": interpretar_cliffs_delta(delta)}
+
+
+def kruskal_wallis(*grupos):
+    """Kruskal-Wallis com correção de empates, p e ε² sobre o n válido total.
+
+    Exige dois ou mais grupos. Grupo vazio torna o teste indefinido; se todos
+    os valores são iguais, retorna H = 0, p = 1 e ε² = 0 (nenhuma diferença).
+    """
+    if len(grupos) < 2:
+        raise ValueError("Kruskal-Wallis exige pelo menos dois grupos.")
+    amostras = [serie_numerica(grupo).dropna() for grupo in grupos]
+    n = sum(len(amostra) for amostra in amostras)
+    h, p = float("nan"), float("nan")
+    if all(not amostra.empty for amostra in amostras):
+        if pd.concat(amostras).nunique() == 1:
+            h, p = 0.0, 1.0
+        else:
+            resultado = stats.kruskal(*amostras)
+            h, p = float(resultado.statistic), float(resultado.pvalue)
+    return {"n": n, "h": h, "p": p, "epsilon_quadrado": epsilon_quadrado(h, n)}
+
+
+def holm(p_valores, alpha=0.05):
+    """Corrige uma família de testes com multipletests(method='holm').
+
+    Retorna DataFrame com p, p_holm e rejeita, na ordem/índice de entrada.
+    Testes indefinidos não entram na família e permanecem ausentes, inclusive
+    na decisão. A família inclui todos os p válidos, mesmo não significativos.
+    """
+    if not 0 < alpha < 1:
+        raise ValueError("alpha deve estar entre 0 e 1, exclusive.")
+    p = serie_numerica(p_valores)
+    if ((p < 0) | (p > 1)).any():
+        raise ValueError("p-valores devem estar entre 0 e 1.")
+    saida = pd.DataFrame({"p": p, "p_holm": float("nan"),
+                          "rejeita": pd.Series(pd.NA, index=p.index, dtype="boolean")})
+    validos = p.notna()
+    if validos.any():
+        rejeita, corrigidos, _, _ = multipletests(p[validos], alpha=alpha, method="holm")
+        saida.loc[validos, "p_holm"] = corrigidos
+        saida.loc[validos, "rejeita"] = rejeita
+    return saida
+
+
+def landis_koch(kappa):
+    """Reutiliza a escala da validação na RQ 07; kappa ausente é indefinido."""
+    if kappa is None or pd.isna(kappa) or not math.isfinite(kappa):
+        return UNDEFINED
+    return _landis_koch(kappa)
 
 
 def escapar(texto):
