@@ -12,7 +12,7 @@ entra como NaN, e cada RQ decide se recalcula o valor a partir das tabelas detal
 import json
 import math
 import textwrap
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pandas as pd
@@ -57,7 +57,9 @@ REPOSITORIOS = Tabela(
                "releases_no_new_commits", "releases_no_commit_dates", "releases_no_date",
                "considered_runs", "ignored_runs", "change_failure_rate",
                "delivery_change_failure_rate", "recovery_hours", "censored_episodes",
-               "median_score"),
+               "median_score", "cfr_b_evaluated", "cfr_b_failed", "cfr_b_corrective",
+               "cfr_b_censored", "rework_rate", "rework_evaluated", "rework_corrective",
+               "rework_no_previous"),
     datas=("created_at", "window_start", "window_end"),
     booleanas=("collection_complete",),
     texto=("language", "deployment_frequency_level", "lead_time_level",
@@ -103,13 +105,32 @@ EPISODIOS = Tabela(
     apelidos=(("full_name", "repository"),))
 
 
+# Um repositório por unidade de deploy (release, release_prerelease, tag): as métricas que
+# dependem da unidade, para a análise de sensibilidade (RQ 07). O arquivo é opcional.
+VARIANTES = Tabela(
+    arquivo="variantes.csv",
+    obrigatorias=("repository", "unit"),
+    numericas=("deploys", "deploys_without_date", "tags", "deployment_frequency_per_week",
+               "lead_time_a_hours", "lead_time_a_deploys", "lead_time_b_hours", "lead_time_b_commits",
+               "deploys_ignored", "deploys_no_previous", "compare_not_found", "compare_error",
+               "deploys_no_new_commits", "deploys_no_commit_dates", "cfr_b", "cfr_b_evaluated",
+               "cfr_b_failed", "cfr_b_corrective", "cfr_b_censored"),
+    booleanas=("collection_complete",),
+    apelidos=(("full_name", "repository"),))
+
+
 @dataclass(frozen=True)
 class Dados:
-    """Os três CSVs já tipados, como entram em toda análise da sprint."""
+    """Os CSVs já tipados, como entram em toda análise da sprint.
+
+    `variantes` só existe quando a coleta rodou com `variantes: true`; sem o arquivo, fica
+    vazio e só a RQ 07 deixa de poder rodar.
+    """
     repositorios: pd.DataFrame
     releases: pd.DataFrame
     episodios: pd.DataFrame
     diretorio: Path = DIRETORIO_PADRAO
+    variantes: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
 def para_booleano(serie):
@@ -156,8 +177,9 @@ def ler(diretorio, tabela):
 def carregar(diretorio=DIRETORIO_PADRAO):
     """Os três CSVs da análise; erro explícito quando algum falta ou está incompleto."""
     diretorio = Path(diretorio)
+    opcional = ler(diretorio, VARIANTES) if (diretorio / VARIANTES.arquivo).is_file() else pd.DataFrame()
     return Dados(repositorios=ler(diretorio, REPOSITORIOS), releases=ler(diretorio, RELEASES),
-                 episodios=ler(diretorio, EPISODIOS), diretorio=diretorio)
+                 episodios=ler(diretorio, EPISODIOS), diretorio=diretorio, variantes=opcional)
 
 
 def resumo(valores):
