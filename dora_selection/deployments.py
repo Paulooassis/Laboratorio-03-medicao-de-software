@@ -15,12 +15,60 @@ from .selection import Window, timestamp
 COLLECTION_ERRORS = (APIError, ValueError, KeyError, TypeError, AttributeError)
 
 
+def comparison_key(pair):
+    """Par identificado pelos commits (ou tags) das duas pontas."""
+    previous, release = pair
+    return (previous["commit_sha"] or previous["tag_name"], release["commit_sha"] or release["tag_name"])
+
+
 class DeploymentCollector:
     def __init__(self, client, window, tag_dates=False, workers=1):
         self.client = client
         self.window = window
         self.tag_dates = tag_dates
         self.workers = workers
+
+    def compare_pairs(self, full_name, pairs):
+        """Commits de cada par (anterior, atual) pelo `compare`, com uma consulta por par único.
+
+        Devolve {chave do par: (commits, erro)}. Pares com o mesmo SHA não consultam a API.
+        As variantes da RQ 07 usam o mesmo método, e por isso as mesmas URLs e o mesmo cache.
+        """
+        path = "/repos/" + full_name
+
+        def compare(pair):
+            previous, release = pair
+            if previous["commit_sha"] and previous["commit_sha"] == release["commit_sha"]:
+                return [], None
+            base = quote(previous["commit_sha"] or previous["tag_name"], safe="")
+            head = quote(release["commit_sha"] or release["tag_name"], safe="")
+            try:
+                commits = []
+                seen = set()
+                for item in self.client.pages(path + f"/compare/{base}...{head}", {"page": 1}, "commits"):
+                    sha = item["sha"]
+                    if not sha:
+                        raise APIError("Commit sem SHA.")
+                    if sha in seen:
+                        continue
+                    seen.add(sha)
+                    author_date = item["commit"]["author"]["date"]
+                    timestamp(author_date)
+                    commits.append({"repository": full_name, "release_id": release["release_id"],
+                                    "release_tag_name": release["tag_name"], "sha": sha,
+                                    "author_date": author_date, "message": item["commit"]["message"]})
+                return commits, None
+            except COLLECTION_ERRORS as exc:
+                return None, exc
+
+        unique_pairs = {}
+        for pair in pairs:
+            unique_pairs.setdefault(comparison_key(pair), pair)
+        identical = sum(bool(previous["commit_sha"]) and previous["commit_sha"] == release["commit_sha"]
+                        for previous, release in unique_pairs.values())
+        LOGGER.info("Comparações de %s: %d pares, %d consultas únicas, %d pares com SHA idêntico.",
+                    full_name, len(pairs), len(unique_pairs) - identical, identical)
+        return dict(zip(unique_pairs, parallel(compare, unique_pairs.values(), self.workers)))
 
     def collect(self, full_name):
         result = {"full_name": full_name, "releases": [], "prereleases": [], "tags": [],
@@ -119,44 +167,7 @@ class DeploymentCollector:
             # Mesmo após erro, o próximo par continua sendo de releases consecutivas.
             previous = release
 
-        def compare(pair):
-            previous, release = pair
-            if previous["commit_sha"] and previous["commit_sha"] == release["commit_sha"]:
-                return [], None
-            base = quote(previous["commit_sha"] or previous["tag_name"], safe="")
-            head = quote(release["commit_sha"] or release["tag_name"], safe="")
-            try:
-                commits = []
-                seen = set()
-                for item in self.client.pages(path + f"/compare/{base}...{head}", {"page": 1}, "commits"):
-                    sha = item["sha"]
-                    if not sha:
-                        raise APIError("Commit sem SHA.")
-                    if sha in seen:
-                        continue
-                    seen.add(sha)
-                    author_date = item["commit"]["author"]["date"]
-                    timestamp(author_date)
-                    commits.append({"repository": full_name, "release_id": release["release_id"],
-                                    "release_tag_name": release["tag_name"], "sha": sha,
-                                    "author_date": author_date, "message": item["commit"]["message"]})
-                return commits, None
-            except COLLECTION_ERRORS as exc:
-                return None, exc
-
-        def comparison_key(pair):
-            previous, release = pair
-            return (previous["commit_sha"] or previous["tag_name"],
-                    release["commit_sha"] or release["tag_name"])
-
-        unique_pairs = {}
-        for pair in pairs:
-            unique_pairs.setdefault(comparison_key(pair), pair)
-        identical = sum(bool(previous["commit_sha"]) and previous["commit_sha"] == release["commit_sha"]
-                        for previous, release in unique_pairs.values())
-        LOGGER.info("Comparações de %s: %d pares, %d consultas únicas, %d pares com SHA idêntico.",
-                    full_name, len(pairs), len(unique_pairs) - identical, identical)
-        comparisons = dict(zip(unique_pairs, parallel(compare, unique_pairs.values(), self.workers)))
+        comparisons = self.compare_pairs(full_name, pairs)
         for previous, release in pairs:
             commits, exc = comparisons[comparison_key((previous, release))]
             if exc is None:

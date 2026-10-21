@@ -1,0 +1,35 @@
+{
+  "version": "v1",
+  "rule": "SemVer: mudança apenas de patch em relação à anterior da mesma linha; sem anterior menor, patch próprio > 0. Tags não SemVer: ao menos 50% dos títulos de commits contêm fix, hotfix ou revert como palavra inteira.",
+  "rule_sha256": "c8321a39d6de4c655ce698b9e0b1abaea92420ae82aa6a2502289d5bd66fa459",
+  "releases": 300,
+  "positive_support": 153,
+  "precision": 0.6961325966850829,
+  "recall": 0.8235294117647058,
+  "f1": 0.7544910179640718,
+  "threshold_met": true,
+  "confusion_matrix": [
+    [
+      92,
+      55
+    ],
+    [
+      27,
+      126
+    ]
+  ],
+  "matrix_labels": [
+    "no",
+    "yes"
+  ],
+  "matrix_rows": "consenso",
+  "matrix_columns": "heurística",
+  "false_positive": 55,
+  "false_negative": 27,
+  "evaluated_at": "2026-10-13T23:09:12.780912+00:00",
+  "reason": "Avaliação inicial da heurística existente.",
+  "sample_sha256": "344a1786fee47d9a271e46313e966ed19a1195cb72a4201db60d0a341a3ecebc",
+  "deployments_sha256": "3926ec151206719f4ddeb47da646e36ade7e720c45de7e2f9023455d4cb24248",
+  "consensus_sha256": "476627a6ef111172467e482454a3db4431d11b461048a091ea701654a0124485",
+  "justification": ""
+}

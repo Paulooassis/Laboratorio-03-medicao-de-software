@@ -1,0 +1,12 @@
+indicador,valor
+Episódios de falha,20117
+Episódios recuperados,19921
+Episódios censurados,196
+Episódios inconsistentes,124
+"Proporção censurada por repositório, mediana",0.0
+"Proporção censurada por repositório, Q1",0.0
+"Proporção censurada por repositório, Q3",0.028781512605042015
+"Proporção censurada por repositório, IQR",0.028781512605042015
+"Mediana dos recuperados, horas",4.937569444444445
+"Mediana do limite inferior, horas",5.221180555555556
+"Viés da censura, horas",0.28361111111111104

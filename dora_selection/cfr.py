@@ -17,6 +17,8 @@ releases: por isso `cfr_entrega` compara cada release com a anterior da mesma li
 Funções puras, sem rede nem persistência, como em `metrics`.
 """
 import re
+import hashlib
+import inspect
 from datetime import timedelta
 from .metrics import moment
 
@@ -90,6 +92,56 @@ def ordered_releases(releases):
     return [(when, release) for when, _, release in dated], undated
 
 
+def classify_releases(releases):
+    """Aplica a regra com o mesmo predecessor usado no CFR, incluindo backports."""
+    ordered, undated = ordered_releases(releases)
+    corrective = []
+    for index, (_, release) in enumerate(ordered):
+        previous = ordered[index - 1][1] if index else {"tag_name": release.get("previous_tag_name")}
+        previous = next((earlier for _, earlier in reversed(ordered[:index])
+                         if parse_semver(earlier.get("tag_name")) and same_line(release, earlier)), previous)
+        corrective.append(eh_corretiva(release, previous, release.get("commits")))
+    return ordered, undated, corrective
+
+
+def rule_fingerprint():
+    """Detecta mudança na regra: alterar a implementação exige reavaliação."""
+    text = '\n'.join(inspect.getsource(function) for function in
+                     (parse_semver, eh_fix_commit, semver_patch_only, same_line, eh_corretiva,
+                      ordered_releases, classify_releases))
+    text += repr((SEMVER.pattern, SEMVER.flags, FIX_WORDS.pattern, FIX_WORDS.flags,
+                  FIX_COMMIT_SHARE, MAX_MAJOR))
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def official_version(path):
+    """Versão aprovada no config.yaml; None enquanto não houver avaliação humana."""
+    import yaml
+    try:
+        config = yaml.safe_load(path.read_text(encoding='utf-8'))
+    except yaml.YAMLError as exc:
+        raise ValueError(f'Configuração YAML inválida: {exc}') from exc
+    if not isinstance(config, dict) or not isinstance(config.get('heuristica_corretiva'), dict):
+        raise ValueError('Configuração sem heuristica_corretiva.')
+    section = config['heuristica_corretiva']
+    version = section.get('versao_oficial')
+    if version is None:
+        return None
+    if version != HEURISTIC_VERSION:
+        raise ValueError(f'Versão oficial não implementada: {version}.')
+    evaluation = section.get('avaliacao') or {}
+    if not isinstance(evaluation, dict):
+        raise ValueError('Registro de avaliação oficial inválido.')
+    f1 = evaluation.get('f1')
+    if not isinstance(f1, (int, float)) or isinstance(f1, bool) or not 0 <= f1 <= 1:
+        raise ValueError('F1 da versão oficial ausente ou inválido.')
+    if f1 < 0.70 and not (evaluation.get('justificativa') or '').strip():
+        raise ValueError('F1 abaixo de 0,70 sem justificativa documentada.')
+    if evaluation.get('regra_sha256') != rule_fingerprint():
+        raise ValueError('A regra mudou ou não possui avaliação registrada; reavalie antes de usar.')
+    return version
+
+
 def cfr_entrega(releases, fim_janela):
     """Change Failure Rate (b) = releases que falharam / releases avaliáveis.
 
@@ -102,19 +154,13 @@ def cfr_entrega(releases, fim_janela):
     anterior da lista e, para a primeira, com `previous_tag_name`, que pode estar fora
     da janela.
     """
-    ordered, undated = ordered_releases(releases)
+    ordered, undated, corrective = classify_releases(releases)
     end = moment(fim_janela)
     if end is None:
         raise ValueError("fim_janela precisa ser um instante com fuso horário.")
     result = {"heuristic": HEURISTIC_VERSION, "releases": len(ordered) + undated,
               "ignored_missing_date": undated, "corrective": 0, "evaluated": 0, "failed": 0,
               "censored": 0, "change_failure_rate": None, "details": []}
-    corrective = []
-    for index, (_, release) in enumerate(ordered):
-        previous = ordered[index - 1][1] if index else {"tag_name": release.get("previous_tag_name")}
-        previous = next((earlier for _, earlier in reversed(ordered[:index])
-                         if parse_semver(earlier.get("tag_name")) and same_line(release, earlier)), previous)
-        corrective.append(eh_corretiva(release, previous, release.get("commits")))
     result["corrective"] = sum(corrective)
     for index, (when, release) in enumerate(ordered):
         censored = when > end - FAILURE_WINDOW
@@ -133,4 +179,34 @@ def cfr_entrega(releases, fim_janela):
             result["failed"] += int(fixed_by is not None)
     if result["evaluated"]:
         result["change_failure_rate"] = result["failed"] / result["evaluated"]
+    return result
+
+
+def rework_rate(releases):
+    """Deployment rework rate (DORA, 2024) = releases corretivas / releases avaliáveis.
+
+    Usa a mesma heurística e o mesmo predecessor do CFR (b) (`classify_releases`), mas mede
+    outra coisa: o CFR (b) marca a release que **falhou** (a seguida por uma correção em até
+    7 dias); o rework rate marca **a própria correção**, sem janela de tempo. Por isso não
+    há censura: nenhuma release fica fora do denominador por ser recente.
+
+    Fica fora do denominador a primeira release da história (`comparison_status` igual a
+    `no_previous_release`), que não tem release anterior para ser corrigida, e as releases
+    sem data. Ambas são contadas. Sem nenhuma release avaliável, a taxa é None, nunca zero.
+    As releases cujo `compare` falhou continuam no denominador, como no CFR (b): a decisão
+    por SemVer não depende dos commits, e a de tags fora do SemVer vira "não corretiva"
+    por falta de commits, o que subestima a taxa.
+    """
+    ordered, undated, corrective = classify_releases(releases)
+    result = {"heuristic": HEURISTIC_VERSION, "releases": len(ordered) + undated,
+              "ignored_missing_date": undated, "no_previous": 0, "evaluated": 0,
+              "corrective": 0, "rework_rate": None}
+    for (_, release), is_fix in zip(ordered, corrective):
+        if release.get("comparison_status") == "no_previous_release":
+            result["no_previous"] += 1
+            continue
+        result["evaluated"] += 1
+        result["corrective"] += int(is_fix)
+    if result["evaluated"]:
+        result["rework_rate"] = result["corrective"] / result["evaluated"]
     return result

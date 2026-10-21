@@ -4,15 +4,15 @@
 
 ## Como executar
 
-Do zero até as métricas DORA dos 100 repositórios. As seções dos Cards 1 a 6, mais
-abaixo, detalham as regras de cada etapa; aqui está só o necessário para rodar.
+Do zero até o dataset final com as métricas DORA dos 300 repositórios. As seções dos
+cards, mais abaixo, detalham as regras de cada etapa; aqui está só o necessário para rodar.
 
 ### 1. Instalação
 
-Requer Python 3.10 ou superior. O pipeline usa apenas a biblioteca padrão; as
-dependências instaladas servem aos testes, à validação manual da amostra-ouro
-(`statsmodels`, para o kappa de Fleiss) e às análises estatísticas da Sprint 3
-(`pandas`, `scipy` e `matplotlib`, para `python -m analise`).
+Requer Python 3.10 ou superior. PyYAML lê a configuração do pipeline; as demais
+dependências servem aos testes, à validação da amostra-ouro (statsmodels,
+scikit-learn e ijson) e às análises estatísticas da Sprint 3 (`pandas`, `scipy` e
+`matplotlib`, para `python -m analise`).
 
 ```bash
 git clone https://github.com/Paulooassis/Laboratorio-03-medicao-de-software.git
@@ -47,23 +47,46 @@ carregue com `set -a; source .env; set +a`. O `.env` está no `.gitignore`, assi
 ### 3. Pipeline
 
 Um único comando executa seleção, metadados, releases e commits, workflow runs,
-métricas e classificação:
+métricas em todas as variantes, classificação e a gravação do dataset final:
 
 ```bash
-python -m dora_selection.pipeline --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z
+python -m pipeline --config config.yaml
 ```
 
-`--start` e `--end` definem a janela inclusiva (ISO 8601 com fuso, precisão de
-segundos) e são obrigatórios: a janela é uma decisão do experimento e deve ser a
-mesma para todo o grupo. As demais opções têm padrão:
+A seção `coleta` do `config.yaml` guarda as decisões do experimento, que devem ser as
+mesmas para todo o grupo:
+
+| Chave | Valor | Efeito |
+| --- | --- | --- |
+| `inicio`, `fim` | 2025-01-01 a 2025-12-31 (UTC) | Janela inclusiva, ISO 8601 com fuso e precisão de segundos |
+| `alvo` | `300` | Quantidade de repositórios a selecionar |
+| `min_estrelas` | `1001` | Mínimo de estrelas dos candidatos |
+| `saida` | `outputs/pipeline` | Dados brutos, cache e diários (fora do Git) |
+| `processados` | `data/processed` | Dataset final em CSV |
+| `tipo_projeto` | `validacao/resultados/tipo_projeto.csv` | Tipo do projeto consensual da amostra-ouro (S2-06) |
+| `workers` | `4` | Consultas simultâneas dentro de cada repositório |
+| `variantes` | `true` | Coleta também as unidades de deploy da RQ 07 (release + pré-release e tag) e grava `variantes.csv` e `deploys_variantes.csv`; `false` pula a etapa |
+
+A seção `heuristica_corretiva` registra a versão aprovada em S2-08, usada no CFR (b).
+Caminhos relativos valem a partir da pasta em que o comando é executado (a raiz do
+repositório). Com o cache já preenchido o mesmo comando não faz nenhuma chamada à API
+e regrava os mesmos CSVs em cerca de dois minutos para os 300 repositórios, usando
+perto de 11 GB de memória; `GITHUB_TOKEN` ainda precisa estar definido.
+
+`python -m pipeline` repassa as demais opções a `python -m dora_selection.pipeline`,
+e o que vier na linha de comando prevalece sobre o arquivo. Nesse comando `--start` e
+`--end` são obrigatórios e as outras opções têm padrão:
 
 | Opção | Padrão | Efeito |
 | --- | --- | --- |
 | `--target` | `100` | Quantidade de repositórios a selecionar |
 | `--min-stars` | `1001` | Mínimo de estrelas dos candidatos |
 | `--output` | `outputs/pipeline` | Pasta de saída, com cache e diários |
+| `--processed` | `<output>/processed` | Pasta do dataset final em CSV |
+| `--project-types` | nenhum | CSV `repository,project_type` da amostra-ouro |
 | `--tag-dates` | desligado | Consulta também a data do commit de cada tag |
 | `--workers` | `4` | Consultas simultâneas dentro de cada repositório; `1` desliga o paralelismo |
+| `--variants` | desligado | Coleta também as unidades de deploy da RQ 07 (veja [#41](#lab03s03--41-unidades-de-deploy-da-rq-07)) |
 | `--state` | `<output>/state` | Pasta dos diários de retomada, um por etapa |
 
 As opções de cache, retry e rate limit do Card 4 (`--cache-dir`, `--no-cache`,
@@ -76,9 +99,10 @@ Etapas, na ordem:
    até reunir `--target` que atendam aos critérios.
 2. **Releases, tags e commits** (Card 2) dos selecionados.
 3. **Workflow runs** (Card 3) dos selecionados.
-4. **Métricas e classificação DORA** (Cards 5 e 6), sem rede.
+4. **Métricas, classificação DORA e dataset final** (Cards 5 e 6, S2-07 e S2-10), sem rede.
 
-A coleta de 100 repositórios faz dezenas de milhares de chamadas e leva horas. O
+A coleta dos 300 repositórios fez cerca de 32 mil chamadas, levou perto de 6 horas e
+ocupa 40 GB de cache. Confira o espaço em disco antes de começar. O
 limite é a cota da API, de 5000 chamadas por hora: quando ela acaba, o programa
 aguarda sozinho o reset e continua. Para chegar perto desse limite sem desperdício:
 
@@ -109,7 +133,7 @@ respondidas. Para validar a instalação antes da coleta completa, use uma amost
 pequena em outra pasta (cerca de dois minutos):
 
 ```bash
-python -m dora_selection.pipeline --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z --target 3 --output outputs/smoke
+python -m pipeline --config config.yaml --target 3 --output outputs/smoke --processed outputs/smoke/processed
 ```
 
 O comando termina com código 0 quando a meta é atingida e a coleta de todos os
@@ -127,7 +151,8 @@ python -m pytest
 ```
 
 Os testes são offline: não usam rede nem token real. O comando já mede a cobertura
-de `dora_selection/metrics.py`, `dora_selection/rating.py`, `dora_selection/cfr.py`
+de `dora_selection/metrics.py`, `dora_selection/rating.py`, `dora_selection/cfr.py`,
+`dora_selection/dataset.py`
 e `validacao/`, lista as linhas não
 cobertas e **falha se a cobertura ficar abaixo de 80%** (configuração em
 `pyproject.toml`). Variações úteis:
@@ -150,7 +175,10 @@ O workflow `.github/workflows/tests.yml` executa o mesmo `python -m pytest` em t
 
 ### 5. Dados e cache
 
-Tudo fica na pasta de saída (`outputs/pipeline` por padrão), ignorada pelo Git:
+O dataset final fica em `data/processed`, com cada coluna documentada no
+[dicionário de dados](docs/dicionario_de_dados.md) e descrito na seção
+[S2-10](#lab03s02--s2-10-métricas-em-todas-as-variantes-e-dataset-final). Os dados
+brutos ficam na pasta de saída (`outputs/pipeline` por padrão), ignorada pelo Git:
 
 | Caminho | Conteúdo |
 | --- | --- |
@@ -162,7 +190,7 @@ Tudo fica na pasta de saída (`outputs/pipeline` por padrão), ignorada pelo Git
 | `metrics.json` | Resultado de `repository_metrics` de cada repositório (Card 5) |
 | `classification.json` | Resultado de `classify_repository` de cada repositório (Card 6) |
 | `dora.csv` | Uma linha por repositório: metadados, valor de cada métrica e classificações |
-| `summary.json` | Janela, situação da execução, totais por etapa, medianas da amostra, distribuição das classificações e uso da API |
+| `summary.json` | Janela, situação da execução, totais por etapa, medianas da amostra, distribuição das classificações, censura (`dataset.censoring`), casos de escala (`collection_checks`) e uso da API |
 | `collection.log` | Erros, esperas por cota e novas tentativas |
 | `state/<etapa>.jsonl` | Diários de retomada: uma linha por unidade concluída |
 | `cache/<2 hex>/<sha256>.json` | Uma resposta da API por arquivo |
@@ -964,30 +992,27 @@ Referências:
 
 ## Lab03S02 — S2-06: consenso e protocolo de desempate
 
-Transforma os rótulos dos três avaliadores em um rótulo único por item, que é a
-referência da avaliação da heurística (S2-08) e o fator "tipo do projeto" da RQ 06. A
-regra de desempate e o procedimento da reunião estão em
-[`validacao/PROTOCOLO.md`](validacao/PROTOCOLO.md).
+Consolida `validacao/rotulos/rotulos_grupo.csv` em um rótulo por item, usado como
+referência da avaliação da heurística (S2-08) e como fator "tipo do projeto" da RQ 06.
+O fluxo de maioria e desempate continua disponível quando várias planilhas são
+passadas explicitamente.
 
 ### Execução
 
-Depois de medir a concordância (S2-05), com as mesmas planilhas em `validacao/rotulos/`:
+Com a planilha coletiva completa:
 
 ```bash
-python -m validacao.consenso      # 1ª vez: gera a pauta da reunião
-# reunião: decisões registradas em validacao/decisoes.csv
-python -m validacao.consenso      # 2ª vez: gera o consenso
+python -m validacao.consenso
 ```
 
 | Arquivo | Quando | Conteúdo |
 |---|---|---|
 | `validacao/resultados/pendencias.csv` | Sempre | Pauta: votos, motivo (`tie`, `uncertain_majority`, `uncertain_vote`), maioria e rótulo decidido |
-| `validacao/consenso.csv` | Sem itens pendentes | Rótulo final de cada item, `method` (`unanimous`, `majority`, `meeting`), votos e justificativa |
+| `validacao/consenso.csv` | Sem células vazias | Rótulo final de cada item, `method` (`group`), voto e justificativa |
 | `validacao/resultados/tipo_projeto.csv` | Sem itens pendentes | `repository`, `project_type` consensual, para a RQ 06 |
 
-Termina com 1 enquanto houver itens sem rótulo (empate 1-1-1 ou maioria `uncertain` sem
-decisão registrada) e com 2 em erro de entrada. `--decisions`, `--output`, `--pending`
-e `--project-type` mudam os caminhos.
+Uma célula obrigatória vazia ou inválida encerra a execução com erro. `--output`,
+`--pending` e `--project-type` mudam os caminhos.
 
 ### Regras
 
@@ -1007,6 +1032,120 @@ e `--project-type` mudam os caminhos.
 voto `uncertain` isolado, decisões que resolvem a pauta, decisão que revisa uma maioria,
 cada erro do arquivo de decisões e as duas execuções da linha de comando (com e sem
 pendências).
+
+## Lab03S02 — S2-08: avaliação da heurística
+
+Após gerar o consenso humano completo:
+
+```powershell
+py -3.13 validacao/avaliar_heuristica.py
+```
+
+O script avalia as 300 releases, calcula precisão, recall e F1, gera a matriz de
+confusão e lista falsos positivos/negativos. O histórico e a ameaça à validade do
+refinamento estão em [validacao/heuristica_versoes.md](validacao/heuristica_versoes.md).
+`--approve` registra a versão oficial no `config.yaml` quando F1 >= 0,70, ou com
+justificativa documentada para uma exceção. Sem consenso, `--predict-only` produz
+somente previsões e mantém a aprovação pendente.
+
+## Lab03S02 — S2-09: coleta completa da amostra
+
+A amostra final tem pelo menos 300 repositórios que atendem aos critérios de inclusão
+(5 ou mais releases e 50 ou mais workflow runs válidos no branch padrão, dentro da
+janela). A coleta usa o comando único com `alvo: 300`; nenhuma regra dos Cards 1 a 4
+mudou. O que a escala exige já estava no pipeline e passou a ser registrado em
+`summary.json`, no bloco `collection_checks`:
+
+| Problema de escala | Tratamento | Onde fica registrado |
+| --- | --- | --- |
+| Busca limitada a 1000 resultados | `CandidateSearch` divide a faixa de estrelas ao meio até cada consulta caber; uma faixa de um só valor é dividida pela data de criação | `selection.candidates_found` e `unique_repositories` |
+| Mês com 1000 ou mais workflow runs | O período é dividido ao meio, recursivamente, e a contagem de cada parte é conferida com a da API | `months_at_run_limit` e a lista `months_at_run_limit_detail` |
+| Compare com mais de 250 commits | Todas as páginas são seguidas pelo header `Link`; a comparação só é publicada completa | `releases_over_250_commits` |
+| Compare com 404 (tag apagada) | A release fica fora do Lead Time e continua contando na frequência | `compare_not_found`; outros erros em `compare_error` |
+| Primeira release da história | Sem release anterior, não há intervalo de commits | `releases_without_previous` |
+| Release sem commits novos | Comparação vazia e válida | `releases_without_new_commits` |
+| Rate limit e interrupções | Espera pelo reset, cache por resposta e diário por etapa (Card 4) | bloco `api`: `rate_limit_waits`, `cache_hits`, `resumed_units` |
+
+As mesmas contagens aparecem por repositório em `data/processed/repositorios.csv`. O
+funil da seleção é regravado a cada execução em `data/processed/funil.md`.
+
+### Resultado da coleta
+
+Janela de 2025-01-01 a 2025-12-31 (UTC), candidatos com 1001 estrelas ou mais,
+percorridos em ordem decrescente de estrelas. A coleta foi interrompida com `Ctrl+C`
+uma vez e retomada pelo mesmo comando, que reaproveitou o diário e seguiu do
+candidato seguinte; uma nova execução a partir do cache não fez nenhuma chamada à API
+e regravou CSVs idênticos.
+
+| Etapa | Repositórios |
+| --- | ---: |
+| Candidatos recebidos da busca | 1025 |
+| Repositórios únicos avaliados | 1021 |
+| Com GitHub Actions | 917 |
+| Com 5 ou mais releases na janela | 406 |
+| Com 50 ou mais workflow runs válidos | 300 |
+| Incluídos na amostra | 300 |
+
+Descartes: 511 por releases insuficientes, 106 por workflow runs insuficientes, 103 sem
+GitHub Actions e 1 por erro de coleta (`torvalds/linux`, cujo endpoint de
+contribuidores responde 403).
+
+| Dado coletado | Total |
+| --- | ---: |
+| Releases válidas na janela | 18.389 |
+| Workflow runs (sucesso / falha / ignorados) | 668.276 / 62.156 / 60.959 |
+| Meses com 1000 ou mais runs, subdivididos | 163 |
+| Releases com mais de 250 commits no compare | 1.403 |
+| Compare com 404 / com outro erro | 2 / 1 |
+| Primeira release da história | 23 |
+| Releases sem commits novos | 3.026 |
+| Releases censuradas no CFR (b) | 246 (1,3%) |
+| Episódios de falha censurados | 196 de 20.117 (1,0%) |
+
+Os dois 404 são de `harness/harness` e o outro erro é um 422 de `docling-project/docling`;
+as três releases ficam fora do Lead Time e continuam na frequência.
+
+## Lab03S02 — S2-10: métricas em todas as variantes e dataset final
+
+`dora_selection/dataset.py` achata os resultados de `metrics.py`, `cfr.py` e `rating.py`
+em três tabelas, sem recalcular nada. Célula vazia significa métrica sem amostra, nunca
+zero.
+
+Nome, tipo, unidade, fórmula e origem na API de cada coluna estão no
+[dicionário de dados](docs/dicionario_de_dados.md).
+
+| Arquivo em `data/processed` | Uma linha por | Uso |
+| --- | --- | --- |
+| `repositorios.csv` | repositório | Base das RQs: métricas, contagens e fatores da RQ 06 |
+| `releases.csv` | release válida da janela | Sensibilidade (RQ 07) e replicação cruzada |
+| `episodios_falha.csv` | episódio de falha de um workflow | Censura da RQ 04 e bônus (RQ 08) |
+| `funil.md` | etapa da seleção | Tabela do funil |
+
+Colunas de `repositorios.csv`:
+
+| Grupo | Colunas |
+| --- | --- |
+| Fatores da RQ 06 | `stars`, `language`, `contributors`, `created_at`, `age_days` (idade no fim da janela), `project_type` e `gold_sample` (tipo consensual, só para a amostra-ouro) |
+| Deployment Frequency | `releases`, `deployment_frequency_per_week`, `median_releases_per_week` |
+| Lead Time (a), por release | `lead_time_a_hours` (mediana, do commit mais antigo do intervalo até a publicação), `lead_time_a_releases` |
+| Lead Time (b), por commit | `lead_time_b_hours` (mediana de publicação menos `commit.author.date`), `lead_time_b_commits` |
+| Releases ignoradas no Lead Time | `releases_ignored` (total), `releases_no_previous`, `releases_compare_not_found`, `releases_compare_error`, `releases_no_new_commits`, `releases_no_commit_dates` |
+| CFR (a), por workflow run | `cfr_a`, `cfr_a_runs` (denominador), `cfr_a_failures`, `runs_ignored` |
+| CFR (b), por release corretiva | `cfr_b`, `cfr_b_version`, `cfr_b_evaluated` (denominador), `cfr_b_failed`, `cfr_b_corrective`, `cfr_b_censored` (releases dos últimos 7 dias da janela) |
+| Tempo de recuperação | `recovery_hours` (mediana dos episódios recuperados), `recovery_episodes`, `recovery_recovered`, `recovery_censored`, `recovery_censored_share` (proporção censurada, RQ 04), `recovery_inconsistent` |
+| Classificação DORA | `*_level` de cada métrica, `median_score`, `overall` |
+
+`collection_complete` indica se releases e workflow runs do repositório foram coletados
+sem erro. `releases_compare_not_found` e `releases_compare_error` somam o motivo
+`no_comparison` do Card 5. `releases.csv` traz, por release, `comparison_status`,
+`lead_time_status`, os dois Lead Times e o resultado da heurística (`corrective`,
+`cfr_b_censored`, `cfr_b_failed`, `fixed_by_tag_name`); `episodios_falha.csv` traz os
+campos de `failure_episodes` com o repositório e o workflow. Os totais de censura da
+amostra ficam em `summary.json`, em `dataset.censoring`.
+
+`tests/test_dataset.py` cobre as três tabelas com a amostra de `tests/conftest.py`, as
+contagens de escala, o funil e a execução de `python -m pipeline --config` com a API
+simulada, inclusive a segunda execução, que regrava o dataset sem nenhuma chamada.
 
 ## Como reproduzir as análises
 
@@ -1038,7 +1177,7 @@ excluídos das amostras e resultados sem observações ficam indefinidos.
 não participa da família. A interpretação de kappa reutiliza a validação existente.
 
 O contrato de tipos e unidades está em
-[`docs/dicionario_de_dados.md`](docs/dicionario_de_dados.md). O padrão visual de
+[`docs/contrato_csv_analise.md`](docs/contrato_csv_analise.md). O padrão visual de
 `analise.estilo` fixa tamanho, fontes e paleta; use `aplicar()` antes de criar
 figuras e `salvar()` para exportá-las. Eixos logarítmicos usam apenas valores
 positivos, com zeros e ausentes contabilizados separadamente.
@@ -1478,9 +1617,10 @@ Os CSVs do estudo estão versionados em `data/processed/`, de modo que
 | `data/processed/funil.md` | Funil das etapas de seleção |
 
 Esses arquivos foram produzidos pela coleta dos 300 repositórios e trazem os nomes de
-coluna do pipeline, que em alguns casos diferem dos deste dicionário — a correspondência
-está em [`docs/dicionario_de_dados.md`](docs/dicionario_de_dados.md) e a leitura aceita
-os dois nomes.
+coluna do pipeline, que em alguns casos diferem dos do contrato de leitura — a
+correspondência está em [`docs/contrato_csv_analise.md`](docs/contrato_csv_analise.md) e a
+leitura aceita os dois nomes. As colunas reais de cada CSV estão no
+[dicionário de dados](docs/dicionario_de_dados.md).
 
 ### Replicar sobre uma subamostra
 
@@ -1497,3 +1637,177 @@ cabeçalho) e **substitui a busca**, não os critérios de inclusão: um reposit
 que não passe nos critérios continua aparecendo no funil como excluído, com o motivo. A
 execução é considerada completa quando toda a lista foi avaliada, porque exclusão pelos
 critérios é resultado do estudo e não falha de execução.
+
+## Lab03S03 — #41: unidades de deploy da RQ 07
+
+A análise de sensibilidade (RQ 07) compara a classificação DORA sob unidades de deploy
+diferentes da definição principal. Esta etapa coleta o que faltava para calculá-las,
+sem alterar nenhuma regra da definição principal:
+
+| Unidade | Deploy | Data do deploy |
+| --- | --- | --- |
+| `release` | Release publicada (definição principal) | `published_at` |
+| `release_prerelease` | Release ou pré-release publicada na janela, numa só sequência | `published_at` |
+| `tag` | Commit apontado por uma ou mais tags da janela | `commit.author.date` do commit |
+
+Ligada por `variantes: true` na seção `coleta` do `config.yaml` (ou `--variants`), roda
+depois da coleta de workflow runs e grava `data/processed/variantes.csv` (uma linha por
+repositório e unidade) e `data/processed/deploys_variantes.csv` (uma linha por deploy).
+As colunas estão em [docs/dicionario_de_dados.md](docs/dicionario_de_dados.md).
+
+### Decisões
+
+- **Datas das tags pela API GraphQL.** O REST só devolve a data de uma tag com uma
+  chamada por commit. O GraphQL lista as tags ordenadas pela data do commit, 100 por
+  consulta, e a paginação para na primeira página anterior à janela; um repositório com
+  milhares de tags antigas custa poucas consultas. A cota do GraphQL é separada da REST
+  e o cliente respeita cada uma por conta própria.
+- **Tags no mesmo commit são um só deploy.** Um monorepo que marca vários pacotes de
+  uma vez multiplicaria a frequência. Na amostra, 36.264 tags da janela formam 24.564
+  deploys (32% das tags foram agrupadas); a coluna `tags` preserva a contagem original.
+- **Cada deploy é comparado com o anterior da própria unidade**, pela mesma função de
+  `compare` e com o mesmo cache da definição principal: pares já consultados não
+  geram nova chamada.
+- **Falha de coleta não vira "zero deploys".** Se as datas das tags de um repositório
+  não puderem ser lidas, a linha da unidade `tag` fica com `collection_complete = False`.
+- **CFR (a) e tempo de recuperação não mudam** com a unidade, pois usam workflow runs.
+
+### Custo da coleta completa (300 repositórios)
+
+Estimado antes de rodar, a partir de `deployments.json` e das datas das tags:
+
+| Item | Quantidade |
+| --- | ---: |
+| Consultas GraphQL (datas das tags) | 1.003 |
+| Deploys em `release_prerelease` | 21.778 (18.389 releases + 3.389 pré-releases) |
+| Deploys em `tag` | 24.564 |
+| Comparações novas, `release_prerelease` | 4.180 |
+| Comparações novas, `tag` | 8.583 |
+
+Cada comparação nova custa em média até 2,3 chamadas REST (a média observada nas
+comparações da definição principal), ou seja, até cerca de 29 mil chamadas, o que são
+6 horas de cota com 5.000 chamadas por hora. Os maiores custos são `pytorch/pytorch`
+(1.039 comparações novas), `vercel/next.js` (672), `metabase/metabase` (560),
+`zed-industries/zed` (554) e `electron/electron` (547). Interrompida por cota ou
+`Ctrl+C`, a coleta continua de onde parou com o mesmo comando. Sem `variantes`, o
+custo da definição principal não muda.
+
+### Testes
+
+`tests/test_variants.py` usa a API simulada do Card 8 e cobre: tags anotadas e tags que
+não apontam para commit; paginação do GraphQL que para na janela; tags no mesmo commit;
+tag base anterior à janela; sequência combinada de release e pré-release; primeiro
+deploy sem base; compare com 404 e com erro; SHA idêntico sem chamada; repositório com
+uma única release; falha das datas das tags sem perder a outra unidade; retomada pelo
+diário; e o cliente GraphQL (corpo e token, cache, erro não gravado, espera do reset,
+desistência quando o reset está longe, cotas REST e GraphQL separadas). O teste de
+ponta a ponta confere que a segunda execução reconstrói `variantes.csv` sem nenhuma
+chamada à API.
+
+## Lab03S03 — RQ 07: sensibilidade da classificação DORA
+
+Mede o quanto a classificação de um repositório (Elite/High/Medium/Low) depende da
+definição operacional. Cada repositório é classificado sob quatro combinações, com as
+mesmas faixas e a mesma mediana de notas da C1 (`dora_selection/rating.py`):
+
+| Combinação | Unidade de deploy | Lead time | CFR |
+| --- | --- | --- | --- |
+| C1 (referência) | release | (a) por release | (a) proxy de CI |
+| C2 | release + pré-release | (b) por commit | (b) proxy de entrega |
+| C3 | tag | (b) por commit | (a) proxy de CI |
+| C4 | release | (b) por commit | (b) proxy de entrega |
+
+A C4 é a combinação adicional que o enunciado deixa a critério do grupo. Ela muda só as
+variantes das métricas e mantém a unidade, e por isso separa dois efeitos que C1 × C2
+mistura: **C1 × C4** mede o efeito de trocar as variantes, e **C2 × C4**, o de trocar a
+unidade (release → release + pré-release).
+
+```bash
+python -m analise --analise rq07
+```
+
+Entrada: `data/processed/variantes.csv` (veja [#41](#lab03s03--41-unidades-de-deploy-da-rq-07))
+mais os três CSVs de sempre. Sem `variantes.csv` a análise não falha: grava
+`resultados/texto/notas_rq07.md` dizendo que está indisponível.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq07_pares.{csv,tex}` | Para cada um dos 6 pares e para o nível geral e cada métrica: n comparado, quantos mudaram, % que mudou e kappa de Cohen ponderado linear com a interpretação de Landis e Koch |
+| `resultados/tabelas/rq07_transicao_<Ci>_<Cj>.{csv,tex}` | Matriz de transição do nível geral (a última linha e coluna são "Sem classificação") |
+| `resultados/tabelas/rq07_distribuicao.{csv,tex}` | Distribuição do nível geral em cada combinação |
+| `resultados/tabelas/rq07_robustez_descritiva.{csv,tex}` | Mediana e IQR de DF, Lead Time e CFR sob cada combinação e a variação da mediana frente à C1 (RQ 01 a 03) |
+| `resultados/tabelas/rq07_robustez_spearman.{csv,tex}` | Spearman DF × CFR sob cada combinação e se o sinal e a significância da C1 se mantêm (RQ 05) |
+| `resultados/tabelas/rq07_robustez_rq06.{csv,tex}` | Testes da família principal da RQ 06 que rejeitam H0 após Holm em cada combinação, em comum com a C1, novos e perdidos |
+| `resultados/figuras/rq07_distribuicao.pdf` | Barras empilhadas do nível geral por combinação |
+| `resultados/figuras/rq07_transicao_C1_C{2,3,4}.pdf` | Mapas de calor das transições a partir da C1 |
+| `resultados/texto/notas_rq07.md` | Rascunho da seção, com todos os números calculados |
+
+### Decisões
+
+- **Repositório sem nível numa combinação fica de fora do par**, e a tabela traz quantos
+  ficaram só de um lado (`so_na_primeira`, `so_na_segunda`). Nenhuma métrica ausente vira
+  Low.
+- **Coleta falha numa unidade não vira "zero deploys".** Se `collection_complete` é falso, as
+  métricas da unidade ficam ausentes e o nível geral da combinação também: o CFR (a) e a
+  recuperação, que não dependem da unidade, não bastam para sustentar um nível sozinhos.
+- **Kappa indefinido** quando as duas combinações têm uma única categoria (0/0), em vez de
+  forçar 1 ou 0.
+- **A família da RQ 06 é a do Paulo** (`rq06.familia`, Holm sobre 4 fatores × 4 métricas),
+  reaproveitada; a partição em grupos não muda com a unidade de deploy.
+- **Conferência:** a unidade `release` de `variantes.csv` é comparada com
+  `repositorios.csv`, e a C1 daqui, com `classificacao_c1`; divergências saem em
+  `notas_rq07.md`.
+
+### Testes
+
+`tests/test_rq07.py` usa um cenário de 5 repositórios com os níveis, os percentuais e os
+kappas calculados à mão (3/7, 8/11, 0,8, 1/3 e 4/7), incluindo um repositório cuja coleta de
+tags falhou e outro ausente de `variantes.csv`. Cobre também o kappa nos casos de borda, a
+matriz de transição, a robustez da RQ 05 (inclusive o CFR constante, que torna a correlação
+indefinida), da RQ 06 e das medianas, a unidade duplicada, a unidade ausente e o comando sem
+`variantes.csv`.
+
+## Lab03S03 — RQ 08 (bônus): rework rate
+
+A *deployment rework rate* que o DORA acrescentou em 2024: a proporção de entregas não
+planejadas, feitas para corrigir problemas. Aqui é `releases corretivas ÷ releases
+avaliadas` por repositório, com a heurística `v1` da RQ 03 (b).
+
+```bash
+python -m analise --analise rq08
+```
+
+**Em que difere do CFR (b).** O CFR (b) marca a release que *falhou* (a seguida por uma
+corretiva em até 7 dias); o rework rate marca a *própria correção*, sem janela de tempo.
+Por isso: uma correção tardia é retrabalho aqui e passa despercebida lá; o rework rate não
+censura os últimos 7 dias da janela; e uma só corretiva pode marcar várias falhas no CFR
+(b). A primeira release da história de cada repositório, que não tem anterior para ser
+corrigida, fica fora do denominador e é contada à parte.
+
+A função pura é `dora_selection.cfr.rework_rate`, e o pipeline grava `rework_rate`,
+`rework_evaluated`, `rework_corrective` e `rework_no_previous` em `repositorios.csv`
+(documentadas no [dicionário](docs/dicionario_de_dados.md#rework-rate-rq-08)). A análise
+recalcula a taxa a partir de `releases.csv` e confere com a coluna do pipeline.
+
+| Saída | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/rq08_resumo.{csv,tex}` | n, mediana, Q1, Q3 e IQR do rework rate e do CFR (b) |
+| `resultados/tabelas/rq08_correlacao.{csv,tex}` | Spearman rework rate × CFR (b): ρ, p, n e força |
+| `resultados/tabelas/rq08_divergencias.{csv,tex}` | Os 10 repositórios em que as duas métricas mais se afastam, com as contagens |
+| `resultados/figuras/rq08_distribuicao.pdf` | Histograma do rework rate por repositório |
+| `resultados/figuras/rq08_rework_cfr_b.pdf` | Dispersão rework rate × CFR (b) com a reta de igualdade |
+| `resultados/texto/notas_rq08.md` | Rascunho com a definição, a diferença para o CFR (b), a correlação e a confiança |
+
+Sobre os 300 repositórios, a mediana do rework rate é 0,70 (IQR 0,41), contra 0,27 do CFR
+(b), e a heurística marca 65% das releases como corretivas. Como a precisão da `v1` na
+amostra-ouro (0,70) é menor que o recall (0,82), a taxa observada tende a superestimar o
+retrabalho: o rascunho traz a correção por P/R como ordem de grandeza.
+
+### Testes
+
+`tests/test_cfr.py` cobre `rework_rate` (repositório sem corretivas, só corretivas, primeira
+release da história, release única, sem releases, sem censura, release sem data, `compare`
+em erro e tags fora do SemVer), e `tests/test_rq08.py` cobre a análise com um cenário feito
+à mão: a taxa por repositório, o denominador, os totais e a reconciliação com o CFR (b), a
+origem alternativa dos dados, a conferência com o pipeline, o Spearman à mão, as
+divergências, o ajuste por precisão e recall e o comando de ponta a ponta.

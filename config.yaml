@@ -1,0 +1,18 @@
+coleta:
+  inicio: '2025-01-01T00:00:00Z'
+  fim: '2025-12-31T23:59:59Z'
+  alvo: 300
+  min_estrelas: 1001
+  saida: outputs/pipeline
+  processados: data/processed
+  tipo_projeto: validacao/resultados/tipo_projeto.csv
+  workers: 4
+  variantes: true
+heuristica_corretiva:
+  versao_candidata: v1
+  versao_oficial: v1
+  avaliacao:
+    f1: 0.7544910179640718
+    regra_sha256: c8321a39d6de4c655ce698b9e0b1abaea92420ae82aa6a2502289d5bd66fa459
+    consenso_sha256: 476627a6ef111172467e482454a3db4431d11b461048a091ea701654a0124485
+    justificativa: ''

@@ -1,5 +1,6 @@
 import unittest
-from dora_selection.cfr import cfr_entrega, eh_corretiva, eh_fix_commit, parse_semver, semver_patch_only
+from dora_selection.cfr import (cfr_entrega, eh_corretiva, eh_fix_commit, parse_semver, rework_rate,
+                                semver_patch_only)
 from dora_selection.selection import timestamp
 
 
@@ -186,6 +187,79 @@ class CfrEntregaTests(unittest.TestCase):
     def test_invalid_window_end_raises(self):
         with self.assertRaises(ValueError):
             cfr_entrega([], None)
+
+
+class ReworkRateTests(unittest.TestCase):
+    """Rework rate (RQ 08): corretivas sobre releases avaliáveis, sem janela de 7 dias."""
+
+    def first(self, tag="v1.0.0"):
+        return release(1, tag, "2026-01-05T12:00:00Z", comparison_status="no_previous_release")
+
+    def test_repository_without_corrective_releases_is_zero_not_empty(self):
+        releases = [self.first(), release(2, "v1.1.0", "2026-01-10T12:00:00Z"),
+                    release(3, "v1.2.0", "2026-01-15T12:00:00Z")]
+        result = rework_rate(releases)
+        self.assertEqual((result["evaluated"], result["corrective"], result["rework_rate"]), (2, 0, 0.0))
+
+    def test_repository_with_only_corrective_releases_is_one(self):
+        releases = [self.first("v1.0.1"), release(2, "v1.0.2", "2026-01-10T12:00:00Z"),
+                    release(3, "v1.0.3", "2026-01-15T12:00:00Z")]
+        result = rework_rate(releases)
+        self.assertEqual((result["evaluated"], result["corrective"], result["rework_rate"]), (2, 2, 1.0))
+
+    def test_first_release_of_the_history_is_left_out_and_counted(self):
+        # v1.0.1 seria corretiva pelo próprio patch, mas não tem anterior para corrigir.
+        releases = [self.first("v1.0.1"), release(2, "v1.1.0", "2026-01-10T12:00:00Z"),
+                    release(3, "v1.1.1", "2026-01-15T12:00:00Z"), release(4, "v1.2.0", "2026-01-20T12:00:00Z")]
+        result = rework_rate(releases)
+        self.assertEqual((result["releases"], result["no_previous"], result["evaluated"]), (4, 1, 3))
+        self.assertEqual((result["corrective"], result["rework_rate"]), (1, 1 / 3))
+
+    def test_single_release_has_no_rate_instead_of_zero(self):
+        result = rework_rate([self.first()])
+        self.assertEqual((result["no_previous"], result["evaluated"], result["rework_rate"]), (1, 0, None))
+
+    def test_no_releases_have_no_rate(self):
+        for releases in (None, []):
+            result = rework_rate(releases)
+            self.assertEqual((result["releases"], result["evaluated"], result["rework_rate"]), (0, 0, None))
+
+    def test_there_is_no_censoring_and_a_late_fix_still_counts(self):
+        # v1.1.1 sai a 1 dia do fim da janela e v1.1.0 a 30 dias dela: o CFR (b) censura a
+        # primeira e não marca falha na segunda; o rework rate conta a correção do mesmo jeito.
+        releases = [self.first(), release(2, "v1.1.0", "2026-01-05T12:00:00Z"),
+                    release(3, "v1.1.1", "2026-02-01T12:00:00Z")]
+        result = rework_rate(releases)
+        self.assertEqual((result["evaluated"], result["corrective"], result["rework_rate"]), (2, 1, 0.5))
+        delivery = cfr_entrega(releases, timestamp(END))
+        self.assertEqual((delivery["censored"], delivery["failed"]), (1, 0))
+
+    def test_corrective_without_a_failure_before_it_differs_from_the_cfr(self):
+        # A correção chega 20 dias depois: o CFR (b) não vê falha, o rework rate vê retrabalho.
+        releases = [self.first(), release(2, "v1.1.0", "2026-01-06T12:00:00Z"),
+                    release(3, "v1.1.1", "2026-01-26T12:00:00Z")]
+        self.assertEqual(rework_rate(releases)["rework_rate"], 0.5)
+        self.assertEqual(cfr_entrega(releases, timestamp(END))["failed"], 0)
+
+    def test_undated_releases_are_counted_and_left_out(self):
+        # Sem a release sem data, a v1.0.2 é comparada com a v1.0.0 e continua só de patch.
+        releases = [self.first(), release(2, "v1.0.1", None), release(3, "v1.0.2", "2026-01-15T12:00:00Z")]
+        result = rework_rate(releases)
+        self.assertEqual((result["releases"], result["ignored_missing_date"], result["evaluated"]), (3, 1, 1))
+        self.assertEqual(result["rework_rate"], 1.0)
+
+    def test_failed_comparison_stays_in_the_denominator_like_the_cfr(self):
+        releases = [self.first(), release(2, "v1.1.0", "2026-01-10T12:00:00Z"),
+                    release(3, "v1.1.1", "2026-01-15T12:00:00Z", comparison_status="not_found")]
+        result = rework_rate(releases)
+        self.assertEqual((result["evaluated"], result["corrective"]), (2, 1))
+
+    def test_non_semver_tags_are_decided_by_their_commits(self):
+        releases = [self.first("2026-01-05"),
+                    release(2, "2026-01-10", "2026-01-10T12:00:00Z", ["fix: crash"]),
+                    release(3, "2026-01-15", "2026-01-15T12:00:00Z", ["feat: nova tela"])]
+        result = rework_rate(releases)
+        self.assertEqual((result["evaluated"], result["corrective"], result["rework_rate"]), (2, 1, 0.5))
 
 
 if __name__ == "__main__":

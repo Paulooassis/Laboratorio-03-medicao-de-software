@@ -1,0 +1,69 @@
+{
+  "diretorio_dados": "data/processed",
+  "origem_cfr_b": "releases.csv",
+  "testes": {
+    "a": {
+      "n": 300,
+      "rho": 0.07063861290938683,
+      "p": 0.2224977091265253,
+      "forca": "desprezível",
+      "motivo": "ok",
+      "zeros_df": 0
+    },
+    "b": {
+      "n": 300,
+      "rho": 0.6153900737242854,
+      "p": 1.1867531317516715e-32,
+      "forca": "moderada",
+      "motivo": "ok",
+      "zeros_df": 0
+    }
+  },
+  "correlacoes": [
+    {
+      "variante": "(a) proxy de CI",
+      "n": 300,
+      "rho": 0.07063861290938683,
+      "p": 0.2224977091265253,
+      "forca": "desprezível"
+    },
+    {
+      "variante": "(b) proxy de entrega",
+      "n": 300,
+      "rho": 0.6153900737242854,
+      "p": 1.1867531317516715e-32,
+      "forca": "moderada"
+    }
+  ],
+  "artefato": {
+    "q1_df": 0.2301369863013698,
+    "q3_df": 1.0020547945205478,
+    "grupos_separaveis": true,
+    "grupos": {
+      "Baixa DF": {
+        "repositorios": 87,
+        "sem_intervalos": 0
+      },
+      "Alta DF": {
+        "repositorios": 75,
+        "sem_intervalos": 0
+      }
+    },
+    "tabela": [
+      {
+        "grupo": "Baixa DF",
+        "n": 87,
+        "mediana_dias": 27.89578703703704,
+        "iqr_dias": 23.04049768518518,
+        "fracao_ate7": 0.25
+      },
+      {
+        "grupo": "Alta DF",
+        "n": 75,
+        "mediana_dias": 1.3877430555555557,
+        "iqr_dias": 2.78982349537037,
+        "fracao_ate7": 0.8768115942028986
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+motivo,coluna,releases,origem,proporcao_das_releases_observadas
+Sem release anterior,releases_no_previous,23,repositorios.csv,0.001250747729620969
+compare com 404,releases_compare_not_found,2,repositorios.csv,0.00010876067214095382
+compare com erro,releases_compare_error,1,repositorios.csv,5.438033607047691e-05
+Sem commits novos,releases_no_new_commits,3026,repositorios.csv,0.16455489694926315
+Commits sem data,releases_no_commit_dates,0,repositorios.csv,0.0
+Sem data de publicação,releases_no_date,0,releases.csv,0.0
+Total ignorado,,3052,,0.16596878568709555
