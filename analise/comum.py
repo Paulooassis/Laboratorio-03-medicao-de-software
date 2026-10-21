@@ -62,8 +62,19 @@ REPOSITORIOS = Tabela(
     booleanas=("collection_complete",),
     texto=("language", "deployment_frequency_level", "lead_time_level",
            "change_failure_rate_level", "recovery_time_level", "overall"),
-    apelidos=(("full_name", "repository"), ("cfr_entrega", "delivery_change_failure_rate"),
-              ("change_failure_rate_delivery", "delivery_change_failure_rate")))
+    # Os nomes à esquerda são os de `data/processed/repositorios.csv` gerado pelo
+    # pipeline; os da direita, os usados nas análises. Sem esses apelidos a análise lê o
+    # CSV real sem erro nenhum e devolve estatísticas vazias, que é a pior falha possível.
+    apelidos=(("full_name", "repository"),
+              ("deployment_frequency_per_week", "releases_per_week"),
+              ("lead_time_a_hours", "release_lead_time_hours"),
+              ("lead_time_b_hours", "commit_lead_time_hours"),
+              ("cfr_a", "change_failure_rate"), ("cfr_a_runs", "considered_runs"),
+              ("runs_ignored", "ignored_runs"),
+              ("cfr_b", "delivery_change_failure_rate"),
+              ("cfr_entrega", "delivery_change_failure_rate"),
+              ("change_failure_rate_delivery", "delivery_change_failure_rate"),
+              ("recovery_censored", "censored_episodes")))
 
 # Uma release por linha: intervalo de commits do Lead Time (a) e veredito do CFR (b).
 RELEASES = Tabela(
@@ -74,7 +85,13 @@ RELEASES = Tabela(
     datas=("published_at", "first_commit_author_date", "last_commit_author_date"),
     booleanas=("corrective", "censored", "failed"),
     texto=("tag_name", "previous_tag_name", "status", "comparison_status", "fixed_by_tag_name"),
-    apelidos=(("full_name", "repository"),))
+    # Idem: nomes de `data/processed/releases.csv` à esquerda. `last_commit_author_date`
+    # não é exportado pelo pipeline, então o intervalo de commits da RQ 02 fica ausente
+    # em vez de estimado.
+    apelidos=(("full_name", "repository"), ("lead_time_status", "status"),
+              ("lead_time_a_hours", "lead_time_hours"),
+              ("lead_time_b_hours", "median_commit_lead_time_hours"),
+              ("cfr_b_censored", "censored"), ("cfr_b_failed", "failed")))
 
 # Um episódio de falha por linha: da primeira falha ao primeiro sucesso do mesmo workflow.
 EPISODIOS = Tabela(

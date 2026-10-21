@@ -118,6 +118,48 @@ class LeituraTests(unittest.TestCase):
             dados = comum.carregar(diretorio)
         self.assertEqual(dados.repositorios["delivery_change_failure_rate"].iloc[0], 0.4)
 
+    def test_reads_the_column_names_the_pipeline_actually_writes(self):
+        """Regressão: o CSV do pipeline usa outros nomes, e lê-los errado dava n = 0.
+
+        `data/processed/repositorios.csv` traz `deployment_frequency_per_week`,
+        `lead_time_a_hours`, `cfr_a` e companhia. Sem os apelidos, a análise lia o arquivo
+        sem erro nenhum e devolvia estatísticas vazias — a pior falha possível.
+        """
+        real = ("repository,deployment_frequency_per_week,lead_time_a_hours,lead_time_b_hours,"
+                "cfr_a,cfr_a_runs,runs_ignored,cfr_b,recovery_censored\n"
+                "owner/um,1.5,24,12,0.5,10,2,0.4,3\n")
+        with DiretorioDeDados(real) as diretorio:
+            repositorios = comum.carregar(diretorio).repositorios
+        linha = repositorios.iloc[0]
+        self.assertEqual(linha["releases_per_week"], 1.5)
+        self.assertEqual(linha["release_lead_time_hours"], 24.0)
+        self.assertEqual(linha["commit_lead_time_hours"], 12.0)
+        self.assertEqual(linha["change_failure_rate"], 0.5)
+        self.assertEqual(linha["considered_runs"], 10.0)
+        self.assertEqual(linha["ignored_runs"], 2.0)
+        self.assertEqual(linha["delivery_change_failure_rate"], 0.4)
+        self.assertEqual(linha["censored_episodes"], 3.0)
+
+    def test_reads_the_release_column_names_of_the_pipeline(self):
+        real = ("repository,published_at,lead_time_status,lead_time_a_hours,lead_time_b_hours,"
+                "cfr_b_censored,cfr_b_failed\n"
+                "owner/um,2025-03-01T00:00:00Z,measured,48,24,False,True\n")
+        with DiretorioDeDados(releases=real) as diretorio:
+            releases = comum.carregar(diretorio).releases
+        linha = releases.iloc[0]
+        self.assertEqual(linha["status"], "measured")
+        self.assertEqual(linha["lead_time_hours"], 48.0)
+        self.assertEqual(linha["median_commit_lead_time_hours"], 24.0)
+        self.assertFalse(linha["censored"])
+        self.assertTrue(linha["failed"])
+
+    def test_the_analysis_name_wins_when_both_spellings_are_present(self):
+        ambos = ("repository,releases_per_week,deployment_frequency_per_week\n"
+                 "owner/um,9.0,1.0\n")
+        with DiretorioDeDados(ambos) as diretorio:
+            repositorios = comum.carregar(diretorio).repositorios
+        self.assertEqual(repositorios.iloc[0]["releases_per_week"], 9.0)
+
     def test_missing_file_names_the_expected_path(self):
         with DiretorioDeDados(repositorios=None) as diretorio:
             with self.assertRaises(FileNotFoundError) as erro:

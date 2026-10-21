@@ -1413,3 +1413,54 @@ lista, a ordem das linhas do CSV não alterando o resultado, semente diferente d
 diferente, universo menor que 30 tomado inteiro e registrado como tal, repetidos e vazios
 descartados, cada grafia conhecida da coluna de repositório, CSV com `;` do Excel, e os
 códigos de saída do comando.
+
+## Final — Fragilidade da classificação perto dos limites das faixas
+
+Uma replicação independente do nosso dataset reclassificou `FuelLabs/sway` de Low para
+Medium ([#62](https://github.com/Paulooassis/Laboratorio-03-medicao-de-software/issues/62)).
+O cálculo dos dois lados estava correto: a métrica estava a 1,10% do limite da faixa.
+Esta análise mede essa distância para todos os repositórios, para que uma divergência de
+categoria possa ser respondida com número em vez de opinião.
+
+### Execução
+
+```bash
+python -m analise --analise fragilidade
+```
+
+### O que ela mede
+
+Para cada repositório e cada métrica da C1: o nível atual, o **limite de faixa mais
+próximo** da tabela de referência, a margem até ele em valor absoluto e em fração do
+valor, e se mover aquela métrica **um degrau** — para melhor ou para pior — mudaria a
+classificação geral. A classificação geral é a mediana das quatro notas arredondada para
+baixo, então uma única métrica pode decidir o resultado.
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `resultados/tabelas/fragilidade_limites.{csv,tex}` | Uma linha por repositório: métrica mais frágil, margem, se muda o geral e quantas métricas mudariam |
+| `resultados/figuras/fragilidade_limites.pdf` | Distribuição das margens em escala log, com a faixa de risco de 5% destacada |
+| `resultados/texto/notas_fragilidade.md` | Os cinco mais frágeis, o caso da #62 com a posição dele no ranking, e o rascunho das ameaças à validade |
+| `resultados/fragilidade.json` | Todos os números |
+
+### Resultado na nossa amostra
+
+Em **259 dos 300 repositórios (86,3%)** mover uma única métrica um degrau muda a
+classificação geral; em **53** a métrica mais próxima está a 5% ou menos do limite; e em
+**31** as duas coisas valem ao mesmo tempo. O mais frágil é `ultralytics/ultralytics`, a
+0,06% do limite de 24 h do Lead Time (a). O `FuelLabs/sway` da #62 é o 25º de 300, a
+1,10%.
+
+A consequência para o artigo está no rascunho: **uma divergência de categoria entre duas
+execuções não implica erro de cálculo em nenhuma delas**, e comparações de categoria
+(RQ 07 inclusive) deveriam reportar quantos repositórios estavam perto de um limite.
+
+### Testes
+
+`tests/test_fragilidade.py` usa o caso da #62 como referência, com os números conferidos
+à mão: recuperação de 169,87 h contra o limite de 168 h dá margem de 1,87 h e 1,10% do
+valor, e as notas (2, 3, 1, 1) com mediana 1,5 viram (2, 3, 1, 2) com mediana 2,0 quando
+a recuperação sobe um degrau. Cobre também a escolha do limite mais próximo (e não do
+primeiro), métrica ausente sem margem, os vizinhos de cada nível, a métrica que não decide
+nada, e três propriedades do rascunho: ele cita a posição do caso no ranking em vez de
+afirmar que é o mais frágil, e avisa quando o repositório não está na amostra.

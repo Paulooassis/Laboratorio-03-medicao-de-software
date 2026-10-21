@@ -9,11 +9,12 @@ import argparse
 import sys
 from pathlib import Path
 
-from . import classificacao_c1, comum, rq01_04, rq05, rq06
+from . import classificacao_c1, comum, fragilidade, rq01_04, rq05, rq06
 
 
 ANALISES = {"rq01_04": rq01_04.executar, "classificacao_c1": classificacao_c1.executar,
-            "rq05": rq05.executar, "rq06": rq06.executar}
+            "rq05": rq05.executar, "rq06": rq06.executar,
+            "fragilidade": fragilidade.executar}
 
 
 def argumentos(argv):
