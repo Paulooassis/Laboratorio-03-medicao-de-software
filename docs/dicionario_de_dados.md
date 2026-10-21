@@ -101,3 +101,29 @@ ou até o fim da janela se censurado.
 
 As fixtures de `tests/test_analise_comum.py` servem somente para validar leitura,
 estatística e execução. Não representam resultados empíricos do estudo.
+
+## Dois nomes para a mesma coluna
+
+Os CSVs em `data/processed/` foram gerados pela etapa de coleta **antes** deste
+dicionário e trazem os nomes do pipeline, que diferem dos documentados abaixo. A leitura
+em `analise/comum.py` aceita os dois, então nenhuma análise precisa ser ajustada; a
+tabela existe para que ninguém procure uma coluna que está lá com outro nome.
+
+| Nome no CSV coletado | Nome neste dicionário |
+| --- | --- |
+| `deployment_frequency_per_week` | `releases_per_week` |
+| `lead_time_a_hours` | `release_lead_time_hours` |
+| `lead_time_b_hours` | `commit_lead_time_hours` |
+| `cfr_a` | `change_failure_rate` |
+| `cfr_a_runs` | `considered_runs` |
+| `runs_ignored` | `ignored_runs` |
+| `cfr_b` | `delivery_change_failure_rate` |
+| `recovery_censored` | `censored_episodes` |
+| `lead_time_status` (releases) | `status` |
+| `lead_time_a_hours` (releases) | `lead_time_hours` |
+| `lead_time_b_hours` (releases) | `median_commit_lead_time_hours` |
+| `cfr_b_censored`, `cfr_b_failed` (releases) | `censored`, `failed` |
+
+Uma execução futura do pipeline continuará escrevendo os nomes da coluna da esquerda.
+Unificar os dois lados é trabalho de outra Issue; até lá, os apelidos garantem que
+`python -m analise` funcione sobre o arquivo publicado.

@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 import pytest
 from dora_selection.api import APIError, GitHubClient
-from dora_selection.pipeline import main
+from dora_selection.pipeline import main, read_repository_list
 from dora_selection.resilience import configure_logging, parallel
 
 
@@ -81,6 +81,12 @@ class FakeGitHub:
         name, _, resource = path.removeprefix("/repos/").partition("/")
         owner, _, resource = resource.partition("/")
         full_name, active = f"{name}/{owner}", f"{name}/{owner}" in self.eligible
+        if not resource:
+            # `--repos` consulta os metadados do repositório direto, sem busca.
+            found = next((r for r in self.repositories if r["full_name"] == full_name), None)
+            if found is None:
+                raise APIError("Repositório não encontrado.", status_code=404)
+            return found
         if resource == "contributors":
             return [{"login": "dev"}]
         if resource == "actions/workflows":
@@ -372,3 +378,74 @@ def test_parallel_keeps_order_and_propagates_the_first_error():
 def test_secrets_and_outputs_are_ignored_by_git():
     ignored = (ROOT / ".gitignore").read_text(encoding="utf-8").split()
     assert {".env", "outputs/"} <= set(ignored)
+
+
+# --------------------------------------------------- Issue #61: `--repos` (subamostra dada)
+
+def lista(tmp_path, *nomes, cabecalho="ordem,repository", prefixo="1,"):
+    """CSV de subamostra no formato que `replicacao/subamostra.py` grava."""
+    caminho = tmp_path / "subamostra.csv"
+    linhas = [cabecalho] if cabecalho else []
+    linhas += [f"{i},{nome}" if cabecalho else nome for i, nome in enumerate(nomes, start=1)]
+    caminho.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+    return caminho
+
+
+def test_repository_list_accepts_the_usual_spellings(tmp_path):
+    for cabecalho in ("ordem,repository", "ordem,full_name", "ordem,repo"):
+        caminho = lista(tmp_path, "owner/one", "owner/two", cabecalho=cabecalho)
+        assert read_repository_list(caminho) == ["owner/one", "owner/two"], cabecalho
+
+
+def test_repository_list_without_header_uses_the_single_column(tmp_path):
+    caminho = tmp_path / "lista.csv"
+    caminho.write_text("owner/one\nowner/two\nowner/one\n", encoding="utf-8")
+    # Repetidos entram uma vez só: a subamostra é um conjunto.
+    assert read_repository_list(caminho) == ["owner/one", "owner/two"]
+
+
+def test_repository_list_rejects_a_file_without_repositories(tmp_path):
+    caminho = tmp_path / "vazia.csv"
+    caminho.write_text("ordem,repository\n1,\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="dono/nome"):
+        read_repository_list(caminho)
+
+
+def test_repos_option_replaces_the_star_search(github, execute, tmp_path):
+    """A busca não é consultada: os candidatos vêm da lista."""
+    code, summary = execute("--repos", str(lista(tmp_path, "owner/two")))
+    assert code == 0
+    assert "/search/repositories" not in github.requests
+    assert summary["selection"]["from_list"] is True
+    assert [row["full_name"] for row in read(tmp_path / "selection" / "repositories.json")] == [
+        "owner/two"]
+
+
+def test_repos_option_keeps_the_inclusion_criteria_and_the_funnel(github, execute, tmp_path):
+    """`--repos` troca a origem dos candidatos, não as regras: o excluído é reportado."""
+    code, summary = execute("--repos", str(lista(tmp_path, "owner/one", "owner/noactions")))
+    assert code == 0
+    linhas = {row["full_name"]: row for row in read(tmp_path / "selection" / "repositories.json")}
+    assert linhas["owner/one"]["included"] is True
+    assert linhas["owner/noactions"]["included"] is False
+    assert linhas["owner/noactions"]["exclusion_reason"]
+    assert summary["selection"]["unique_repositories"] == 2
+    assert summary["selection"]["included"] == 1
+
+
+def test_repos_option_measures_the_metrics_of_the_listed_repositories(github, execute, tmp_path):
+    code, summary = execute("--repos", str(lista(tmp_path, "owner/one", "owner/two")))
+    assert code == 0
+    assert summary["metrics"]["repositories"] == 2
+    classificados = {row["repository"] for row in read(tmp_path / "classification.json")}
+    assert classificados == {"owner/one", "owner/two"}
+
+
+def test_a_repository_of_the_list_that_does_not_exist_is_reported_and_skipped(github, execute,
+                                                                             tmp_path):
+    code, summary = execute("--repos", str(lista(tmp_path, "owner/one", "owner/sumiu")))
+    assert code == 0
+    linhas = {row["full_name"]: row for row in read(tmp_path / "selection" / "repositories.json")}
+    assert "não encontrado" in linhas["owner/sumiu"]["error"]
+    assert linhas["owner/sumiu"]["included"] is False
+    assert summary["metrics"]["repositories"] == 1
