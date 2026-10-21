@@ -5,95 +5,122 @@
 
 \begin{table}[ht]
 \centering
-\caption{Hipóteses informais registradas antes da análise.}
+\caption{As oito hipóteses informais registradas antes da análise, uma por RQ.}
 \label{tab:hipoteses}
 \small
-\begin{tabular}{p{0.8cm}p{5.2cm}p{4.6cm}l}
+\begin{tabular}{p{0.7cm}p{4.4cm}p{5.4cm}l}
 \toprule
  & \textbf{Hipótese} & \textbf{Resultado} & \textbf{Veredito} \\
 \midrule
-H1 & Projetos populares concentram-se em \emph{Elite} e \emph{High} de frequência &
-     Apenas 6 \emph{Elite} e 69 \emph{High}; 152 \emph{Medium} e 73 \emph{Low} &
-     Refutada \\
-H2 & As duas variantes de lead time dão valores próximos &
-     Medianas de 324,9 h e 411,8 h, com $\rho = 0{,}71$ mas razão (a)/(b) mediana de
-     1,29 e cauda longa & Parcial \\
-H3 & Velocidade e estabilidade não são \emph{trade-off} &
-     Com CFR (a), $\rho = 0{,}07$ (nenhuma relação); com CFR (b),
-     $\rho = 0{,}62$ (positiva) & Parcial \\
-H4 & As conclusões são robustas à definição &
-     Até 31,3\% mudam de categoria; CFR muda em 72,3\% com $\kappa \approx 0$ &
-     Refutada \\
+H1 & Frequência alta, em \emph{Elite}/\emph{High} &
+     Mediana de 0,46 release/semana (\emph{Medium}); 6 \emph{Elite} e 69
+     \emph{High} contra 152 \emph{Medium} e 73 \emph{Low} & Refutada \\
+H2 & As variantes de lead time são próximas &
+     Medianas de 324,9 h e 411,8 h; $\rho = 0{,}71$, mas IQR de 880 h contra 1.716 h &
+     Parcial \\
+H3 & CFR baixo e variantes concordantes &
+     CFR (a) mediana 0,056 (\emph{Elite}), mas as variantes discordam em 72,3\% dos
+     repositórios, com $\kappa = -0{,}015$ & Parcial \\
+H4 & Recuperação abaixo de um dia &
+     Mediana de 4,94 h; 181 dos 300 em \emph{High} e 33 em \emph{Elite} &
+     Confirmada \\
+H5 & Sem \emph{trade-off} velocidade × estabilidade &
+     Confirma-se com o CFR (a) ($\rho = 0{,}07$); com o CFR (b), $\rho = 0{,}62$ por
+     artefato de construção & Parcial \\
+H6 & Estrelas associadas a melhor desempenho &
+     Nenhuma das quatro métricas se associa a estrelas após Holm; linguagem e
+     contribuidores, sim & Refutada \\
+H7 & Conclusões robustas à definição &
+     Até 31,3\% mudam de categoria; trocar a variante pesa quase 4× mais que trocar a
+     unidade & Refutada \\
+H8 & Retrabalho baixo e próximo do CFR (b) &
+     Mediana de 0,70 (alta) e correlação apenas fraca com o CFR (b)
+     ($\rho = 0{,}36$) & Refutada \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Por que as duas variantes de lead time divergem}
+\subsection{Velocidade e Lead Time (H1 e H2)}
 
-A variante (a) mede o intervalo inteiro coberto por uma release, do commit mais antigo do
-\texttt{compare} até a publicação; a (b) mede cada commit até a publicação da sua release.
-Como (a) é definida pelo commit \emph{mais antigo} e (b) pela mediana de todos eles, basta
-um commit antigo esquecido no intervalo --- um \emph{branch} retomado, um
-\emph{cherry-pick}, um \emph{pull request} parado --- para (a) subir sem que o ritmo de
-trabalho tenha mudado. As duas não medem a mesma coisa: (a) responde ``quanto tempo cabe
-dentro de uma entrega'' e (b), ``quanto tempo um commit típico espera para ser entregue''.
-Os dados confirmam a divergência estrutural: as medianas diferem em 87 h e a variante (b)
-tem IQR quase o dobro da (a) (1.716 h contra 880 h), porque herda a dispersão de todos os
-commits em vez de um por release.
+A H1 foi \textbf{refutada}. A mediana de 0,46 release por semana equivale a uma entrega a
+cada 15 dias e enquadra a amostra em \emph{Medium}, não em \emph{Elite} ou \emph{High}:
+apenas 6 dos 300 repositórios publicam diariamente ou mais. Projetos open-source populares
+operam em regime \emph{descontínuo} de releases, agrupando mudanças em lotes, mesmo quando
+dispõem de automação madura de CI.
 
-\subsection{Falha de pipeline não é falha em produção}
+A H2 foi \textbf{parcialmente confirmada}, e o modo como ela falha é informativo. As duas
+variantes correlacionam-se fortemente ($\rho = 0{,}71$), o que sustenta a expectativa de que
+medem o mesmo fenômeno; mas divergem em escala e, sobretudo, em dispersão: a variante (b)
+tem IQR de 1.716 h contra 880 h da (a). A razão é estrutural. A variante (a) é definida pelo
+commit \emph{mais antigo} de cada release, enquanto a (b) é a mediana de \emph{todos} os
+commits. Basta um commit antigo esquecido no intervalo --- um \emph{branch} retomado, um
+\emph{cherry-pick}, um \emph{pull request} parado --- para a (a) subir sem que o ritmo de
+trabalho tenha mudado. As duas respondem a perguntas distintas: a (a), "quanto tempo cabe
+dentro de uma entrega"; a (b), "quanto tempo um commit típico espera para ser entregue".
 
-A diferença entre as duas variantes do CFR é a própria interpretação da métrica. Um
-\emph{run} vermelho é, na maior parte das vezes, um teste quebrado em um \emph{pull
-request}: é barato, é detectado antes da entrega e muitas vezes é exatamente o CI fazendo
-o seu trabalho. Uma release seguida de uma corretiva em até sete dias é um defeito que
-passou pelo pipeline e chegou ao usuário. Os números mostram que as duas não são
-intercambiáveis: a mediana do CFR (a) é 0,056 e a do CFR (b) é 0,269, quase cinco vezes
-maior, e a concordância de categoria entre elas é nula ($\kappa = -0{,}015$, 72,3\% dos
-repositórios mudam). Comparar qualquer uma das duas diretamente com as faixas do relatório
-DORA, que falam de mudanças em produção, induz a erro --- e o CFR (a), com 234 de 300
-repositórios em \emph{Elite}, sugere uma estabilidade que ele não mediu.
+\subsection{A Ilusão de Estabilidade do \emph{Proxy} de CI (H3)}
 
-\subsection{Velocidade e estabilidade: um artefato, não um \emph{trade-off}}
+A H3 foi \textbf{parcialmente confirmada}: a taxa é de fato baixa pelo \emph{proxy} de CI
+(mediana de 5,63\%, faixa \emph{Elite}, com 234 dos 300 repositórios nessa faixa), mas a
+previsão de que as duas variantes concordariam está errada por larga margem --- elas
+discordam de faixa em 72,3\% dos repositórios, com $\kappa = -0{,}015$.
 
-A hipótese H3 só se sustenta com o CFR (a). Com o CFR (b) a correlação é positiva e
-moderada ($\rho = 0{,}62$), o que, lido ingenuamente, diria que entregar mais causa mais
-falhas --- contradizendo o relatório DORA. O diagnóstico da janela de sete dias mostra que
-a leitura é um \textbf{artefato de construção da métrica}: no quartil superior de
-frequência, 87,7\% dos intervalos entre releases cabem em sete dias, contra 25,0\% no
-quartil inferior. Quem publica a cada 1,4 dia quase sempre tem uma release seguinte dentro
-da janela e, portanto, muito mais chance de ser marcado como falha; quem publica a cada 28
-dias quase nunca tem. A métrica mede cadência disfarçada de estabilidade. Correlação não é
-causalidade, e aqui nem correlação legítima é: o denominador e o numerador compartilham a
-mesma causa.
+A diferença não é de calibração, é de objeto. Uma execução de CI vermelha é, na maior parte
+das vezes, um teste quebrado em um \emph{pull request}: barata, detectada antes da entrega e
+frequentemente a prova de que o CI está fazendo o seu trabalho. Uma release seguida de uma
+corretiva em até sete dias é um defeito que atravessou o pipeline e chegou ao usuário. O
+\emph{proxy} de CI mede a \emph{barreira}; o de entrega mede o que \emph{passou} por ela.
+Comparar qualquer um dos dois diretamente com as faixas do relatório DORA, que falam de
+produção, induz a erro --- e o CFR (a), com 78\% da amostra em \emph{Elite}, sugere uma
+estabilidade que não mediu.
 
-\subsection{Quais fatores importam de fato}
+\subsection{O Artefato de Construção do CFR de Entrega (H4 e H5)}
 
-Dos fatores testados, apenas linguagem e número de contribuidores sobrevivem à correção de
-Holm, e com tamanhos de efeito médios no melhor caso ($\varepsilon^2 = 0{,}164$ para
-linguagem contra lead time). Popularidade medida em estrelas não se associa a nenhuma das
-quatro métricas --- o que contraria a intuição de que projetos mais visíveis entregam
-melhor. Vale separar significância de relevância: com $n = 300$, efeitos pequenos atingem
-significância sem significar muito na prática.
+A H4 foi \textbf{confirmada}: a recuperação mediana de 4,94 h fica bem abaixo das 24 h
+previstas, com 181 dos 300 repositórios em \emph{High} e 33 em \emph{Elite}. Uma \emph{build}
+quebrada no \emph{default branch} é, de fato, tratada com prioridade.
 
-\subsection{O quanto as conclusões dependem da definição}
+A H5 é o ponto mais delicado do estudo. Com o \emph{proxy} de CI, a ausência de
+\emph{trade-off} se confirma ($\rho = 0{,}07$, não significativo). Com o \emph{proxy} de
+entrega, a correlação é positiva e moderada ($\rho = 0{,}62$), o que, lido ingenuamente,
+contradiria o DORA e sugeriria que entregar mais causa mais falhas. O diagnóstico da janela
+de sete dias mostra que a leitura é um \textbf{artefato de construção da própria métrica}:
+no quartil superior de frequência, 87,7\% dos intervalos entre releases cabem em sete dias,
+contra 25,0\% no quartil inferior. Quem publica a cada 1,4 dia quase sempre tem uma release
+seguinte dentro da janela de observação da heurística e, portanto, muito mais chance de ser
+marcado como falha; quem publica a cada 28 dias quase nunca tem. O numerador e o denominador
+compartilham a mesma causa --- a cadência --- e o coeficiente mede cadência disfarçada de
+estabilidade. Correlação não implica causalidade; aqui, sequer há correlação legítima a
+interpretar.
 
-A H4 é a mais claramente refutada, e o modo como ela falha é informativo. Comparando
-C2 com C4, que diferem \emph{apenas na unidade de deploy}, somente 7,3\% dos repositórios
-mudam de categoria ($\kappa = 0{,}878$). Comparando C1 com C4, que diferem \emph{apenas
-nas variantes das métricas}, 28,3\% mudam ($\kappa = 0{,}546$). A conclusão é direta:
-\textbf{trocar a variante da métrica desloca a classificação quase quatro vezes mais do
-que trocar a unidade de deploy}. Discussões sobre ``release ou tag conta como deploy''
-importam menos do que a escolha entre CFR de CI e CFR de entrega.
+\subsection{Fatores Estruturais e o Peso da Definição (H6, H7 e H8)}
 
-Some-se a isso a fragilidade medida na Seção \ref{sec:resultados}: 86,3\% dos repositórios
-trocam de categoria se uma única métrica andar um degrau. A classificação em faixas é uma
-discretização de medidas contínuas, e nada no método avisa quando um repositório está à
-beira de uma faixa.
+A H6 foi \textbf{refutada} no ponto que previa: estrelas não se associam a nenhuma das
+quatro métricas após a correção de Holm. A popularidade parece operar como indicador de
+reputação, desacoplado do fluxo interno de engenharia. O que sobrevive são linguagem
+($\varepsilon^2 = 0{,}164$ no lead time) e número de contribuidores
+($\varepsilon^2 = 0{,}100$), ambos com efeito médio. Vale separar significância de
+relevância: com $n = 300$, efeitos pequenos alcançam significância sem significar muito.
 
-\subsection{Retrabalho e CFR (b)}
+A H7 foi \textbf{refutada}, e o desenho das combinações permite dizer \emph{como}. Entre C2
+e C4, que diferem apenas na unidade de deploy, somente 7,3\% dos repositórios mudam de
+categoria ($\kappa = 0{,}878$). Entre C1 e C4, que diferem apenas nas variantes das métricas,
+28,3\% mudam ($\kappa = 0{,}546$). Ou seja: \textbf{trocar a variante da métrica desloca a
+classificação quase quatro vezes mais do que trocar a unidade de deploy}. A discussão sobre
+se \emph{tag} ou release conta como deploy, que ocupa boa parte da literatura de mineração,
+importa menos do que a escolha entre CFR de CI e CFR de entrega.
 
-A taxa de retrabalho mediana de 0,70 é alta, mas mede algo diferente do CFR (b):
-sua correlação é apenas fraca ($\rho = 0{,}36$). A heurística v1, com F1 de 0,754,
-superdetecta corretivas --- a amostra-ouro rotulou 153 de 300 releases como corretivas
-(51\%), contra 65,4\% detectados pela heurística, coerente com a precisão de 0,696.
+A H8 foi \textbf{refutada} nas duas partes: a taxa de retrabalho não é baixa (mediana de
+70,0\%) e sua correlação com o CFR de entrega é apenas fraca ($\rho = 0{,}36$), embora ambas
+derivem da mesma heurística. A explicação está na janela: o retrabalho conta toda release
+corretiva do período, enquanto o CFR (b) só conta aquelas que \emph{seguem} outra release em
+até sete dias. Repositórios que corrigem com calma produzem retrabalho alto e CFR (b) baixo.
+
+\subsection{A Fragilidade das Fronteiras}
+
+Soma-se a tudo isso um achado que não estava previsto em nenhuma hipótese: 86,3\% dos
+repositórios mudam de categoria geral se uma única métrica avançar um degrau. A
+classificação em faixas é uma discretização de medidas contínuas, e nada no método sinaliza
+quem está na fronteira. Esse resultado nasceu de uma divergência relatada na replicação
+cruzada (Seção \ref{sec:replicacao}) e reposiciona a interpretação de qualquer comparação de
+categorias entre estudos.

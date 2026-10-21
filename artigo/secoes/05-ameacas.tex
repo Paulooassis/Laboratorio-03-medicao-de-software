@@ -1,88 +1,64 @@
-\section{Ameaças à validade}
+\section{Ameaças à Validade}
 \label{sec:ameacas}
 
-Seguimos as quatro categorias de \citeonline{wohlin2012}. Cada ameaça é apoiada em uma
-evidência do próprio estudo e acompanhada da mitigação adotada, ou da explicação de por
-que não foi possível mitigar.
+A estrutura desta seção segue a taxonomia usual de ameaças em engenharia de software
+experimental \cite{wohlin2012}. Cada ameaça é apoiada em uma evidência do próprio estudo e
+acompanhada da mitigação adotada, ou da razão de não ter sido possível mitigá-la.
 
-\subsection{Validade de construto}
+\textbf{Validade de Construto.} A equivalência entre release e deploy, e entre
+\emph{workflow run} vermelho e falha de entrega, é uma aproximação inerente ao uso de
+\emph{proxies}. A amostra-ouro mitiga parcialmente a primeira: 295 das 300 releases
+rotuladas representam entregas reais ao usuário, 5 ficaram incertas e nenhuma foi rotulada
+como "não" --- a suposição se sustenta nesta amostra. Ela permanece, porém, para as 95
+releases de bibliotecas e \emph{frameworks}, em que publicar no registro não implica que
+alguém atualizou a dependência. A segunda equivalência é o objeto da Seção
+\ref{sec:discussao} e não foi mitigada, e sim \emph{medida}: as duas variantes do CFR
+discordam em 72,3\% dos repositórios. A heurística corretiva que sustenta o CFR (b) tem
+F1 de 0,754, com 55 falsos positivos e 27 falsos negativos, e superdetecta corretivas ---
+marca 65,4\% das releases contra 51\% na rotulagem manual. Além disso,
+\texttt{commit.author.date} é vulnerável a \emph{rebase} e \emph{squash merge}, que reescrevem
+a data e distorcem o lead time sem relação com o esforço real; mitigamos apenas
+contabilizando datas ausentes em vez de estimá-las, e mantendo valores negativos visíveis em
+vez de descartá-los. Por fim, há uma ameaça ao próprio instrumento de validação: o consenso
+da amostra-ouro foi consolidado em um arquivo único do grupo, e as planilhas individuais dos
+três avaliadores não estão versionadas, o que impede recalcular o $\kappa$ de Fleiss e,
+portanto, aferir a confiabilidade da rotulagem que sustenta o F1 relatado.
 
-\textbf{Release não é deploy.} A métrica supõe que publicar uma release equivale a
-entregar ao usuário. A validação manual da amostra-ouro rotulou essa suposição
-diretamente: das 300 releases sorteadas em 60 repositórios, 295 foram rotuladas como
-representando entregas reais ao usuário e 5 ficaram como incertas --- nenhuma como
-``não''. A suposição se sustenta nesta amostra, o que \emph{mitiga} a ameaça mais do que a
-confirma. Ela permanece para bibliotecas e \emph{frameworks} (95 das 300 releases
-rotuladas), em que publicar no registro não implica que alguém atualizou a dependência.
+\textbf{Validade Interna.} O principal confundidor identificado é a própria cadência: um
+repositório que publica com frequência tem mais oportunidades de ter uma release corretiva
+dentro de sete dias, o que infla o CFR (b) independentemente da qualidade. Esse mecanismo
+foi quantificado (87,7\% contra 25,0\% dos intervalos dentro da janela) e é reportado junto
+do coeficiente, não omitido. Releases publicadas por robôs de automação ---
+\emph{release-please}, \emph{semantic-release}, Dependabot --- entram como qualquer outra e
+inflam a frequência de projetos que automatizaram a publicação; essa ameaça não foi mitigada,
+pois não distinguimos autor humano de robô. Execuções agendadas são excluídas pelo filtro de
+evento \texttt{push}, mas execuções com matriz de combinações contam como um único
+\emph{run}. O truncamento no fim da janela foi tratado por censura explícita, e não por
+descarte, em ambos os pontos em que ocorre: 196 episódios de recuperação (0,97\%) e 246
+releases do CFR (b) (1,3\%).
 
-\textbf{Falha de CI não é falha em produção.} Discutido na Seção \ref{sec:discussao}: o
-CFR (a) coloca 234 de 300 repositórios em \emph{Elite} e discorda do CFR (b) em 72,3\% dos
-casos, com $\kappa = -0{,}015$. Mitigação: reportamos as duas variantes lado a lado em
-toda a análise e nunca comparamos o CFR (a) isoladamente com as faixas do relatório DORA.
+\textbf{Validade Externa.} A amostra é deliberadamente estreita: repositórios públicos com
+pelo menos 1.001 estrelas, que usam GitHub Actions, observados em uma única janela anual. O
+funil dimensiona o recorte: 511 dos 1.021 candidatos avaliados caíram por publicar menos de
+cinco releases em doze meses, e outros 103 por não usarem Actions. Os achados descrevem,
+portanto, projetos populares, ativos e automatizados --- não o GitHub como um todo, e muito
+menos desenvolvimento corporativo, onde o DORA foi formulado e onde "deploy" tem acesso a
+dados de produção que aqui não existem. Pipelines em GitLab CI ou Jenkins estão fora do
+alcance do instrumento. A janela única impede ainda qualquer afirmação de tendência: 2025 é
+um retrato, não uma série temporal.
 
-\textbf{A heurística corretiva foi avaliada na mesma amostra em que foi refinada.} O F1 de
-0,754 (precisão 0,696, \emph{recall} 0,824) é otimista, porque a heurística v1 foi ajustada
-olhando a mesma amostra-ouro contra a qual é medida. Não foi possível mitigar: não há uma
-segunda amostra rotulada. O efeito é que o CFR (b) e a taxa de retrabalho carregam um viés
-de superdetecção --- a heurística marca 65,4\% das releases como corretivas contra 51\% na
-rotulagem manual.
-
-\textbf{\texttt{commit.author.date} não é a data do trabalho.} \emph{Rebase},
-\emph{squash merge} e \emph{cherry-pick} reescrevem essa data, encurtando ou alongando o
-lead time sem relação com o esforço real. Mitigação parcial: datas ausentes são contadas,
-nunca estimadas, e valores negativos são mantidos e reportados em vez de descartados.
-
-\textbf{A classificação depende da definição.} Até 31,3\% dos repositórios mudam de
-categoria entre C1 e C2 (Tabela \ref{tab:rq07}). Mitigação: a RQ 07 é a própria medida
-dessa ameaça, e a C1 é declarada explicitamente como escolha, não como verdade.
-
-\subsection{Validade interna}
-
-\textbf{Idade e tamanho como confundidores.} Um repositório com mais releases tem mais
-oportunidades de ter uma corretiva dentro de sete dias, o que infla o CFR (b)
-independentemente da qualidade --- é o artefato quantificado na Seção
-\ref{sec:discussao}. Mitigação: o artefato é reportado com o diagnóstico da janela, e a
-RQ 06 testa tamanho e popularidade como fatores (nenhum sobrevive à correção de Holm para
-o CFR).
-
-\textbf{Bots e automação de releases.} Releases publicadas por \emph{release-please},
-\emph{semantic-release} ou Dependabot entram como qualquer outra, inflando a frequência de
-entrega de projetos que automatizaram a publicação. Não mitigado: não distinguimos autor
-humano de bot.
-
-\textbf{Workflows de matriz e agendados.} Um \emph{run} com matriz de 20 combinações conta
-como um run; workflows agendados (\emph{cron}) geram falhas sem relação com mudanças. A
-coleta filtra por evento \texttt{push} no \emph{branch} padrão, o que remove os agendados,
-mas não desdobra matrizes.
-
-\subsection{Validade externa}
-
-A amostra é deliberadamente estreita: apenas repositórios públicos com 1.001 estrelas ou
-mais, apenas os que usam GitHub Actions, apenas a janela de 2025 e apenas projetos
-open-source. O funil mostra o tamanho do recorte: 511 dos 1.021 candidatos avaliados
-caíram por ter menos de 5 releases na janela, e outros 103 por não usarem GitHub Actions.
-Isso significa que os resultados descrevem projetos populares, ativos e automatizados ---
-não o GitHub, e muito menos desenvolvimento corporativo, onde o DORA foi formulado e onde
-``deploy'' tem acesso a dados de produção que aqui não existem. Janela única também impede
-afirmar tendência: 2025 é um retrato, não uma série.
-
-\subsection{Validade de conclusão}
-
-\textbf{Múltiplas comparações.} A RQ 06 executa 16 testes na família principal; aplicamos a
-correção de Holm, e o efeito é visível --- estrelas contra frequência tem $p = 0{,}0070$
-bruto e $p = 0{,}056$ corrigido, deixando de ser significativo.
-
-\textbf{Subgrupos pequenos.} A análise exploratória por tipo de projeto usa a amostra-ouro,
-com 60 repositórios distribuídos em três tipos; é exploratória por isso, e está declarada
-como tal.
-
-\textbf{Censura.} A mediana de recuperação usa apenas episódios recuperados, o que
-subestima o tempo real, porque justamente os episódios mais longos são os que não
-terminaram na janela. Mitigação: publicamos o limite inferior que trata cada censurado
-como recuperado no fim da observação (5,22 h contra 4,94 h) e a contagem por repositório.
-O mesmo vale para as 246 releases censuradas no CFR (b).
-
-\textbf{n diferente entre variantes e empates nos quartis.} A recuperação tem $n = 264$
-contra 300 das demais métricas, e as faixas DORA produzem muitos empates: 86,3\% dos
-repositórios estão a um degrau de outra categoria. Comparações de categoria devem reportar
-essa proximidade, sob pena de atribuir a erro o que é discretização.
+\textbf{Validade de Conclusão.} A família principal da RQ 06 executa 16 testes, e a correção
+de Holm foi aplicada sobre ela; o efeito é observável --- estrelas contra frequência tem
+$p = 0{,}0070$ bruto e $p = 0{,}0556$ corrigido, deixando de ser significativo. Todos os
+testes são não paramétricos, o que protege as deduções contra a assimetria documentada na
+Figura \ref{fig:violino}, e todos os tamanhos de efeito são reportados junto dos $p$-valores.
+A análise exploratória por tipo de projeto apoia-se em 60 repositórios distribuídos em três
+tipos, e está declarada como exploratória por isso. A mediana de recuperação usa apenas
+episódios recuperados e, por construção, subestima o tempo real, já que os episódios mais
+longos são justamente os que não terminam na janela; publicamos o limite inferior que trata
+cada censurado como recuperado no fim da observação (5,22 h contra 4,94 h) para dimensionar
+esse viés. O $n$ difere entre métricas (264 na recuperação contra 300 nas demais), o que
+impede comparações diretas de dispersão entre elas. Por fim, as faixas DORA produzem muitos
+empates de fronteira: 86,3\% dos repositórios estão a um degrau de outra categoria, de modo
+que comparações de categoria entre estudos precisam reportar essa proximidade, sob pena de
+atribuir a erro de cálculo o que é efeito da discretização.

@@ -1,72 +1,77 @@
-\section{Replicação cruzada}
+\section{Replicação Cruzada}
 \label{sec:replicacao}
 
-A replicação ocorreu nas duas direções: executamos o pipeline de outro grupo e tivemos o
-nosso executado por ele, em ambos os casos sobre uma subamostra determinística de 30
-repositórios do dataset original, seguindo apenas o \texttt{README} publicado.
+Em conformidade com as diretrizes do estudo, a replicação ocorreu nas duas direções sobre
+uma subamostra determinística de 30 repositórios sorteada com semente fixa e documentada,
+seguindo apenas o \texttt{README} publicado de cada lado.
 
-\subsection{Nós como replicadores}
+\subsection{Como Replicadores}
 
-Replicamos o repositório do grupo autor no commit \texttt{73b739f}, em macOS 27.0.1
-(arm64) com Python 3.14.0, em ambiente virtual novo e sem cache. A subamostra foi sorteada
-com semente fixa 42, sobre o conjunto ordenado e deduplicado dos 300 repositórios, com o
-\emph{hash} SHA-256 do CSV de origem registrado, de modo que o sorteio é refazível por
-qualquer pessoa.
+Executamos o \emph{pipeline} do grupo sorteado no commit \texttt{73b739f}, em macOS 27.0.1
+(arm64) com Python 3.14.0, em ambiente virtual novo e sem nenhum cache prévio. A subamostra
+foi sorteada sobre o conjunto ordenado e deduplicado dos 300 repositórios do dataset
+original deles, com o \emph{hash} SHA-256 do CSV de origem registrado junto da lista, de
+modo que o sorteio seja refazível por qualquer pessoa --- inclusive pelo grupo autor ao
+responder as Issues.
 
 \textbf{O estudo foi executável}, com uma ressalva de escopo. Clone, instalação das nove
-dependências e o modo \texttt{--dry-run} funcionaram sem atrito, em menos de dois minutos
-somados. A execução completa levou \textbf{42 min 20 s}, dos quais 38 min 38 s (91\%)
-foram espera da API do GitHub, consumindo cerca de 1.676 requisições para 30 repositórios.
-O pipeline produziu todos os artefatos prometidos, e a suíte de testes do grupo passou
-inteira (159 testes, 77\% de cobertura).
+dependências e o modo de estimativa de consumo de API funcionaram sem atrito, somando menos
+de dois minutos. A execução completa levou \textbf{42 min 20 s}, dos quais 38 min 38 s
+(91\%) foram espera da API, consumindo cerca de 1.676 requisições para 30 repositórios ---
+aproximadamente 2,5 vezes a projeção linear da própria estimativa do \emph{pipeline}. Todos
+os artefatos prometidos foram produzidos e a suíte de testes do grupo passou integralmente
+(159 testes, 77\% de cobertura).
 
-A ressalva: \textbf{não existe forma, documentada ou não, de executar aquele pipeline
-sobre um conjunto dado de repositórios}. A etapa de seleção sempre refaz a busca por
-faixas de estrelas, que depende da contagem de estrelas no momento da execução e portanto
-não é estável. Para rodar sobre a subamostra foi preciso ler o código, descobrir que as
-etapas seguintes consomem um CSV intermediário e escrevê-lo à mão --- ou seja, sair do
-\texttt{README}. Seguindo apenas a documentação, a replicação cruzada como o enunciado a
-define não é executável naquele pipeline.
+A ressalva é relevante para a própria viabilidade da replicação: \textbf{não existe forma,
+documentada ou não, de executar aquele \emph{pipeline} sobre um conjunto dado de
+repositórios}. A etapa de seleção sempre refaz a busca por faixas de estrelas, que depende
+da contagem de estrelas no instante da execução e, portanto, não é estável entre execuções.
+Para rodar sobre a subamostra foi necessário ler o código-fonte, descobrir que as etapas
+seguintes consomem um CSV intermediário e escrevê-lo manualmente --- isto é, sair do
+\texttt{README}. Seguindo estritamente a documentação, a replicação cruzada como o estudo a
+define não é executável naquele \emph{pipeline}.
 
-Quanto aos valores, a reprodução foi praticamente exata: a diferença relativa mediana foi
-de \textbf{0,0\% em todas as sete métricas} comparadas, e a concordância de categoria foi
-de 100\% para frequência, lead time e CFR, e de 91,3\% para recuperação
-($\kappa$ ponderado de 0,907), com a divergência concentrada nos repositórios de poucos
-episódios. Abrimos quatro Issues no repositório do grupo autor: uma de execução e
-documentação (ausência de parâmetro para a subamostra) e três de documentação (links
-apontando para o disco local de um autor, instalação sem ambiente virtual e contagem de
-colunas desatualizada no \texttt{README}).
+Quanto aos valores, a reprodução foi praticamente exata: a diferença relativa mediana foi de
+\textbf{0,0\% nas sete métricas} comparadas, com concordância de categoria de 100\% em
+frequência, lead time e CFR, e de 91,3\% na recuperação ($\kappa$ ponderado de 0,907). As
+divergências concentram-se em repositórios com poucos episódios de falha, em que um único
+episódio a mais ou a menos desloca a mediana; o maior desvio relativo observado na
+recuperação chega a 945\%, em um repositório com baixa contagem de episódios. Abrimos quatro
+Issues no repositório do grupo autor: uma de execução e documentação, referente à ausência de
+parâmetro para a subamostra, e três de documentação --- links apontando para o disco local de
+um dos autores, instalação sem ambiente virtual e contagem de colunas desatualizada.
 
-\subsection{Nós como autores}
+\subsection{Como Autores}
 
-Recebemos três Issues do grupo replicador, todas procedentes, e as três foram corrigidas.
+Recebemos três Issues do grupo replicador, todas procedentes e todas corrigidas antes do
+prazo, e todas registradas no GitHub Projects do grupo.
 
-A primeira relatava que \texttt{python -m analise} falhava em um clone limpo, porque os
-CSVs do estudo não estavam versionados na \emph{branch} principal --- existiam apenas em
-uma \emph{branch} seis commits à frente que nunca fora integrada. Corrigimos publicando os
-três CSVs, e a análise passou a rodar a partir de um clone limpo, sem token.
+A primeira relatava que o comando de análise falhava em um clone limpo, porque os CSVs do
+estudo não estavam versionados na \emph{branch} principal --- existiam apenas em uma
+\emph{branch} seis commits à frente, nunca integrada. Corrigimos publicando os três CSVs, de
+modo que a análise passou a ser reexecutável a partir de um clone limpo, sem token e sem
+refazer a coleta.
 
-A segunda apontava a ausência de um parâmetro para executar sobre a subamostra --- a mesma
-lacuna que nós havíamos encontrado no pipeline deles. Acrescentamos a opção
-\texttt{-{}-repos}, que recebe a lista de repositórios e substitui a busca por estrelas,
-preservando os critérios de inclusão: um repositório da lista que não os atenda continua
-aparecendo no funil como excluído, com o motivo.
+A segunda apontava a ausência de um parâmetro para executar sobre a subamostra --- exatamente
+a mesma lacuna que havíamos encontrado no \emph{pipeline} deles. Acrescentamos uma opção que
+recebe a lista de repositórios e substitui a busca por estrelas, preservando os critérios de
+inclusão: um repositório da lista que não os atenda continua aparecendo no funil como
+excluído, com o motivo registrado.
 
-A terceira relatava que um repositório, \texttt{FuelLabs/sway}, mudara de categoria geral
-entre o dataset publicado e a reexecução. A investigação mostrou que \textbf{não havia erro
-de cálculo em nenhum dos dois lados}: o repositório está 1,87 h acima do limite de 168 h
-entre \emph{Medium} e \emph{Low} no tempo de recuperação --- 1,10\% do valor --- e, como a
-categoria geral é a mediana das quatro notas arredondada para baixo, mover uma única
-métrica um degrau basta para alterá-la. Essa Issue motivou a análise de fragilidade
-relatada na Seção \ref{sec:resultados}, que generaliza o achado para toda a amostra e virou
-a ameaça à validade de conclusão registrada na Seção \ref{sec:ameacas}.
+A terceira relatava que um repositório mudara de categoria geral entre o dataset publicado e
+a reexecução. A investigação mostrou que \textbf{não havia erro de cálculo em nenhum dos dois
+lados}: o repositório está 1,87 h acima do limite de 168 h entre \emph{Medium} e \emph{Low} no
+tempo de recuperação --- 1,10\% do valor --- e, como a categoria geral é a mediana das quatro
+notas arredondada para baixo, mover uma única métrica um degrau basta para alterá-la. Essa
+Issue motivou a análise de fragilidade de fronteira relatada na Seção \ref{sec:resultados} e
+a ameaça à validade de conclusão correspondente.
 
-\subsection{O que a replicação mudou no estudo}
+\subsection{O que a Replicação Mudou no Estudo}
 
 Além das três correções, a tentativa de reproduzir a comparação revelou um defeito que
-nenhuma das Issues havia apontado: o módulo de análise esperava nomes de coluna que o
-pipeline de coleta não escreve. Como coluna ausente é tratada como valor ausente por
-contrato, a análise lia o CSV real \emph{sem erro algum} e devolvia estatísticas vazias.
-A falha barulhenta relatada pelo grupo replicador escondia uma falha silenciosa; corrigido
-o primeiro, o segundo apareceu. É o argumento mais concreto que este trabalho produziu a
-favor da replicação cruzada como prática.
+\emph{nenhuma} das Issues havia apontado: o módulo de análise esperava nomes de coluna que o
+\emph{pipeline} de coleta não escreve. Como coluna ausente é tratada como valor ausente por
+contrato, a análise lia o CSV real \textbf{sem erro algum e devolvia estatísticas vazias}. A
+falha ruidosa relatada pelo grupo replicador encobria uma falha silenciosa; corrigida a
+primeira, a segunda tornou-se visível. É o argumento mais concreto que este trabalho produziu
+em favor da replicação cruzada como prática.

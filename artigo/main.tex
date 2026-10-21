@@ -1,8 +1,8 @@
-% Métricas DORA em repositórios populares do GitHub
+% Mineração e sensibilidade de métricas DORA em repositórios open-source
 % Laboratório de Experimentação de Software — PUC Minas
 %
-% Compilação: requer o template oficial da SBC (sbc-template.sty, sbc-template.cls e
-% as figuras do template) na mesma pasta. Veja artigo/README.md.
+% Compilação: requer o template oficial da SBC (sbc-template.sty e sbc.bst) nesta pasta.
+% Veja artigo/README.md.
 \documentclass[12pt]{article}
 
 \usepackage{sbc-template}
@@ -17,45 +17,35 @@
 
 \sloppy
 
-\title{Métricas DORA em repositórios populares do GitHub:\\
-       o que muda quando muda a definição}
+\title{Mineração e Sensibilidade de Métricas DORA em Repositórios\\
+       Open-Source: a Definição Operacional como Variável do Estudo}
 
-\author{João Gabriel S. A. Almeida\inst{1}, Lucas F. Ribeiro\inst{1}, Vitor V. Silva\inst{1}}
+\author{Rafael Faria Franco\inst{1}, Paulo Assis\inst{1}, Vitor Rebula Nogueira\inst{1}}
 
-\address{Instituto de Ciências Exatas e Informática --- Pontifícia Universidade
-  Católica de Minas Gerais (PUC Minas)\\
-  Belo Horizonte --- MG --- Brasil
-  \email{\{integrante1,integrante2,integrante3\}@sga.pucminas.br}
+\address{ICEI --- Pontifícia Universidade Católica de Minas Gerais (PUC Minas)\\
+  Belo Horizonte, MG, Brasil
+  \email{\{matricula1,matricula2,matricula3\}@sga.pucminas.br}
 }
 
 \begin{document}
 
 \maketitle
 
-\begin{abstract}
-We measured the four DORA metrics in 300 popular GitHub repositories that use GitHub
-Actions, over the 2025 calendar year, from 18{,}389 releases and 20{,}117 CI failure
-episodes. Using medians and IQR, the sample shows a median of 0.46 releases per week,
-a lead time of 324.9 hours, a CI change failure rate of 0.056 and a recovery time of
-4.94 hours. The central result is not any single value but their fragility: swapping one
-operational definition reclassifies up to 31.3\% of the repositories (weighted
-$\kappa = 0.51$), and changing the \emph{metric variant} moves the classification far
-more than changing the \emph{deploy unit}. We also found that 86.3\% of repositories
-change their overall DORA category if a single metric moves one band, which means a
-disagreement between two independent executions does not imply a calculation error.
-\end{abstract}
-
 \begin{resumo}
-Medimos as quatro métricas DORA em 300 repositórios populares do GitHub que usam GitHub
-Actions, na janela de 2025, a partir de 18.389 releases e 20.117 episódios de falha de
-CI. Com mediana e IQR, a amostra apresenta 0,46 release por semana, lead time de 324,9
-horas, change failure rate de CI de 0,056 e tempo de recuperação de 4,94 horas. O
-resultado central não é nenhum desses valores, e sim a fragilidade deles: trocar uma
-definição operacional reclassifica até 31,3\% dos repositórios ($\kappa$ ponderado de
-0,51), e mudar a \emph{variante da métrica} desloca a classificação muito mais do que
-mudar a \emph{unidade de deploy}. Encontramos ainda que 86,3\% dos repositórios mudam de
-categoria geral se uma única métrica andar um degrau, o que significa que uma divergência
-entre duas execuções independentes não implica erro de cálculo.
+As métricas DORA (\emph{DevOps Research and Assessment}) consolidaram-se como padrão
+industrial de medição de entrega contínua, mas sua aplicação a projetos open-source exige
+\emph{proxies} operacionais, porque o GitHub não registra deploys nem falhas em produção.
+Este trabalho minera as quatro métricas em 300 repositórios populares que usam GitHub
+Actions, na janela de 2025, a partir de 18.389 releases e 20.117 episódios de falha de CI.
+A amostra apresenta mediana de 0,46 release por semana, lead time por release de 324,9 h,
+\emph{change failure rate} de CI de 0,056 e recuperação de 4,94 h. O achado central não é
+nenhum desses valores, e sim a sua dependência da definição adotada: a análise de
+sensibilidade mostra que até 31,3\% dos repositórios mudam de categoria DORA entre
+combinações ($\kappa$ ponderado de 0,506) e que trocar a \emph{variante da métrica} desloca
+a classificação quase quatro vezes mais do que trocar a \emph{unidade de deploy}
+(28,3\% contra 7,3\%). Mostra-se ainda que 86,3\% dos repositórios mudam de categoria geral
+se uma única métrica avançar um degrau de faixa, o que implica que divergências entre
+execuções independentes não constituem, por si, erro de cálculo.
 \end{resumo}
 
 \input{secoes/01-introducao}

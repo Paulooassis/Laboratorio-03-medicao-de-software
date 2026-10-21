@@ -1,34 +1,46 @@
 \section{Conclusão}
+\label{sec:conclusao}
 
-Medimos as quatro métricas DORA em 300 repositórios populares do GitHub na janela de 2025.
-A mediana da amostra é de 0,46 release por semana, 324,9 h de lead time (a), 0,056 de
-change failure rate de CI e 4,94 h de recuperação, o que coloca a maior parte dos
-repositórios nas faixas \emph{Medium} (154) e \emph{High} (110).
+Este trabalho conduziu uma investigação empírica sobre as métricas DORA no ecossistema
+open-source baseado em GitHub Actions, minerando 300 repositórios populares ao longo da
+janela anual de 2025. A amostra revelou um desenvolvimento organizado em ciclos discretos,
+com mediana de 0,46 release por semana e lead time por release de 324,9 h (13,5 dias),
+desafiando a premissa de entrega contínua diária herdada do contexto corporativo. A maior
+parte dos repositórios concentra-se em \emph{Medium} (154) e \emph{High} (110), com apenas 9
+em \emph{Elite}.
 
-O achado central, porém, não é nenhum desses valores: é o quanto eles dependem de escolhas
-que o método não torna visíveis. Trocar uma definição operacional reclassifica até 31,3\%
-dos repositórios, e a troca que mais pesa é a da \emph{variante da métrica}, não a da
-\emph{unidade de deploy} --- 28,3\% contra 7,3\%. O Change Failure Rate é o caso extremo:
-as duas variantes discordam em 72,3\% dos repositórios, com concordância nula. Além disso,
-86,3\% dos repositórios mudam de categoria geral se uma única métrica andar um degrau,
-porque as faixas discretizam medidas contínuas sem avisar quem está na borda.
+Demonstrou-se que a estabilidade percebida varia drasticamente conforme a lente de
+observação: enquanto o \emph{proxy} de CI sugere maturidade \emph{Elite} (mediana de 5,63\%),
+o \emph{proxy} de entrega indica necessidade frequente de correção (26,92\%), e as duas
+variantes discordam de faixa em 72,3\% dos repositórios, com concordância nula.
 
-Três consequências práticas. Primeira: relatar uma classificação DORA sem declarar as
-definições operacionais usadas não é informativo. Segunda: o CFR calculado sobre falhas de
-CI não é comparável com as faixas do relatório DORA, que falam de produção --- e sugere uma
-estabilidade que não mediu. Terceira: ao comparar classificações entre estudos, é preciso
-reportar quantos repositórios estavam perto de um limite de faixa, sob pena de atribuir a
-erro de cálculo o que é apenas discretização --- foi exatamente o que a replicação cruzada
-nos ensinou.
+O achado central, porém, não é nenhum desses valores, e sim a sua dependência das escolhas
+que o método não torna visíveis. A análise de sensibilidade evidenciou que até 31,3\% dos
+repositórios migram de categoria entre combinações, e --- graças ao desenho que separa os
+dois efeitos --- que trocar a \textbf{variante da métrica} desloca a classificação quase
+quatro vezes mais do que trocar a \textbf{unidade de deploy} (28,3\% contra 7,3\%). Somado a
+isso, 86,3\% dos repositórios mudam de categoria se uma única métrica avançar um degrau,
+porque as faixas discretizam medidas contínuas sem sinalizar quem está na fronteira.
 
-Como trabalhos futuros, três caminhos nos parecem mais promissores: validar a heurística de
-release corretiva em uma segunda amostra rotulada, independente daquela em que foi
-refinada; estender a janela para mais de um ano, permitindo falar de tendência e não apenas
-de retrato; e substituir as faixas discretas por uma medida contínua de desempenho, que
-não produza a fragilidade de borda documentada aqui.
+Decorrem daí três consequências práticas. Primeira: relatar uma classificação DORA sem
+explicitar as definições operacionais adotadas não é informativo. Segunda: o CFR calculado
+sobre falhas de CI não é comparável às faixas do relatório DORA, que tratam de produção, e
+sugere uma estabilidade que não mediu. Terceira: ao comparar classificações entre estudos ou
+entre execuções, é necessário reportar quantos repositórios estavam próximos de um limite de
+faixa, sob pena de atribuir a erro de cálculo o que é efeito da discretização --- lição que a
+replicação cruzada nos impôs na prática.
+
+Como trabalhos futuros, propõem-se três direções: validar a heurística de release corretiva
+em uma segunda amostra rotulada, independente daquela em que foi calibrada, eliminando o
+viés de superestimação do F1; estender a observação para além de uma janela anual, o que
+permitiria falar de tendência e não apenas de retrato; e substituir as faixas discretas por
+uma medida contínua de desempenho, que não reproduza a fragilidade de fronteira documentada
+aqui.
 
 \vspace{0.3cm}
-\noindent\textbf{Disponibilidade.} Código, dados e as tabelas e figuras deste artigo estão
-em \url{https://github.com/Paulooassis/Laboratorio-03-medicao-de-software} e são
-reexecutáveis com \texttt{python -m analise}. O acompanhamento das tarefas está no GitHub
-Projects do repositório.
+\noindent\textbf{Disponibilidade.} O código-fonte do \emph{pipeline}, os dados coletados, o
+dicionário de dados e todas as tabelas e figuras deste artigo estão disponíveis em
+\url{https://github.com/Paulooassis/Laboratorio-03-medicao-de-software}, e são reexecutáveis
+com \texttt{python -m analise} a partir dos CSVs publicados. O acompanhamento das Issues e
+sprints está em
+\url{https://github.com/Paulooassis/Laboratorio-03-medicao-de-software/projects}.

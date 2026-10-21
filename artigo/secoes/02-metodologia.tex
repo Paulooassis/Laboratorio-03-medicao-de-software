@@ -1,65 +1,156 @@
 \section{Metodologia}
 \label{sec:metodologia}
 
-\subsection{Seleção da amostra}
+\subsection{Janela de Observação e Funil de Seleção}
 
-Buscamos repositórios públicos com pelo menos 1.001 estrelas e aplicamos, em ordem de
-custo de API, os critérios de inclusão: usar GitHub Actions, ter no mínimo 5 releases e
-50 \emph{workflow runs} válidos na janela de 1º de janeiro a 31 de dezembro de 2025. O
-funil partiu de 1.025 candidatos e chegou a 300 repositórios; o descarte mais frequente
-foi ``menos de 5 releases na janela'', com 511 repositórios (Tabela \ref{tab:funil}).
+A janela compreende os 12 meses de 1º de janeiro a 31 de dezembro de 2025. Só entram no
+cálculo releases publicadas e \emph{workflow runs} criados dentro dela, e apenas no
+\emph{default branch} de cada repositório. A mineração é executada por \emph{script}
+próprio sobre a API REST do GitHub, sem bibliotecas de acesso à API, e é controlada por um
+arquivo de parâmetros.
+
+Para contornar o teto de 1.000 resultados por consulta da API de busca, a coleta de
+candidatos foi fatiada em cinco faixas contínuas de estrelas, de \texttt{stars:1000..2000}
+até \texttt{stars:>20000}. O funil aplicou os filtros em ordem crescente de custo de API ---
+cada um só é consultado se o anterior passou --- até a amostra final de 300 repositórios
+(Tabela \ref{tab:funil}).
 
 \begin{table}[ht]
 \centering
-\caption{Funil de seleção da amostra.}
+\caption{Funil de seleção sistemática da amostra.}
 \label{tab:funil}
-\begin{tabular}{lr}
+\small
+\begin{tabular}{clrr}
 \toprule
-\textbf{Etapa} & \textbf{Repositórios} \\
+\textbf{\#} & \textbf{Etapa} & \textbf{Restantes} & \textbf{Descartes} \\
 \midrule
-Candidatos recebidos da busca & 1.025 \\
-Repositórios únicos avaliados & 1.021 \\
-Com GitHub Actions & 917 \\
-Com 5 ou mais releases na janela & 406 \\
-Com 50 ou mais workflow runs válidos & 300 \\
+1 & Candidatos recebidos da busca fatiada por estrelas & 1.025 & --- \\
+2 & Repositórios únicos, após remoção de duplicatas entre faixas & 1.021 & 4 \\
+3 & Com GitHub Actions (\texttt{total\_count} $>$ 0 em \emph{workflows}) & 917 & 103 \\
+4 & Com 5 ou mais releases publicadas na janela & 406 & 511 \\
+5 & Com 50 ou mais \emph{workflow runs} válidos na janela & 300 & 106 \\
 \midrule
-\textbf{Incluídos na amostra} & \textbf{300} \\
+6 & \textbf{Amostra final} & \textbf{300} & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Definições operacionais e as duas variantes obrigatórias}
+O descarte dominante é o critério de inclusão de releases: 511 repositórios populares e com
+CI configurado publicaram menos de cinco releases em doze meses. Um repositório foi perdido
+por erro de coleta não recuperável.
 
-A combinação de referência, que chamamos \textbf{C1}, usa: \emph{deploy} = release
-publicada; \emph{lead time} pela variante (a), do commit mais antigo do intervalo entre
-releases até a publicação; \emph{change failure rate} pela variante (a), falhas sobre
-\emph{workflow runs} considerados; e tempo de recuperação da primeira falha até o
-primeiro sucesso do mesmo workflow. As variantes alternativas são o lead time (b), por
-commit, e o CFR (b), por entrega --- uma release é considerada falha quando é seguida,
-em até sete dias, por uma release corretiva da mesma linha \emph{major.minor}.
+\subsection{Definições Operacionais Comuns}
 
-A C1 usa estritamente a variante (a) do lead time. Um repositório sem lead time (a) fica
-sem classificação nessa métrica, em vez de cair para a variante (b): como a RQ 07 compara
-a C1 com a C4, que difere dela apenas pelas variantes das métricas, aceitar o
-\emph{fallback} colocaria repositórios híbridos dentro da referência.
-
-\subsection{Estatística}
+\begin{itemize}
+  \item \textbf{Unidade de deploy (referência):} uma release publicada
+    (\texttt{draft = false}); pré-releases e \emph{tags} sem release ficam fora da definição
+    principal e entram como variantes na RQ 07.
+  \item \textbf{Data de commit:} \texttt{commit.author.date}, que registra quando a mudança
+    foi escrita.
+  \item \textbf{Deployment frequency (RQ 01):} razão entre releases válidas na janela e as
+    $\approx$ 52,1 semanas do período.
+  \item \textbf{Lead time (RQ 02):} os commits de cada release $R$ vêm da comparação
+    \texttt{compare/\{anterior\}...\{R\}}, cuja anterior pode estar fora da janela. A
+    variante \textbf{(a)} é a diferença entre a publicação de $R$ e o commit mais antigo
+    nela incluído; a variante \textbf{(b)} atribui a cada commit a diferença até a
+    publicação da sua release. O valor do repositório é a mediana, em cada variante.
+  \item \textbf{Change failure rate (RQ 03):} a variante \textbf{(a)} é
+    $\text{falhas}/(\text{falhas}+\text{sucessos})$ sobre os \emph{runs} considerados, com
+    \texttt{failure}, \texttt{timed\_out} e \texttt{startup\_failure} como falha e
+    \texttt{cancelled}, \texttt{skipped}, \texttt{neutral}, \texttt{action\_required},
+    \texttt{stale} e execuções em andamento ignorados. A variante \textbf{(b)} marca como
+    falha a release sucedida, em até 7 dias, por uma release corretiva da mesma linha
+    \emph{major.minor}.
+  \item \textbf{Tempo de recuperação (RQ 04):} intervalo entre o \texttt{run\_started\_at} da
+    primeira falha de um episódio e o \texttt{updated\_at} do primeiro sucesso posterior do
+    \emph{mesmo} \emph{workflow}; o valor do repositório é a mediana dos seus episódios.
+  \item \textbf{Censura:} medições cujo evento final não ocorre dentro da janela não são
+    descartadas. Episódios sem sucesso posterior e releases publicadas nos últimos 7 dias
+    são registrados como censurados e reportados junto das estatísticas.
+\end{itemize}
 
 Todas as métricas são resumidas por \textbf{mediana e IQR}, nunca por média e
-desvio-padrão: as distribuições são assimétricas e de cauda longa, como mostra a Figura
-\ref{fig:violino}. Correlações usam Spearman ($\rho$), por não exigir linearidade;
-reportamos Pearson ($r$) apenas como contraste. Comparações entre grupos usam
-Kruskal-Wallis com correção de Holm para múltiplas comparações, $\varepsilon^2$ como
-tamanho de efeito e Cliff's $\delta$ nos pares, com a interpretação de
-\citeonline{romano2006}. A concordância entre classificações usa kappa ponderado linear,
-interpretado por \citeonline{landis1977}.
+desvio-padrão, porque as distribuições são assimétricas e de cauda longa (Figura
+\ref{fig:violino}). Correlações usam Spearman ($\rho$); Pearson ($r$) é reportado apenas
+como contraste. As comparações entre grupos usam Kruskal-Wallis com correção de Holm,
+$\varepsilon^2$ como tamanho de efeito e Cliff's $\delta$ nos pares, interpretado segundo
+\citeonline{romano2006}; a concordância entre classificações usa $\kappa$ de Cohen ponderado
+linear, interpretado segundo \citeonline{landis1977}.
 
-Nada é estimado para fechar conta. Release sem intervalo confiável de commits não entra
-no lead time e é contada por motivo; release publicada nos últimos sete dias da janela
-não tem sete dias observados e fica fora do denominador do CFR (b); episódio de falha sem
-sucesso posterior é censurado e não entra na mediana de recuperação. Todos esses totais
-são reportados junto dos resultados.
+\subsection{Combinações de Definições (C1 a C4)}
 
-A análise inteira é reexecutável a partir dos CSVs publicados, sem refazer a coleta, com
-\texttt{python -m analise}; cada número citado neste artigo vem de um arquivo em
-\texttt{resultados/}.
+A análise de sensibilidade (RQ 07) compara quatro combinações, desenhadas para
+\emph{separar} o efeito de trocar a unidade de deploy do de trocar a variante da métrica
+(Tabela \ref{tab:combinacoes}). C1 e C4 diferem apenas nas variantes; C2 e C4, apenas na
+unidade.
+
+\begin{table}[ht]
+\centering
+\caption{Combinações de definições operacionais da análise de sensibilidade.}
+\label{tab:combinacoes}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Combinação} & \textbf{Unidade de deploy} & \textbf{Lead time} & \textbf{CFR} \\
+\midrule
+C1 (referência) & release & (a) por release & (a) proxy de CI \\
+C2 & release + pré-release & (b) por commit & (b) proxy de entrega \\
+C3 & tag & (b) por commit & (a) proxy de CI \\
+C4 & release & (b) por commit & (b) proxy de entrega \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A C1 usa \emph{estritamente} a variante (a) do lead time: um repositório sem ela fica sem
+classificação nessa métrica, em vez de recair sobre a (b). Aceitar esse recuo colocaria
+repositórios híbridos C1/C4 dentro da referência e contaminaria exatamente a comparação que
+a Tabela \ref{tab:combinacoes} foi desenhada para permitir.
+
+\subsection{Validação Manual e Amostra-Ouro}
+
+Para avaliar a validade de construto dos \emph{proxies}, sorteamos 60 repositórios da
+amostra final com semente fixa e documentada, e rotulamos 300 releases (cinco por
+repositório) em três dimensões: o tipo do projeto, se as releases representam entregas
+reais ao usuário, e se cada release é corretiva. Os rótulos de consenso do grupo estão
+versionados no repositório.
+
+O rótulo de entrega real sustenta diretamente a discussão de "release $\neq$ deploy":
+\textbf{295 das 300 releases} foram rotuladas como representando entregas reais ao usuário
+e 5 ficaram como incertas, sem nenhuma rotulada como "não". Quanto ao tipo, 135 releases
+pertencem a aplicações ou serviços, 95 a bibliotecas ou \emph{frameworks} e 70 a
+ferramentas de linha de comando; essa classificação alimenta o fator "tipo do projeto" da
+RQ 06.
+
+A heurística de release corretiva foi avaliada contra o consenso. A versão v1 --- mudança
+apenas de \emph{patch} em relação à anterior da mesma linha ou, fora do SemVer, ao menos
+metade das mensagens de commit citando \texttt{fix}, \texttt{hotfix} ou \texttt{revert} ---
+obteve precisão de 0,696, \emph{recall} de 0,824 e \textbf{F1 de 0,754}, com 55 falsos
+positivos e 27 falsos negativos sobre as 300 releases. Como o F1 superou o limiar de 0,70,
+a v1 foi oficializada sem refinamento, e nenhuma versão posterior foi necessária.
+
+\subsection{Engenharia do \emph{Pipeline} e Limites de API}
+
+O \emph{pipeline} é executável por um único comando documentado no README, com o token lido
+exclusivamente da variável de ambiente \texttt{GITHUB\_TOKEN} e nunca versionado. Além
+disso:
+
+\begin{enumerate}
+  \item \textbf{Cache e retomada.} Cada resposta da API é persistida em disco, e um diário
+    de retomada por etapa permite que uma execução interrompida por \emph{rate limit}, queda
+    de rede ou \texttt{Ctrl+C} continue exatamente de onde parou, sem repetir chamadas.
+  \item \textbf{Rate limit e erros.} O cliente lê \texttt{X-RateLimit-Remaining} e
+    \texttt{X-RateLimit-Reset} e aguarda antes de exaurir a cota; erros 5xx são repetidos com
+    \emph{backoff} exponencial.
+  \item \textbf{Paginação e tetos.} A janela de \emph{workflow runs} é subdividida por mês,
+    com subdivisão adaptativa quando um período se aproxima do teto de 1.000 resultados, e a
+    comparação entre releases é paginada para ultrapassar o limite de 250 commits.
+  \item \textbf{Testes e CI.} As funções de cálculo são testadas com \emph{fixtures}
+    calculadas à mão, incluindo os casos de borda exigidos --- release sem commits novos,
+    falha nunca recuperada, repositório com uma única release e execuções
+    \texttt{cancelled}. A suíte tem 729 testes e cobertura de 97,9\% nos módulos cobertos
+    pela exigência, e roda no GitHub Actions do próprio grupo a cada \emph{push}, em duas
+    versões de Python.
+  \item \textbf{Reexecução da análise.} Todas as tabelas e figuras deste artigo são geradas
+    por \texttt{python -m analise} a partir dos CSVs publicados, sem chamar a API. Cada
+    coluna desses CSVs está documentada no dicionário de dados do repositório.
+\end{enumerate}
