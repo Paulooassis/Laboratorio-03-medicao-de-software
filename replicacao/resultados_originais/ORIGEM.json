@@ -1,0 +1,43 @@
+{
+  "repository": "JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software",
+  "commit": "73b739fbd6527b37b7c2508da07beed49f272045",
+  "consulta_utc": "2026-10-21 21:39:31 UTC",
+  "arquivos": [
+    {
+      "arquivo": "dataset.csv",
+      "path": "LAB03/data/dataset.csv",
+      "url": "https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/blob/73b739fbd6527b37b7c2508da07beed49f272045/LAB03/data/dataset.csv",
+      "git_blob_sha": "86ce450471029b582e8e73a7c244884bbafa4f41"
+    },
+    {
+      "arquivo": "MANIFEST.json",
+      "path": "LAB03/data/MANIFEST.json",
+      "url": "https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/blob/73b739fbd6527b37b7c2508da07beed49f272045/LAB03/data/MANIFEST.json",
+      "git_blob_sha": "c697873ab6efad6c1786e38f1d634c6eb7bae95f"
+    },
+    {
+      "arquivo": "metricas_runs.csv",
+      "path": "LAB03/data/metricas_runs.csv",
+      "url": "https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/blob/73b739fbd6527b37b7c2508da07beed49f272045/LAB03/data/metricas_runs.csv",
+      "git_blob_sha": "cbe00fd0aa2f7c3644848eb593f6e343382ad725"
+    },
+    {
+      "arquivo": "lead_time_release.csv",
+      "path": "LAB03/data/lead_time_release.csv",
+      "url": "https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/blob/73b739fbd6527b37b7c2508da07beed49f272045/LAB03/data/lead_time_release.csv",
+      "git_blob_sha": "9c0a50437d0bbb55da330587887503df21455302"
+    }
+  ],
+  "codigo_auditado": [
+    {
+      "path": "LAB03/metricas/recuperacao.py",
+      "url": "https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/blob/73b739fbd6527b37b7c2508da07beed49f272045/LAB03/metricas/recuperacao.py",
+      "git_blob_sha": "1fa64b924746b41450a0d87e81564418d59ff1ba"
+    },
+    {
+      "path": "LAB03/pipeline/coleta_runs.py",
+      "url": "https://github.com/JoaoAlmeida02/Laborat-rio-de-Experimenta-o-de-Software/blob/73b739fbd6527b37b7c2508da07beed49f272045/LAB03/pipeline/coleta_runs.py",
+      "git_blob_sha": "1f610131f6f136b58bff3bc6a15cc67d0c2cc9b1"
+    }
+  ]
+}

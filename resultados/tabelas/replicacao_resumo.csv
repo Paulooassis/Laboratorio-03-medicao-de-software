@@ -1,0 +1,8 @@
+metrica,rotulo,n_total,n_relativas,mediana,q1,q3,iqr,max_abs_relativa,n_iguais,n_ambos_zero,n_original_zero,n_ausentes
+deploy_frequency_semana,DF (semana),30,30,0.0,0.0,0.0,0.0,0.0,30,0,0,0
+lead_time_release_h,LT release (h),30,30,0.0,0.0,0.0,0.0,0.0,30,0,0,0
+lead_time_commit_h,LT commit (h),30,30,0.0,0.0,0.0,0.0,0.0,30,0,0,0
+cfr_ci,CFR CI,30,23,0.0,0.0,0.0,0.0,0.1553398058252428,21,7,0,0
+cfr_entrega,CFR entrega,30,23,0.0,0.0,0.0,0.0,0.0,30,7,0,0
+tempo_recuperacao_h,Recuperação (h),30,23,0.0,0.0,0.0,0.0,9.45072765072765,18,0,0,7
+rework_rate,Retrabalho,30,26,0.0,0.0,0.0,0.0,0.0,30,4,0,0

@@ -1,0 +1,8 @@
+Métrica,n,Mediana (%),IQR (p.p.),Máximo absoluto (%)
+DF (semana),30,0.0,0.0,0.0
+LT release (h),30,0.0,0.0,0.0
+LT commit (h),30,0.0,0.0,0.0
+CFR CI,23,0.0,0.0,15.53398058252428
+CFR entrega,23,0.0,0.0,0.0
+Recuperação (h),23,0.0,0.0,945.072765072765
+Retrabalho,26,0.0,0.0,0.0

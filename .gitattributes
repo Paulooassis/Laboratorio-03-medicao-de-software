@@ -1,0 +1,8 @@
+# Evidências congeladas: preservar bytes e hashes ao clonar no Windows/Linux.
+replicacao/resultados_originais/*.csv -text
+replicacao/resultados_originais/*.json -text
+replicacao/resultados_obtidos/**/*.csv -text
+replicacao/resultados_obtidos/*.csv -text
+replicacao/resultados_obtidos/*.json -text
+replicacao/evidencias/*.json -text
+replicacao/subamostra.csv -text
