@@ -1,37 +1,59 @@
 # Artigo
 
-Fonte LaTeX do artigo, no template da SBC. As seções estão separadas em
-[`secoes/`](secoes/) e são reunidas por [`main.tex`](main.tex), de modo que cada uma
-possa entrar por um PR próprio.
+Fonte LaTeX do artigo, no template da SBC.
 
-## Compilar
+## Para abrir no Overleaf (caminho recomendado)
 
-O template oficial da SBC **não é redistribuído aqui**. Baixe-o em
-<https://www.sbc.org.br/documentos-da-sbc/summary/169-templates-para-artigos-e-capitulos-de-livros/878-modelosparapublicaodeartigos>
-e coloque `sbc-template.sty` e `sbc.bst` nesta pasta. Depois:
+Use **[`artigo-overleaf.tex`](artigo-overleaf.tex)**: é o artigo inteiro em um arquivo só,
+com a bibliografia embutida em `thebibliography`, então compila em uma passada, sem
+`bibtex` e sem `.bib` separado.
+
+1. Abra o [template SBC no Overleaf](https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr)
+   e clique em *Open as Template* — ele já traz `sbc-template.sty`.
+2. Substitua o conteúdo do `.tex` principal pelo de `artigo-overleaf.tex`.
+3. Envie os três PDFs de `../resultados/figuras/` (`artigo_violino_metricas.pdf`,
+   `artigo_dispersao_df_cfr.pdf`, `artigo_correlacao.pdf`) para uma pasta `figuras/` do
+   projeto.
+
+Sem as figuras o documento **ainda compila**: cada uma vira uma moldura dizendo qual
+arquivo falta, em vez de quebrar a compilação.
+
+## Fonte modular
+
+O artigo é mantido em [`main.tex`](main.tex) mais [`secoes/`](secoes/), para que cada seção
+entre por um PR próprio, e [`referencias.bib`](referencias.bib). O arquivo do Overleaf é
+**gerado** a partir dessas fontes:
 
 ```bash
-cd artigo
-pdflatex main
-bibtex main
-pdflatex main
-pdflatex main
+python artigo/montar_overleaf.py
 ```
 
-No Overleaf, suba esta pasta junto com `resultados/figuras/` e compile `main.tex`.
+Edite as seções, nunca o `artigo-overleaf.tex` — ele é sobrescrito.
 
-> O PDF **não está versionado**: ele é gerado a partir desta fonte. Quem tiver LaTeX
-> instalado deve gerá-lo e anexá-lo à release de entrega, conforme a Issue #55.
+## Contagem de páginas
+
+O limite é de 10 páginas. Na última medição, com um substituto local do `sbc-template.sty`
+que aproxima a caixa de texto oficial (A4, Times 12 pt, margens de 3 cm), o artigo ficou em
+**14 páginas**. O template real pode diferir em uma página ou outra, mas não fecha a
+diferença: **o texto precisa ser cortado antes da entrega**.
+
+Para medir localmente sem instalar uma distribuição TeX completa:
+
+```bash
+brew install tectonic
+tectonic -X compile artigo-overleaf.tex --keep-logs
+grep -o "Output written on.*pages" artigo-overleaf.log
+```
 
 ## Figuras
 
-Vêm de `../resultados/figuras/`, resolvidas pelo `\graphicspath` do `main.tex`, e são
-geradas por `python -m analise` — nenhuma é editada à mão. Todas são PDF vetorial, sem
-imagem rasterizada embutida, o que é verificado por `tests/test_artigo.py`.
+Vêm de `../resultados/figuras/`, geradas por `python -m analise` — nenhuma é editada à mão.
+Todas são PDF vetorial, sem imagem rasterizada embutida, o que é verificado por
+`tests/test_artigo.py`.
 
 ## Conferência dos números
 
-Todo número citado no texto vem de um arquivo em `../resultados/`. Para regerar tudo:
+Todo número citado no texto vem de um arquivo em `../resultados/`. Para regerar:
 
 ```bash
 python -m analise --dados data/processed --saida resultados

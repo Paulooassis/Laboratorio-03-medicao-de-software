@@ -15,7 +15,7 @@ quatro são fortemente assimétricas, e o lead time (a) varia de 1,2 h a mais de
 \centering
 \caption{Sumário descritivo das métricas DORA na amostra (combinação C1).}
 \label{tab:sintese}
-\small
+\footnotesize
 \begin{tabular}{llrrrrrl}
 \toprule
 \textbf{RQ} & \textbf{Métrica} & \textbf{n} & \textbf{Mediana} & \textbf{Q1} & \textbf{Q3} &
@@ -33,7 +33,7 @@ RQ 04 & Recuperação (horas) & 264 & 4,94 h & 1,75 h & 18,75 h & 17,00 h & \emp
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{artigo_violino_metricas.pdf}
+\includegraphics[width=0.85\textwidth]{artigo_violino_metricas.pdf}
 \caption{Distribuição das quatro métricas da C1, com violino para a forma e boxplot interno
 para mediana e IQR. Unidades diferentes não compartilham eixo: cada métrica ocupa seu
 painel, e três delas estão em escala logarítmica.}
@@ -49,7 +49,7 @@ repositórios caem em \emph{Elite}.
 \centering
 \caption{Distribuição das categorias DORA por métrica na combinação C1.}
 \label{tab:c1}
-\small
+\footnotesize
 \begin{tabular}{lrrrrr}
 \toprule
 \textbf{Métrica} & \textbf{Elite} & \textbf{High} & \textbf{Medium} & \textbf{Low} &
@@ -66,17 +66,15 @@ Tempo de recuperação & 33 & 181 & 33 & 21 & 32 \\
 \end{table}
 
 \textbf{Auditoria de integridade e censura.} Nada foi estimado para fechar conta. No lead
-time, 3.052 das 18.389 releases (16,6\%) ficaram fora por motivo explícito: 3.026 (16,5\%)
-não trouxeram commits novos em relação à release anterior, 23 (0,1\%) não tinham release
-anterior, 2 retornaram 404 na comparação e 1 falhou por outro erro de \texttt{compare}. No
-CFR (a) entraram 730.432 \emph{workflow runs} e foram ignorados 60.959 (7,7\%), por estarem
-cancelados, em andamento ou com conclusão desconhecida. No CFR (b), 246 releases (1,3\%)
-publicadas nos últimos 7 dias da janela ficaram fora do denominador, restando 18.143
-avaliadas, das quais 10.974 falharam. Na RQ 04, dos 20.117 episódios, 19.921 foram
-recuperados, 196 ficaram censurados e 124 apresentaram datas contraditórias; 36 dos 300
-repositórios (12,0\%) não têm nenhum episódio recuperado e consistente, ficando sem mediana.
-A proporção censurada por repositório tem mediana 0,0\% e Q3 2,9\%. Tratando cada censurado
-como recuperado no fim da observação --- um limite inferior do viés --- a mediana sobe de
+time, 3.052 das 18.389 releases (16,6\%) ficaram fora por motivo explícito, sendo 3.026 por
+não trazerem commits novos, 23 por não terem release anterior e 3 por erro de
+\texttt{compare} (2 deles 404). No CFR (a) entraram 730.432 \emph{workflow runs} e foram
+ignorados 60.959 (7,7\%). No CFR (b), 246 releases (1,3\%) dos últimos 7 dias ficaram fora do
+denominador, restando 18.143 avaliadas, das quais 10.974 falharam. Na RQ 04, dos 20.117
+episódios, 19.921 foram recuperados, 196 censurados e 124 com datas contraditórias; 36 dos
+300 repositórios (12,0\%) ficam sem mediana por não terem episódio recuperado e consistente.
+A proporção censurada por repositório tem mediana 0,0\% e Q3 2,9\%, e tratar cada censurado
+como recuperado no fim da observação --- limite inferior do viés --- eleva a mediana de
 4,94 h para 5,22 h.
 
 \subsection{Velocidade $\times$ Estabilidade (RQ 05)}
@@ -88,7 +86,7 @@ moderada e fortemente significativa ($\rho = 0{,}615$; $p = 1{,}2 \times 10^{-32
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{artigo_dispersao_df_cfr.pdf}
+\includegraphics[width=0.85\textwidth]{artigo_dispersao_df_cfr.pdf}
 \caption{Dispersão entre frequência de deploy e \emph{change failure rate} nas duas
 variantes, com $\rho$ de Spearman e $r$ de Pearson anotados em cada painel.}
 \label{fig:dispersao}
@@ -106,7 +104,7 @@ $-0{,}717$ contra $-0{,}263$.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{artigo_correlacao.pdf}
+\includegraphics[width=0.85\textwidth]{artigo_correlacao.pdf}
 \caption{Matriz de correlação entre as métricas, com Spearman à esquerda e Pearson à
 direita, na mesma escala divergente. O painel de Pearson é sistematicamente mais pálido.}
 \label{fig:correlacao}
@@ -115,37 +113,18 @@ direita, na mesma escala divergente. O painel de Pearson é sistematicamente mai
 \subsection{Fatores Estruturais e Desempenho DORA (RQ 06)}
 
 Após a correção de Holm sobre a família de 16 testes, quatro combinações de fator e métrica
-rejeitam a hipótese nula (Tabela \ref{tab:rq06}). A linguagem principal é o fator mais
-forte, com efeito médio sobre o lead time. A popularidade medida em estrelas não apresenta
-significância após a correção em nenhuma das quatro métricas. O fator idade não pôde ser
-testado: a estratificação por quartis não produziu dois grupos válidos na amostra.
-
-\begin{table}[ht]
-\centering
-\caption{Fatores estruturais associados às métricas DORA, após correção de Holm.}
-\label{tab:rq06}
-\small
-\begin{tabular}{llrrrl}
-\toprule
-\textbf{Fator} & \textbf{Métrica} & \textbf{n} & \textbf{$p$ bruto} & \textbf{$p$ Holm} &
-\textbf{Tam. efeito} \\
-\midrule
-Linguagem & Lead time (a) & 299 & $7{,}8 \times 10^{-9}$ & $9{,}4 \times 10^{-8}$ &
-  $\varepsilon^2 = 0{,}164$ (médio) \\
-Linguagem & Frequência & 299 & $7{,}7 \times 10^{-6}$ & $7{,}7 \times 10^{-5}$ &
-  $\varepsilon^2 = 0{,}113$ (médio) \\
-Contribuidores & Lead time (a) & 300 & $1{,}4 \times 10^{-6}$ & $1{,}5 \times 10^{-5}$ &
-  $\varepsilon^2 = 0{,}100$ (médio) \\
-Contribuidores & Frequência & 300 & $3{,}3 \times 10^{-3}$ & $0{,}0296$ &
-  $\varepsilon^2 = 0{,}046$ (pequeno) \\
-\midrule
-Estrelas & Frequência & 300 & $7{,}0 \times 10^{-3}$ & $0{,}0556$ &
-  $\varepsilon^2 = 0{,}041$ (pequeno) \\
-Estrelas & Demais métricas & 300 & $\geq 0{,}58$ & $1{,}000$ &
-  $\varepsilon^2 \leq 0{,}007$ (desprezível) \\
-\bottomrule
-\end{tabular}
-\end{table}
+rejeitam a hipótese nula, todas envolvendo linguagem ou número de contribuidores. A
+linguagem principal é o fator mais forte, com efeito médio sobre o lead time (a)
+($\varepsilon^2 = 0{,}164$; $p_{\text{Holm}} = 9{,}4 \times 10^{-8}$; $n = 299$) e sobre a
+frequência ($\varepsilon^2 = 0{,}113$; $p_{\text{Holm}} = 7{,}7 \times 10^{-5}$). O número
+de contribuidores segue, com efeito médio no lead time ($\varepsilon^2 = 0{,}100$;
+$p_{\text{Holm}} = 1{,}5 \times 10^{-5}$) e pequeno na frequência
+($\varepsilon^2 = 0{,}046$; $p_{\text{Holm}} = 0{,}0296$). A popularidade medida em estrelas
+\textbf{não} apresenta significância após a correção em nenhuma das quatro métricas: o caso
+mais próximo, estrelas contra frequência, passa de $p = 0{,}0070$ bruto para
+$p_{\text{Holm}} = 0{,}0556$, e os demais ficam em $p_{\text{Holm}} = 1{,}000$ com
+$\varepsilon^2 \leq 0{,}007$. O fator idade não pôde ser testado: a estratificação por
+quartis não produziu dois grupos válidos na amostra.
 
 \subsection{Análise de Sensibilidade e Retrabalho (RQ 07 e RQ 08)}
 
@@ -156,7 +135,7 @@ repositórios que mudam de categoria geral e o $\kappa$ ponderado correspondente
 \centering
 \caption{Sensibilidade da classificação às definições operacionais ($n = 300$).}
 \label{tab:rq07}
-\small
+\footnotesize
 \begin{tabular}{llrrl}
 \toprule
 \textbf{Par} & \textbf{O que muda} & \textbf{Mudaram} & \textbf{\%} &

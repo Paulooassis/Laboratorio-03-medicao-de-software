@@ -19,7 +19,7 @@ cada um só é consultado se o anterior passou --- até a amostra final de 300 r
 \centering
 \caption{Funil de seleção sistemática da amostra.}
 \label{tab:funil}
-\small
+\footnotesize
 \begin{tabular}{clrr}
 \toprule
 \textbf{\#} & \textbf{Etapa} & \textbf{Restantes} & \textbf{Descartes} \\
@@ -41,41 +41,30 @@ por erro de coleta não recuperável.
 
 \subsection{Definições Operacionais Comuns}
 
-\begin{itemize}
-  \item \textbf{Unidade de deploy (referência):} uma release publicada
-    (\texttt{draft = false}); pré-releases e \emph{tags} sem release ficam fora da definição
-    principal e entram como variantes na RQ 07.
-  \item \textbf{Data de commit:} \texttt{commit.author.date}, que registra quando a mudança
-    foi escrita.
-  \item \textbf{Deployment frequency (RQ 01):} razão entre releases válidas na janela e as
-    $\approx$ 52,1 semanas do período.
-  \item \textbf{Lead time (RQ 02):} os commits de cada release $R$ vêm da comparação
-    \texttt{compare/\{anterior\}...\{R\}}, cuja anterior pode estar fora da janela. A
-    variante \textbf{(a)} é a diferença entre a publicação de $R$ e o commit mais antigo
-    nela incluído; a variante \textbf{(b)} atribui a cada commit a diferença até a
-    publicação da sua release. O valor do repositório é a mediana, em cada variante.
-  \item \textbf{Change failure rate (RQ 03):} a variante \textbf{(a)} é
-    $\text{falhas}/(\text{falhas}+\text{sucessos})$ sobre os \emph{runs} considerados, com
-    \texttt{failure}, \texttt{timed\_out} e \texttt{startup\_failure} como falha e
-    \texttt{cancelled}, \texttt{skipped}, \texttt{neutral}, \texttt{action\_required},
-    \texttt{stale} e execuções em andamento ignorados. A variante \textbf{(b)} marca como
-    falha a release sucedida, em até 7 dias, por uma release corretiva da mesma linha
-    \emph{major.minor}.
-  \item \textbf{Tempo de recuperação (RQ 04):} intervalo entre o \texttt{run\_started\_at} da
-    primeira falha de um episódio e o \texttt{updated\_at} do primeiro sucesso posterior do
-    \emph{mesmo} \emph{workflow}; o valor do repositório é a mediana dos seus episódios.
-  \item \textbf{Censura:} medições cujo evento final não ocorre dentro da janela não são
-    descartadas. Episódios sem sucesso posterior e releases publicadas nos últimos 7 dias
-    são registrados como censurados e reportados junto das estatísticas.
-\end{itemize}
+As regras abaixo são idênticas para toda a turma. A \textbf{unidade de deploy} é a release
+publicada (\texttt{draft = false}); pré-releases e \emph{tags} entram apenas como variantes na
+RQ 07. A \textbf{data de commit} vem de \texttt{commit.author.date}. A \textbf{frequência}
+(RQ 01) é a razão entre releases válidas e as 52,1 semanas da janela. No \textbf{lead time}
+(RQ 02), os commits de cada release $R$ vêm de \texttt{compare/\{anterior\}...\{R\}}: a
+variante (a) é a publicação de $R$ menos o commit mais antigo nela incluído, e a (b) atribui a
+cada commit a diferença até a publicação da sua release, com mediana por repositório em ambas.
+No \textbf{CFR} (RQ 03), a variante (a) é falhas sobre falhas mais sucessos dos \emph{runs}
+considerados --- \texttt{failure}, \texttt{timed\_out} e \texttt{startup\_failure} contam como
+falha, enquanto \texttt{cancelled}, \texttt{skipped}, \texttt{neutral},
+\texttt{action\_required}, \texttt{stale} e execuções em andamento são ignorados --- e a (b)
+marca como falha a release sucedida, em até 7 dias, por uma corretiva da mesma linha
+\emph{major.minor}. A \textbf{recuperação} (RQ 04) vai do \texttt{run\_started\_at} da
+primeira falha ao \texttt{updated\_at} do primeiro sucesso do \emph{mesmo workflow}. Medições
+cujo evento final não ocorre na janela não são descartadas: episódios sem sucesso posterior e
+releases dos últimos 7 dias são registrados como \textbf{censurados} e reportados junto das
+estatísticas.
 
 Todas as métricas são resumidas por \textbf{mediana e IQR}, nunca por média e
-desvio-padrão, porque as distribuições são assimétricas e de cauda longa (Figura
-\ref{fig:violino}). Correlações usam Spearman ($\rho$); Pearson ($r$) é reportado apenas
-como contraste. As comparações entre grupos usam Kruskal-Wallis com correção de Holm,
-$\varepsilon^2$ como tamanho de efeito e Cliff's $\delta$ nos pares, interpretado segundo
-\citeonline{romano2006}; a concordância entre classificações usa $\kappa$ de Cohen ponderado
-linear, interpretado segundo \citeonline{landis1977}.
+desvio-padrão, porque as distribuições são assimétricas (Figura \ref{fig:violino}).
+Correlações usam Spearman ($\rho$), com Pearson ($r$) apenas como contraste; comparações
+entre grupos usam Kruskal-Wallis com correção de Holm, $\varepsilon^2$ e Cliff's $\delta$
+interpretado por \citeonline{romano2006}; a concordância entre classificações usa $\kappa$
+de Cohen ponderado linear, interpretado por \citeonline{landis1977}.
 
 \subsection{Combinações de Definições (C1 a C4)}
 
@@ -88,7 +77,7 @@ unidade.
 \centering
 \caption{Combinações de definições operacionais da análise de sensibilidade.}
 \label{tab:combinacoes}
-\small
+\footnotesize
 \begin{tabular}{llll}
 \toprule
 \textbf{Combinação} & \textbf{Unidade de deploy} & \textbf{Lead time} & \textbf{CFR} \\
@@ -131,26 +120,17 @@ a v1 foi oficializada sem refinamento, e nenhuma versão posterior foi necessár
 \subsection{Engenharia do \emph{Pipeline} e Limites de API}
 
 O \emph{pipeline} é executável por um único comando documentado no README, com o token lido
-exclusivamente da variável de ambiente \texttt{GITHUB\_TOKEN} e nunca versionado. Além
-disso:
-
-\begin{enumerate}
-  \item \textbf{Cache e retomada.} Cada resposta da API é persistida em disco, e um diário
-    de retomada por etapa permite que uma execução interrompida por \emph{rate limit}, queda
-    de rede ou \texttt{Ctrl+C} continue exatamente de onde parou, sem repetir chamadas.
-  \item \textbf{Rate limit e erros.} O cliente lê \texttt{X-RateLimit-Remaining} e
-    \texttt{X-RateLimit-Reset} e aguarda antes de exaurir a cota; erros 5xx são repetidos com
-    \emph{backoff} exponencial.
-  \item \textbf{Paginação e tetos.} A janela de \emph{workflow runs} é subdividida por mês,
-    com subdivisão adaptativa quando um período se aproxima do teto de 1.000 resultados, e a
-    comparação entre releases é paginada para ultrapassar o limite de 250 commits.
-  \item \textbf{Testes e CI.} As funções de cálculo são testadas com \emph{fixtures}
-    calculadas à mão, incluindo os casos de borda exigidos --- release sem commits novos,
-    falha nunca recuperada, repositório com uma única release e execuções
-    \texttt{cancelled}. A suíte tem 729 testes e cobertura de 97,9\% nos módulos cobertos
-    pela exigência, e roda no GitHub Actions do próprio grupo a cada \emph{push}, em duas
-    versões de Python.
-  \item \textbf{Reexecução da análise.} Todas as tabelas e figuras deste artigo são geradas
-    por \texttt{python -m analise} a partir dos CSVs publicados, sem chamar a API. Cada
-    coluna desses CSVs está documentada no dicionário de dados do repositório.
-\end{enumerate}
+apenas da variável \texttt{GITHUB\_TOKEN} e nunca versionado. Cada resposta da API é
+persistida em disco e um diário de retomada por etapa permite que uma execução interrompida
+por \emph{rate limit}, queda de rede ou \texttt{Ctrl+C} continue de onde parou, sem repetir
+chamadas. O cliente lê \texttt{X-RateLimit-Remaining} e \texttt{X-RateLimit-Reset} e aguarda
+antes de exaurir a cota, repetindo erros 5xx com \emph{backoff} exponencial. A janela de
+\emph{workflow runs} é subdividida por mês, com subdivisão adaptativa quando um período se
+aproxima do teto de 1.000 resultados, e a comparação entre releases é paginada para
+ultrapassar o limite de 250 commits. As funções de cálculo são testadas com \emph{fixtures}
+calculadas à mão, incluindo os casos de borda exigidos --- release sem commits novos, falha
+nunca recuperada, repositório com uma única release e execuções \texttt{cancelled}; a suíte
+tem 729 testes, cobertura de 97,9\% e roda no GitHub Actions do grupo a cada \emph{push}, em
+duas versões de Python. Todas as tabelas e figuras deste artigo são geradas por
+\texttt{python -m analise} a partir dos CSVs publicados, sem chamar a API, e cada coluna
+desses CSVs está documentada no dicionário de dados do repositório.

@@ -26,30 +26,22 @@ Registramos, antes de observar os dados, uma hipótese informal por questão de 
 acompanhada da razão de esperá-la:
 
 \begin{itemize}
-  \item \textbf{RQ 01 (Deployment Frequency).} \emph{H1:} repositórios populares concentram-se
-    nas faixas \emph{Elite} e \emph{High}, \emph{porque} são os projetos de maior maturidade
-    de CI e costumam automatizar a publicação de releases.
-  \item \textbf{RQ 02 (Lead Time for Changes).} \emph{H2:} as duas variantes obrigatórias
-    produzem valores próximos, \emph{porque} medem o mesmo intervalo por caminhos distintos
-    --- uma pelo commit mais antigo da release, outra pela mediana de todos os commits.
-  \item \textbf{RQ 03 (Change Failure Rate).} \emph{H3:} a taxa de falha é baixa, na faixa
-    \emph{Elite}, e as duas variantes concordam, \emph{porque} projetos populares mantêm
-    suítes de teste extensas e revisão por pares antes da integração.
-  \item \textbf{RQ 04 (Tempo de Recuperação).} \emph{H4:} a recuperação é ágil, com mediana
-    inferior a 24 horas, \emph{porque} uma \emph{build} quebrada no \emph{default branch}
-    bloqueia todos os contribuidores e tende a ser tratada com prioridade.
-  \item \textbf{RQ 05 (Frequência $\times$ CFR).} \emph{H5:} velocidade e estabilidade não
-    formam um \emph{trade-off}, \emph{porque} é o que o relatório DORA sustenta a partir de
-    equipes industriais.
-  \item \textbf{RQ 06 (Fatores Estruturais).} \emph{H6:} a popularidade, medida em estrelas,
-    associa-se a melhor desempenho, \emph{porque} mais visibilidade atrai mais mantenedores
-    e mais investimento em automação.
-  \item \textbf{RQ 07 (Análise de Sensibilidade).} \emph{H7:} as conclusões são robustas à
-    definição operacional, \emph{porque} todas as definições tentam capturar o mesmo
-    fenômeno subjacente.
-  \item \textbf{RQ 08 (Taxa de Retrabalho, bônus).} \emph{H8:} o \emph{rework rate} é baixo
-    e fortemente correlacionado ao CFR de entrega, \emph{porque} ambos derivam da mesma
-    heurística de release corretiva.
+  \item \textbf{RQ 01 (DF).} \emph{H1:} concentração em \emph{Elite}/\emph{High}, por serem
+    projetos de CI maduro e publicação automatizada.
+  \item \textbf{RQ 02 (LT).} \emph{H2:} as duas variantes produzem valores próximos, por
+    medirem o mesmo intervalo por caminhos distintos.
+  \item \textbf{RQ 03 (CFR).} \emph{H3:} taxa baixa (\emph{Elite}) e variantes concordantes,
+    por haver suítes extensas e revisão antes da integração.
+  \item \textbf{RQ 04 (Recuperação).} \emph{H4:} mediana inferior a 24 h, porque uma
+    \emph{build} quebrada no \emph{default branch} bloqueia todos os contribuidores.
+  \item \textbf{RQ 05 (DF $\times$ CFR).} \emph{H5:} sem \emph{trade-off} entre velocidade e
+    estabilidade, como sustenta o relatório DORA.
+  \item \textbf{RQ 06 (Fatores).} \emph{H6:} popularidade associa-se a melhor desempenho,
+    por atrair mantenedores e investimento em automação.
+  \item \textbf{RQ 07 (Sensibilidade).} \emph{H7:} conclusões robustas à definição, por todas
+    tentarem capturar o mesmo fenômeno.
+  \item \textbf{RQ 08 (Retrabalho).} \emph{H8:} taxa baixa e fortemente correlacionada ao CFR
+    de entrega, por derivarem da mesma heurística.
 \end{itemize}
 
 O restante do artigo organiza-se como segue: a Seção \ref{sec:metodologia} descreve o funil
