@@ -6,6 +6,7 @@ interrompida recomeça de onde parou. Dentro de cada repositório, os meses de w
 runs e as comparações entre releases são consultados em paralelo (`--workers`).
 """
 import argparse
+import csv
 import json
 import sys
 from pathlib import Path
@@ -51,6 +52,64 @@ def select_repositories(search, collector, target, checkpoint=None, rows=None):
     return None
 
 
+def read_repository_list(path):
+    """Repositórios de um CSV de subamostra: aceita `repository`, `full_name` ou uma coluna só.
+
+    A replicação cruzada precisa rodar sobre uma subamostra dada do dataset publicado, e
+    não sobre a busca por estrelas, que muda com o tempo. Cada grupo nomeia essa coluna de
+    um jeito, então os nomes mais comuns são aceitos; sem cabeçalho reconhecido, a
+    primeira coluna é usada.
+    """
+    text = Path(path).read_text(encoding="utf-8-sig")
+    rows = list(csv.reader(text.splitlines()))
+    if not rows:
+        raise ValueError(f"{path} está vazio.")
+    header = [name.strip() for name in rows[0]]
+    known = next((header.index(name) for name in ("repository", "full_name", "repo", "nameWithOwner")
+                  if name in header), None)
+    body = rows[1:] if known is not None or len(header) > 1 else rows
+    column = known if known is not None else 0
+    names = []
+    for row in body:
+        name = row[column].strip() if len(row) > column else ""
+        if name and name not in names and "/" in name:
+            names.append(name)
+    if not names:
+        raise ValueError(f"{path} não tem nenhum repositório no formato dono/nome.")
+    return names
+
+
+def select_from_list(client, collector, names, checkpoint=None, rows=None):
+    """Card 1 sobre uma lista dada: metadados de cada repositório, sem busca por estrelas.
+
+    Os critérios de inclusão continuam valendo e o funil continua reportando quem ficou de
+    fora: `--repos` troca a origem dos candidatos, não as regras do estudo.
+    """
+    rows = [] if rows is None else rows
+    for position, name in enumerate(names, start=1):
+        unit = str(name).casefold()
+        row = checkpoint.done(unit) if checkpoint else None
+        if row is None:
+            failure = None
+            try:
+                repo, _ = client.get("/repos/" + name)
+            except APIError as exc:
+                repo, failure = {}, str(exc)
+            repo = dict(repo) if isinstance(repo, dict) else {}
+            repo.setdefault("full_name", name)
+            row = collector.collect(repo)
+            if failure:
+                row["error"], row["included"] = failure, False
+            if checkpoint:
+                checkpoint.record(unit, row, row["error"] is None)
+        rows.append(row)
+        if row["error"]:
+            LOGGER.error("%s: %s", row["full_name"], row["error"])
+        LOGGER.info("Lista %d de %d: %s%s", position, len(names), row["full_name"],
+                    "" if row["included"] else f" (fora: {row['exclusion_reason'] or row['error']})")
+    return None
+
+
 def compute_dora(window, selected, deployments, workflow_runs):
     """Cards 5 e 6: métricas e classificação de cada repositório selecionado."""
     releases = {repo["full_name"].casefold(): repo for repo in deployments}
@@ -72,7 +131,7 @@ def compute_dora(window, selected, deployments, workflow_runs):
 
 
 def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=False, checkpoints=None,
-                 workers=1):
+                 workers=1, names=None):
     """Executa as etapas em ordem e devolve o resumo gravado em `summary.json`."""
     output = Path(output)
     checkpoints = checkpoints or {}
@@ -84,14 +143,26 @@ def run_pipeline(client, window, output, target=100, min_stars=1001, tag_dates=F
     search = CandidateSearch(client, min_stars)
     error = None
     try:
-        LOGGER.info("Etapa 1 de 4: seleção de %d repositórios.", target)
+        collector = MetadataCollector(client, window, workers)
+        from_list = names is not None
         try:
-            error = select_repositories(search, MetadataCollector(client, window, workers), target,
-                                        checkpoints.get("selection"), rows)
+            if from_list:
+                LOGGER.info("Etapa 1 de 4: %d repositórios informados por --repos.", len(names))
+                error = select_from_list(client, collector, names,
+                                         checkpoints.get("selection"), rows)
+            else:
+                LOGGER.info("Etapa 1 de 4: seleção de %d repositórios.", target)
+                error = select_repositories(search, collector, target,
+                                            checkpoints.get("selection"), rows)
         finally:
+            found = len(names) if from_list else search.found
+            unique = len(names) if from_list else search.unique
             selected = [row for row in rows if row["included"]]
-            summary["selection"] = {**funnel(rows, search.found, search.unique),
-                                    "target_reached": len(selected) >= target, "search_error": error}
+            # Com `--repos` a meta é ter avaliado a lista inteira: um repositório excluído
+            # pelos critérios de inclusão é resultado do estudo, não falha de execução.
+            reached = len(rows) >= len(names) if from_list else len(selected) >= target
+            summary["selection"] = {**funnel(rows, found, unique), "from_list": from_list,
+                                    "target_reached": reached, "search_error": error}
             save_output(output / "selection", rows, summary["selection"])
         if error:
             summary["status"] = "search_error"
@@ -203,6 +274,9 @@ def main(argv=None):
     parser.add_argument("--start", required=True, help="Início inclusivo ISO 8601 com fuso (precisão de segundos)")
     parser.add_argument("--end", required=True, help="Fim inclusivo ISO 8601 com fuso (precisão de segundos)")
     parser.add_argument("--target", type=int, default=100, help="Repositórios a selecionar (padrão 100)")
+    parser.add_argument("--repos", type=Path,
+                        help="CSV com a lista de repositórios (coluna repository ou full_name); "
+                             "substitui a busca por estrelas, para replicar uma subamostra dada")
     parser.add_argument("--min-stars", type=int, default=1001)
     parser.add_argument("--output", default="outputs/pipeline", help="Pasta de saída (padrão outputs/pipeline)")
     parser.add_argument("--tag-dates", action="store_true", help="Consultar também commit.author.date de cada tag")
@@ -222,8 +296,10 @@ def main(argv=None):
     except (APIError, ValueError, OSError) as exc:
         parser.error(str(exc))
     try:
-        summary = run_pipeline(client, window, args.output, args.target, args.min_stars, args.tag_dates,
-                               checkpoints, args.workers)
+        names = read_repository_list(args.repos) if args.repos else None
+        summary = run_pipeline(client, window, args.output,
+                               len(names) if names else args.target, args.min_stars,
+                               args.tag_dates, checkpoints, args.workers, names)
     except OSError as exc:
         LOGGER.error("Erro de persistência: %s", exc)
         return 1

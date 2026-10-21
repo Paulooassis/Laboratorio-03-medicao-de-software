@@ -1464,3 +1464,36 @@ a recuperação sobe um degrau. Cobre também a escolha do limite mais próximo 
 primeiro), métrica ausente sem margem, os vizinhos de cada nível, a métrica que não decide
 nada, e três propriedades do rascunho: ele cita a posição do caso no ranking em vez de
 afirmar que é o mais frágil, e avisa quando o repositório não está na amostra.
+
+## Dados publicados do estudo
+
+Os CSVs do estudo estão versionados em `data/processed/`, de modo que
+`python -m analise` roda a partir de um clone limpo, sem token e sem refazer a coleta:
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `data/processed/repositorios.csv` | 300 repositórios, uma linha cada, com as métricas DORA e a classificação |
+| `data/processed/releases.csv` | 18.389 releases, uma linha cada |
+| `data/processed/episodios_falha.csv` | 20.117 episódios de falha, um por linha |
+| `data/processed/funil.md` | Funil das etapas de seleção |
+
+Esses arquivos foram produzidos pela coleta dos 300 repositórios e trazem os nomes de
+coluna do pipeline, que em alguns casos diferem dos deste dicionário — a correspondência
+está em [`docs/dicionario_de_dados.md`](docs/dicionario_de_dados.md) e a leitura aceita
+os dois nomes.
+
+### Replicar sobre uma subamostra
+
+Para executar a coleta sobre uma lista dada de repositórios, em vez da busca por
+estrelas:
+
+```bash
+python -m dora_selection.pipeline --start 2025-01-01T00:00:00Z --end 2025-12-31T23:59:59Z \
+    --repos replicacao/subamostra.csv
+```
+
+`--repos` aceita um CSV com a coluna `repository` ou `full_name` (ou uma única coluna sem
+cabeçalho) e **substitui a busca**, não os critérios de inclusão: um repositório da lista
+que não passe nos critérios continua aparecendo no funil como excluído, com o motivo. A
+execução é considerada completa quando toda a lista foi avaliada, porque exclusão pelos
+critérios é resultado do estudo e não falha de execução.
