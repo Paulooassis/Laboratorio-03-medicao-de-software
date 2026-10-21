@@ -1,9 +1,9 @@
 familia,fator,metrica,n,grupos,teste,h,u,p,epsilon_quadrado,delta,interpretacao,restricao,status,p_holm,rejeita
 suplementar,linguagem,lt_b,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,33.96539095198773,,6.831712393577272e-06,0.113977821986536,,médio,,ok,3.415856196788636e-05,True
 suplementar,linguagem,cfr_b,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,33.58207998239502,,8.100029239788934e-06,0.11269154356508397,,médio,,ok,3.415856196788636e-05,True
-suplementar,estrelas,lt_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,4.415548172757553,,0.21994803350530745,0.01476771964132961,,pequeno,,ok,0.4398960670106149,False
+suplementar,estrelas,lt_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,4.415548172757553,,0.21994803350530784,0.01476771964132961,,pequeno,,ok,0.4398960670106157,False
 suplementar,estrelas,cfr_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,2.321482043851412,,0.5084180143270696,0.007764153992814086,,desprezível,,ok,0.5084180143270696,False
-suplementar,contribuidores,lt_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,51.63772846068662,,3.577767004512696e-11,0.17270143297888502,,médio,,ok,2.1466602027076175e-10,True
-suplementar,contribuidores,cfr_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,11.769865883728297,,0.008214553957431005,0.039364099945579586,,pequeno,,ok,0.024643661872293016,True
+suplementar,contribuidores,lt_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,51.63772846068662,,3.5777670045126946e-11,0.17270143297888502,,médio,,ok,2.1466602027076167e-10,True
+suplementar,contribuidores,cfr_b,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,11.769865883728297,,0.008214553957431014,0.039364099945579586,,pequeno,,ok,0.02464366187229304,True
 suplementar,idade,lt_b,0,,indefinido,,,,,,indefinido,,menos de dois grupos com dados,,
 suplementar,idade,cfr_b,0,,indefinido,,,,,,indefinido,,menos de dois grupos com dados,,

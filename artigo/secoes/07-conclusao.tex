@@ -1,0 +1,34 @@
+\section{Conclusão}
+
+Medimos as quatro métricas DORA em 300 repositórios populares do GitHub na janela de 2025.
+A mediana da amostra é de 0,46 release por semana, 324,9 h de lead time (a), 0,056 de
+change failure rate de CI e 4,94 h de recuperação, o que coloca a maior parte dos
+repositórios nas faixas \emph{Medium} (154) e \emph{High} (110).
+
+O achado central, porém, não é nenhum desses valores: é o quanto eles dependem de escolhas
+que o método não torna visíveis. Trocar uma definição operacional reclassifica até 31,3\%
+dos repositórios, e a troca que mais pesa é a da \emph{variante da métrica}, não a da
+\emph{unidade de deploy} --- 28,3\% contra 7,3\%. O Change Failure Rate é o caso extremo:
+as duas variantes discordam em 72,3\% dos repositórios, com concordância nula. Além disso,
+86,3\% dos repositórios mudam de categoria geral se uma única métrica andar um degrau,
+porque as faixas discretizam medidas contínuas sem avisar quem está na borda.
+
+Três consequências práticas. Primeira: relatar uma classificação DORA sem declarar as
+definições operacionais usadas não é informativo. Segunda: o CFR calculado sobre falhas de
+CI não é comparável com as faixas do relatório DORA, que falam de produção --- e sugere uma
+estabilidade que não mediu. Terceira: ao comparar classificações entre estudos, é preciso
+reportar quantos repositórios estavam perto de um limite de faixa, sob pena de atribuir a
+erro de cálculo o que é apenas discretização --- foi exatamente o que a replicação cruzada
+nos ensinou.
+
+Como trabalhos futuros, três caminhos nos parecem mais promissores: validar a heurística de
+release corretiva em uma segunda amostra rotulada, independente daquela em que foi
+refinada; estender a janela para mais de um ano, permitindo falar de tendência e não apenas
+de retrato; e substituir as faixas discretas por uma medida contínua de desempenho, que
+não produza a fragilidade de borda documentada aqui.
+
+\vspace{0.3cm}
+\noindent\textbf{Disponibilidade.} Código, dados e as tabelas e figuras deste artigo estão
+em \url{https://github.com/Paulooassis/Laboratorio-03-medicao-de-software} e são
+reexecutáveis com \texttt{python -m analise}. O acompanhamento das tarefas está no GitHub
+Projects do repositório.

@@ -10,7 +10,7 @@ Significant-Gravitas/AutoGPT,Medium,Deployment Frequency,0.9972602739726026,Medi
 twbs/bootstrap,Medium,Lead Time (a) por release,1009.4983333333332,Low,720.0,289.4983333333332,0.28677445397796586,True,2,0
 huggingface/transformers,High,Lead Time (a) por release,179.22319444444446,Medium,168.0,11.22319444444446,0.0626213279996157,False,1,0
 langgenius/dify,Medium,Tempo de recuperação,1.3027777777777778,High,1.0,0.3027777777777778,0.23240938166311303,True,3,0
-langflow-ai/langflow,Medium,Lead Time (a) por release,204.3595833333333,Medium,168.0,36.35958333333329,0.1779196391980637,True,2,0
+langflow-ai/langflow,Medium,Lead Time (a) por release,204.35958333333332,Medium,168.0,36.35958333333332,0.1779196391980638,True,2,0
 open-webui/open-webui,High,Change Failure Rate (a) proxy de CI,0.1581920903954802,High,0.15,0.008192090395480217,0.051785714285714234,True,3,0
 langchain-ai/langchain,Elite,Deployment Frequency,7.326027397260273,Elite,7.0,0.3260273972602734,0.04450261780104705,True,3,1
 vercel/next.js,High,Change Failure Rate (a) proxy de CI,0.1348425196850393,Elite,0.15,0.015157480314960697,0.11240875912408815,False,2,0
@@ -34,7 +34,7 @@ earendil-works/pi,High,Tempo de recuperação,1.3934722222222222,High,1.0,0.3934
 tauri-apps/tauri,High,Deployment Frequency,4.315068493150685,High,7.0,2.684931506849315,0.6222222222222222,True,2,0
 microsoft/TypeScript,Medium,Tempo de recuperação,2.5166666666666666,High,1.0,1.5166666666666666,0.6026490066225165,True,1,0
 supabase/supabase,Medium,Lead Time (a) por release,720.8190277777778,Low,720.0,0.8190277777778192,0.0011362460565210249,False,1,1
-axios/axios,Medium,Tempo de recuperação,24.36055555555556,Medium,24.0,0.3605555555555604,0.014800793632694214,True,2,1
+axios/axios,Medium,Tempo de recuperação,24.360555555555557,Medium,24.0,0.36055555555555685,0.01480079363269407,True,2,1
 denoland/deno,Medium,Deployment Frequency,0.978082191780822,Medium,1.0,0.021917808219177992,0.02240896358543408,True,2,1
 google-gemini/gemini-cli,High,Tempo de recuperação,1.051111111111111,High,1.0,0.05111111111111111,0.04862579281183932,False,0,1
 microsoft/terminal,Low,Deployment Frequency,0.1917808219178082,Low,0.22998418858703465,0.03820336666922644,0.19920326906096644,True,2,0
@@ -121,7 +121,7 @@ BerriAI/litellm,Elite,Deployment Frequency,8.246575342465754,Elite,7.0,1.2465753
 spring-projects/spring-framework,Medium,Tempo de recuperação,1.5811111111111111,High,1.0,0.5811111111111111,0.3675333801827126,True,2,0
 rclone/rclone,Medium,Deployment Frequency,0.2493150684931506,Medium,0.22998418858703465,0.019330879906115955,0.0775359468761794,True,1,0
 crewAIInc/crewAI,High,Deployment Frequency,0.9972602739726026,Medium,1.0,0.00273972602739736,0.0027472527472528476,False,2,1
-meilisearch/meilisearch,Medium,Tempo de recuperação,31.39305555555556,Medium,24.0,7.393055555555559,0.23549971242755396,False,0,0
+meilisearch/meilisearch,Medium,Tempo de recuperação,31.393055555555556,Medium,24.0,7.393055555555556,0.23549971242755388,False,0,0
 rails/rails,Medium,Deployment Frequency,0.2301369863013698,Medium,0.22998418858703465,0.00015279771433515665,0.0006639424491944308,True,2,1
 pmndrs/zustand,Low,Deployment Frequency,0.1726027397260273,Low,0.22998418858703465,0.05738144886100735,0.33244807673440785,True,3,0
 go-gitea/gitea,Medium,Deployment Frequency,0.4027397260273972,Medium,0.22998418858703465,0.17275553744036257,0.42895082425668263,True,3,0
@@ -180,7 +180,7 @@ RocketChat/Rocket.Chat,High,Change Failure Rate (a) proxy de CI,0.21973550356052
 streamlit/streamlit,Medium,Lead Time (a) por release,245.70472222222224,Medium,168.0,77.70472222222224,0.3162524575003647,True,3,0
 files-community/Files,Medium,Lead Time (a) por release,572.0456944444444,Medium,720.0,147.9543055555556,0.2586407117341297,True,2,0
 google/zx,Medium,Lead Time (a) por release,223.025,Medium,168.0,55.025000000000006,0.24672121959421592,False,0,0
-jestjs/jest,Medium,Lead Time (a) por release,187.7095833333333,Medium,168.0,19.709583333333313,0.10500041065209323,True,2,0
+jestjs/jest,Medium,Lead Time (a) por release,187.70958333333337,Medium,168.0,19.70958333333337,0.1050004106520935,True,2,0
 getsentry/sentry,High,Lead Time (a) por release,625.93375,Medium,720.0,94.06624999999997,0.15028147946967224,False,2,0
 mitmproxy/mitmproxy,Low,Lead Time (a) por release,751.585,Low,720.0,31.585000000000036,0.042024521511206364,True,3,1
 grpc/grpc,Medium,Deployment Frequency,0.3068493150684931,Medium,0.22998418858703465,0.07686512648145846,0.2504979568368959,True,1,0
@@ -201,7 +201,7 @@ langchain-ai/langgraph,High,Lead Time (a) por release,22.6425,Elite,24.0,1.35750
 curl/curl,Medium,Deployment Frequency,0.1534246575342465,Low,0.22998418858703465,0.07655953105278815,0.49900408632620874,False,1,0
 sxyazi/yazi,High,Lead Time (a) por release,618.6680555555556,Medium,720.0,101.33194444444439,0.16379049077206623,True,3,0
 gkd-kit/gkd,Medium,Deployment Frequency,0.1917808219178082,Low,0.22998418858703465,0.03820336666922644,0.19920326906096644,False,2,0
-agno-agi/agno,High,Lead Time (a) por release,27.64583333333333,High,24.0,3.6458333333333286,0.1318764129615673,False,0,0
+agno-agi/agno,High,Lead Time (a) por release,27.645833333333332,High,24.0,3.645833333333332,0.1318764129615674,False,0,0
 saadeghi/daisyui,Elite,Tempo de recuperação,0.6725,Elite,1.0,0.3275,0.48698884758364314,True,3,0
 exelban/stats,High,Deployment Frequency,0.7863013698630137,Medium,1.0,0.2136986301369863,0.2717770034843206,False,1,0
 LizardByte/Sunshine,Low,Tempo de recuperação,132.18722222222223,Medium,168.0,35.81277777777777,0.2709246565267276,True,3,0
@@ -250,12 +250,12 @@ Dokploy/dokploy,High,Deployment Frequency,1.5150684931506848,High,1.0,0.51506849
 chatwoot/chatwoot,Medium,Lead Time (a) por release,678.9536111111111,Medium,720.0,41.04638888888894,0.06045536575277406,True,3,0
 khoj-ai/khoj,Medium,Tempo de recuperação,165.27027777777778,Medium,168.0,2.7297222222222217,0.016516715884586357,True,3,1
 alibaba/arthas,Medium,Tempo de recuperação,26.389722222222225,Medium,24.0,2.3897222222222254,0.09055503510415472,True,2,0
-tailscale/tailscale,Medium,Lead Time (a) por release,262.8455555555556,Medium,168.0,94.84555555555562,0.3608413897472535,True,3,0
+tailscale/tailscale,Medium,Lead Time (a) por release,262.84555555555556,Medium,168.0,94.84555555555556,0.3608413897472534,True,3,0
 Textualize/textual,High,Deployment Frequency,0.7671232876712328,Medium,1.0,0.23287671232876717,0.30357142857142866,False,1,0
-AdguardTeam/AdGuardHome,Medium,Tempo de recuperação,24.74083333333333,Medium,24.0,0.740833333333331,0.02994375021051559,True,3,1
+AdguardTeam/AdGuardHome,Medium,Tempo de recuperação,24.740833333333335,Medium,24.0,0.7408333333333346,0.029943750210515728,True,3,1
 firecracker-microvm/firecracker,Low,Lead Time (a) por release,9832.0675,Low,720.0,9112.0675,0.9267702342360852,True,2,0
 keycloak/keycloak,Medium,Tempo de recuperação,41.09,Medium,24.0,17.090000000000003,0.4159162813336579,False,0,0
-ItzCrazyKns/Vane,Medium,Lead Time (a) por release,203.19833333333327,Medium,168.0,35.19833333333327,0.17322156513750905,True,1,0
+ItzCrazyKns/Vane,Medium,Lead Time (a) por release,203.19833333333332,Medium,168.0,35.19833333333332,0.1732215651375093,True,1,0
 fastify/fastify,Medium,Deployment Frequency,0.2301369863013698,Medium,0.22998418858703465,0.00015279771433515665,0.0006639424491944308,False,0,2
 markedjs/marked,Medium,Deployment Frequency,0.3835616438356164,Medium,0.22998418858703465,0.15357745524858177,0.4003983654695168,True,2,0
 huggingface/pytorch-image-models,Medium,Deployment Frequency,0.1917808219178082,Low,0.22998418858703465,0.03820336666922644,0.19920326906096644,False,1,0
@@ -282,7 +282,7 @@ seaweedfs/seaweedfs,Medium,Lead Time (a) por release,243.47152777777777,Medium,1
 kovidgoyal/kitty,High,Deployment Frequency,0.2493150684931506,Medium,0.22998418858703465,0.019330879906115955,0.0775359468761794,True,3,0
 qdrant/qdrant,Medium,Deployment Frequency,0.3835616438356164,Medium,0.22998418858703465,0.15357745524858177,0.4003983654695168,False,0,0
 bumptech/glide,Medium,Change Failure Rate (a) proxy de CI,0.28,High,0.3,0.019999999999999962,0.07142857142857129,True,2,0
-dgtlmoon/changedetection.io,High,Tempo de recuperação,26.56430555555556,Medium,24.0,2.56430555555556,0.09653200043918597,False,1,0
+dgtlmoon/changedetection.io,High,Tempo de recuperação,26.564305555555556,Medium,24.0,2.5643055555555563,0.09653200043918586,False,1,0
 jdx/mise,High,Lead Time (a) por release,24.2525,High,24.0,0.2525000000000013,0.01041129780435012,False,0,1
 aristocratos/btop,Low,Tempo de recuperação,164.87416666666667,Medium,168.0,3.1258333333333326,0.018958903001784183,True,3,1
 huggingface/diffusers,Low,Change Failure Rate (a) proxy de CI,0.2587336244541485,High,0.3,0.0412663755458515,0.15949367088607583,False,3,0

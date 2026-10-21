@@ -96,8 +96,8 @@
       "ausentes": 36,
       "mediana": 4.937569444444445,
       "q1": 1.7459027777777778,
-      "q3": 18.74583333333333,
-      "iqr": 16.99993055555555
+      "q3": 18.745833333333334,
+      "iqr": 16.999930555555554
     },
     {
       "metrica": "RQ 04 Tempo de recuperação",
@@ -2765,8 +2765,8 @@
         "ausentes": 36,
         "mediana": 4.937569444444445,
         "q1": 1.7459027777777778,
-        "q3": 18.74583333333333,
-        "iqr": 16.99993055555555
+        "q3": 18.745833333333334,
+        "iqr": 16.999930555555554
       },
       "dias": {
         "n": 264,
@@ -2848,8 +2848,8 @@
         "recuperados": 3,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 24.74083333333333,
-        "mediana_limite_horas": 24.74083333333333,
+        "mediana_horas": 24.740833333333335,
+        "mediana_limite_horas": 24.740833333333335,
         "proporcao_censurada": 0.0
       },
       {
@@ -2948,8 +2948,8 @@
         "recuperados": 19,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 2.270833333333333,
-        "mediana_limite_horas": 2.270833333333333,
+        "mediana_horas": 2.2708333333333335,
+        "mediana_limite_horas": 2.2708333333333335,
         "proporcao_censurada": 0.0
       },
       {
@@ -3149,7 +3149,7 @@
         "censurados": 2,
         "inconsistentes": 0,
         "mediana_horas": 1.753611111111111,
-        "mediana_limite_horas": 3.858055555555556,
+        "mediana_limite_horas": 3.858055555555555,
         "proporcao_censurada": 0.05714285714285714
       },
       {
@@ -3278,8 +3278,8 @@
         "recuperados": 21,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 2.7911111111111118,
-        "mediana_limite_horas": 2.7911111111111118,
+        "mediana_horas": 2.7911111111111113,
+        "mediana_limite_horas": 2.7911111111111113,
         "proporcao_censurada": 0.0
       },
       {
@@ -3318,8 +3318,8 @@
         "recuperados": 7,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 18.77833333333333,
-        "mediana_limite_horas": 18.77833333333333,
+        "mediana_horas": 18.778333333333332,
+        "mediana_limite_horas": 18.778333333333332,
         "proporcao_censurada": 0.0
       },
       {
@@ -3348,8 +3348,8 @@
         "recuperados": 128,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 5.440416666666668,
-        "mediana_limite_horas": 5.440416666666668,
+        "mediana_horas": 5.440416666666667,
+        "mediana_limite_horas": 5.440416666666667,
         "proporcao_censurada": 0.0
       },
       {
@@ -3358,8 +3358,8 @@
         "recuperados": 1,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 24.36055555555556,
-        "mediana_limite_horas": 24.36055555555556,
+        "mediana_horas": 24.360555555555557,
+        "mediana_limite_horas": 24.360555555555557,
         "proporcao_censurada": 0.0
       },
       {
@@ -3498,7 +3498,7 @@
         "recuperados": 8,
         "censurados": 2,
         "inconsistentes": 0,
-        "mediana_horas": 19.05972222222222,
+        "mediana_horas": 19.059722222222224,
         "mediana_limite_horas": 140.9423611111111,
         "proporcao_censurada": 0.2
       },
@@ -3518,8 +3518,8 @@
         "recuperados": 4,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 3.9259722222222226,
-        "mediana_limite_horas": 3.9259722222222226,
+        "mediana_horas": 3.925972222222222,
+        "mediana_limite_horas": 3.925972222222222,
         "proporcao_censurada": 0.0
       },
       {
@@ -3978,8 +3978,8 @@
         "recuperados": 317,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 3.635833333333333,
-        "mediana_limite_horas": 3.635833333333333,
+        "mediana_horas": 3.6358333333333337,
+        "mediana_limite_horas": 3.6358333333333337,
         "proporcao_censurada": 0.0
       },
       {
@@ -3988,7 +3988,7 @@
         "recuperados": 3,
         "censurados": 3,
         "inconsistentes": 0,
-        "mediana_horas": 37.37472222222223,
+        "mediana_horas": 37.374722222222225,
         "mediana_limite_horas": 558.18875,
         "proporcao_censurada": 0.5
       },
@@ -4458,8 +4458,8 @@
         "recuperados": 11,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 55.25722222222223,
-        "mediana_limite_horas": 55.25722222222223,
+        "mediana_horas": 55.257222222222225,
+        "mediana_limite_horas": 55.257222222222225,
         "proporcao_censurada": 0.0
       },
       {
@@ -4639,7 +4639,7 @@
         "censurados": 1,
         "inconsistentes": 0,
         "mediana_horas": 1.9797222222222224,
-        "mediana_limite_horas": 2.1277777777777778,
+        "mediana_limite_horas": 2.127777777777778,
         "proporcao_censurada": 0.019230769230769232
       },
       {
@@ -4749,7 +4749,7 @@
         "censurados": 1,
         "inconsistentes": 0,
         "mediana_horas": null,
-        "mediana_limite_horas": 2995.040555555556,
+        "mediana_limite_horas": 2995.0405555555553,
         "proporcao_censurada": 1.0
       },
       {
@@ -5019,7 +5019,7 @@
         "censurados": 11,
         "inconsistentes": 3,
         "mediana_horas": 3.1940277777777775,
-        "mediana_limite_horas": 3.250833333333333,
+        "mediana_limite_horas": 3.2508333333333335,
         "proporcao_censurada": 0.012035010940919038
       },
       {
@@ -5318,8 +5318,8 @@
         "recuperados": 6,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 15.818888888888887,
-        "mediana_limite_horas": 15.818888888888887,
+        "mediana_horas": 15.818888888888889,
+        "mediana_limite_horas": 15.818888888888889,
         "proporcao_censurada": 0.0
       },
       {
@@ -5348,8 +5348,8 @@
         "recuperados": 10,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 15.624305555555555,
-        "mediana_limite_horas": 15.624305555555555,
+        "mediana_horas": 15.624305555555559,
+        "mediana_limite_horas": 15.624305555555559,
         "proporcao_censurada": 0.0
       },
       {
@@ -5398,8 +5398,8 @@
         "recuperados": 26,
         "censurados": 0,
         "inconsistentes": 0,
-        "mediana_horas": 1.9801388888888887,
-        "mediana_limite_horas": 1.9801388888888887,
+        "mediana_horas": 1.9801388888888884,
+        "mediana_limite_horas": 1.9801388888888884,
         "proporcao_censurada": 0.0
       },
       {

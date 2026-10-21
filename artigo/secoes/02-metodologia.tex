@@ -1,0 +1,65 @@
+\section{Metodologia}
+\label{sec:metodologia}
+
+\subsection{Seleção da amostra}
+
+Buscamos repositórios públicos com pelo menos 1.001 estrelas e aplicamos, em ordem de
+custo de API, os critérios de inclusão: usar GitHub Actions, ter no mínimo 5 releases e
+50 \emph{workflow runs} válidos na janela de 1º de janeiro a 31 de dezembro de 2025. O
+funil partiu de 1.025 candidatos e chegou a 300 repositórios; o descarte mais frequente
+foi ``menos de 5 releases na janela'', com 511 repositórios (Tabela \ref{tab:funil}).
+
+\begin{table}[ht]
+\centering
+\caption{Funil de seleção da amostra.}
+\label{tab:funil}
+\begin{tabular}{lr}
+\toprule
+\textbf{Etapa} & \textbf{Repositórios} \\
+\midrule
+Candidatos recebidos da busca & 1.025 \\
+Repositórios únicos avaliados & 1.021 \\
+Com GitHub Actions & 917 \\
+Com 5 ou mais releases na janela & 406 \\
+Com 50 ou mais workflow runs válidos & 300 \\
+\midrule
+\textbf{Incluídos na amostra} & \textbf{300} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Definições operacionais e as duas variantes obrigatórias}
+
+A combinação de referência, que chamamos \textbf{C1}, usa: \emph{deploy} = release
+publicada; \emph{lead time} pela variante (a), do commit mais antigo do intervalo entre
+releases até a publicação; \emph{change failure rate} pela variante (a), falhas sobre
+\emph{workflow runs} considerados; e tempo de recuperação da primeira falha até o
+primeiro sucesso do mesmo workflow. As variantes alternativas são o lead time (b), por
+commit, e o CFR (b), por entrega --- uma release é considerada falha quando é seguida,
+em até sete dias, por uma release corretiva da mesma linha \emph{major.minor}.
+
+A C1 usa estritamente a variante (a) do lead time. Um repositório sem lead time (a) fica
+sem classificação nessa métrica, em vez de cair para a variante (b): como a RQ 07 compara
+a C1 com a C4, que difere dela apenas pelas variantes das métricas, aceitar o
+\emph{fallback} colocaria repositórios híbridos dentro da referência.
+
+\subsection{Estatística}
+
+Todas as métricas são resumidas por \textbf{mediana e IQR}, nunca por média e
+desvio-padrão: as distribuições são assimétricas e de cauda longa, como mostra a Figura
+\ref{fig:violino}. Correlações usam Spearman ($\rho$), por não exigir linearidade;
+reportamos Pearson ($r$) apenas como contraste. Comparações entre grupos usam
+Kruskal-Wallis com correção de Holm para múltiplas comparações, $\varepsilon^2$ como
+tamanho de efeito e Cliff's $\delta$ nos pares, com a interpretação de
+\citeonline{romano2006}. A concordância entre classificações usa kappa ponderado linear,
+interpretado por \citeonline{landis1977}.
+
+Nada é estimado para fechar conta. Release sem intervalo confiável de commits não entra
+no lead time e é contada por motivo; release publicada nos últimos sete dias da janela
+não tem sete dias observados e fica fora do denominador do CFR (b); episódio de falha sem
+sucesso posterior é censurado e não entra na mediana de recuperação. Todos esses totais
+são reportados junto dos resultados.
+
+A análise inteira é reexecutável a partir dos CSVs publicados, sem refazer a coleta, com
+\texttt{python -m analise}; cada número citado neste artigo vem de um arquivo em
+\texttt{resultados/}.

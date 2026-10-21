@@ -20,10 +20,15 @@ TAMANHO_SIMPLES = (LARGURA / 2, 2.6)
 TAMANHO_DUPLO = (LARGURA, 2.7)
 VARIANTE_A, VARIANTE_B = "#1f4e79", "#c1663f"
 NEUTRO, REFERENCIA = "#4d4d4d", "#9a9a9a"
-# Níveis DORA do melhor para o pior, mais o "sem classificação" em cinza: a escala é
-# ordinal, então a cor também caminha em uma direção só.
-NIVEIS = {"Elite": "#1f4e79", "High": "#4a7fb5", "Medium": "#e0b062", "Low": "#c1663f",
-          "Sem classificação": "#bdbdbd"}
+# Níveis DORA: a escala é **ordinal** (Elite > High > Medium > Low), então a cor é uma
+# rampa de um matiz só, do mais escuro (melhor) ao mais claro, e não cores categóricas.
+# Passos validados: luminosidade monótona, degraus >= 0,06 e a ponta clara a 2,06:1 da
+# superfície. "Sem classificação" é ausência de dado, fica fora da rampa, em cinza.
+NIVEIS = {"Elite": "#184f95", "High": "#256abf", "Medium": "#3987e5", "Low": "#86b6ef",
+          "Sem classificação": "#9a9a9a"}
+# Polos do divergente para correlação (-1 a +1), com cinza neutro no meio.
+DIVERGENTE = ("#e34948", "#f0efec", "#2a78d6")
+SUPERFICIE = "#fcfcfb"
 
 
 def aplicar():

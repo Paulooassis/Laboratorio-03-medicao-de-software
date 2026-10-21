@@ -1,16 +1,16 @@
 familia,fator,metrica,n,grupos,teste,h,u,p,epsilon_quadrado,delta,interpretacao,restricao,status,p_holm,rejeita
-principal,linguagem,df,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,33.69884501180749,,7.690739783457005e-06,0.11308337252284394,,médio,,ok,7.690739783457004e-05,True
+principal,linguagem,df,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,33.69884501180749,,7.690739783457006e-06,0.11308337252284394,,médio,,ok,7.690739783457006e-05,True
 principal,linguagem,lt_a,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,48.90185209765855,,7.800902889834113e-09,0.16410017482435754,,médio,,ok,9.361083467800936e-08,True
-principal,linguagem,cfr_a,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,9.87398251116108,,0.13006018833651853,0.03313416950054054,,pequeno,,ok,0.7803611300191111,False
-principal,linguagem,recuperacao,263,C++: 14; Go: 34; JavaScript: 16; Outras: 40; Python: 52; Rust: 25; TypeScript: 82,KW,8.509764233712417,,0.20308296972455997,0.032480016159207696,,pequeno,,ok,1.0,False
-principal,estrelas,df,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,12.12989103520657,,0.006951198606207173,0.040568197442162446,,pequeno,,ok,0.05560958884965738,False
+principal,linguagem,cfr_a,299,C++: 19; Go: 38; JavaScript: 18; Outras: 46; Python: 60; Rust: 30; TypeScript: 88,KW,9.87398251116108,,0.1300601883365185,0.03313416950054054,,pequeno,,ok,0.780361130019111,False
+principal,linguagem,recuperacao,263,C++: 14; Go: 34; JavaScript: 16; Outras: 40; Python: 52; Rust: 25; TypeScript: 82,KW,8.509764233712417,,0.2030829697245599,0.032480016159207696,,pequeno,,ok,1.0,False
+principal,estrelas,df,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,12.12989103520657,,0.006951198606207171,0.040568197442162446,,pequeno,,ok,0.05560958884965737,False
 principal,estrelas,lt_a,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,1.9508500553710064,,0.582670366511064,0.0065245821249866436,,desprezível,,ok,1.0,False
 principal,estrelas,cfr_a,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,0.2658347830712425,,0.9663205170580567,0.0008890795420442892,,desprezível,,ok,1.0,False
 principal,estrelas,recuperacao,264,Q1: 63; Q2: 63; Q3: 68; Q4: 70,KW,1.7005676633145868,,0.6368075984689203,0.006466036742641014,,desprezível,,ok,1.0,False
-principal,contribuidores,df,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,13.738132851025256,,0.003284161344692799,0.045946932612124604,,pequeno,,ok,0.02955745210223519,True
-principal,contribuidores,lt_a,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,29.9652837209303,,1.4034580795028232e-06,0.10021834020378027,,médio,,ok,1.5438038874531056e-05,True
+principal,contribuidores,df,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,13.738132851025256,,0.0032841613446927985,0.045946932612124604,,pequeno,,ok,0.029557452102235187,True
+principal,contribuidores,lt_a,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,29.9652837209303,,1.4034580795028208e-06,0.10021834020378027,,médio,,ok,1.543803887453103e-05,True
 principal,contribuidores,cfr_a,300,Q1: 75; Q2: 75; Q3: 75; Q4: 75,KW,3.3397973266976373,,0.342141896811035,0.011169890724741262,,pequeno,,ok,1.0,False
-principal,contribuidores,recuperacao,264,Q1: 60; Q2: 62; Q3: 70; Q4: 72,KW,8.730851307176408,,0.03309189636897752,0.033197153259225884,,pequeno,,ok,0.23164327458284262,False
+principal,contribuidores,recuperacao,264,Q1: 60; Q2: 62; Q3: 70; Q4: 72,KW,8.730851307176408,,0.03309189636897753,0.033197153259225884,,pequeno,,ok,0.23164327458284273,False
 principal,idade,df,0,,indefinido,,,,,,indefinido,,menos de dois grupos com dados,,
 principal,idade,lt_a,0,,indefinido,,,,,,indefinido,,menos de dois grupos com dados,,
 principal,idade,cfr_a,0,,indefinido,,,,,,indefinido,,menos de dois grupos com dados,,

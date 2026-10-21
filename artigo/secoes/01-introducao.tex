@@ -1,0 +1,36 @@
+\section{Introdução}
+
+As métricas DORA --- \emph{deployment frequency}, \emph{lead time for changes},
+\emph{change failure rate} e \emph{time to restore service} --- tornaram-se a referência
+para avaliar desempenho de entrega de software \cite{forsgren2018,dora2024}. Elas foram
+formuladas a partir de questionários respondidos por equipes sobre os seus próprios
+processos, com acesso a pipelines de produção, incidentes e implantações. Aplicá-las a
+repositórios open-source exige traduzir cada conceito para artefatos que o GitHub
+expõe publicamente, e é nessa tradução que mora o problema deste trabalho: ``deploy''
+vira \emph{release}, ``falha em produção'' vira \emph{workflow run} vermelho, e
+``restaurar o serviço'' vira o próximo run verde. Nenhuma dessas equivalências é exata.
+
+Este artigo mede as quatro métricas em 300 repositórios populares do GitHub que usam
+GitHub Actions e, principalmente, mede o quanto o resultado depende dessas escolhas de
+tradução. Respondemos oito questões de pesquisa: as RQ 01 a 04 quantificam cada métrica;
+a RQ 05 testa a correlação entre frequência de entrega e taxa de falha; a RQ 06 procura
+fatores associados ao desempenho; a RQ 07 troca as definições operacionais e mede quanto
+a classificação se move; e a RQ 08 explora uma métrica adicional de retrabalho.
+
+Antes de olhar os dados, registramos quatro hipóteses informais, que a Seção
+\ref{sec:discussao} confronta com os resultados:
+
+\begin{description}
+  \item[H1] Projetos populares entregam com frequência alta, concentrando-se nas faixas
+    \emph{Elite} e \emph{High} de \emph{deployment frequency}.
+  \item[H2] As duas variantes de lead time (por release e por commit) produzem valores
+    próximos, já que medem o mesmo intervalo por caminhos diferentes.
+  \item[H3] Velocidade e estabilidade não são um \emph{trade-off}: quem entrega mais
+    vezes não falha mais, como sustenta o relatório DORA.
+  \item[H4] As conclusões são robustas à definição operacional escolhida; trocar
+    \emph{release} por \emph{tag}, ou uma variante de métrica por outra, muda pouco.
+\end{description}
+
+O código, os dados e todas as tabelas e figuras deste artigo são reexecutáveis por um
+único comando e estão em
+\url{https://github.com/Paulooassis/Laboratorio-03-medicao-de-software}.
