@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/pipeline/__main__.py", line 214, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/pipeline/__main__.py", line 158, in main
+    api = GitHubAPI()
+  File "/private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/pipeline/github_api.py", line 69, in __init__
+    raise RuntimeError("GITHUB_TOKEN não definido (crie o arquivo .env com GITHUB_TOKEN=seu_token)")
+RuntimeError: GITHUB_TOKEN não definido (crie o arquivo .env com GITHUB_TOKEN=seu_token)
+=================================================================
+ PIPELINE DE MINERACAO DORA - LAB03 
+ Janela: 2025-01-01 ate 2025-12-31
+ Limite de repositorios: 30
+ Criterio de inclusao: >= 5 releases e >= 50 runs
+=================================================================
+$S/replicacao/venv314/bin/python -m pipeline --etapa selecao --limite 30  0.14s user 0.03s system 98% cpu 0.179 total

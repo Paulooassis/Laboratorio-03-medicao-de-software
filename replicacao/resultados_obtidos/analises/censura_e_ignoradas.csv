@@ -1,0 +1,11 @@
+rq,descricao,valor,total,pct
+RQ 04,repos sem nenhum episódio de recuperação na janela,7.0,30.0,23.3
+RQ 04,repos com algum episódio censurado,6.0,30.0,20.0
+RQ 04,mediana da proporção de episódios censurados por repo,0.0,,
+RQ 04,média da proporção de episódios censurados por repo,0.0514,,
+RQ 04,episódios de recuperação (total),370.0,,
+RQ 03 (b),releases censuradas (últimos 7 dias da janela),16.0,1202.0,1.3
+RQ 02,releases sem release anterior,4.0,1202.0,0.3
+RQ 02,releases com compare indisponível (404/422),0.0,1202.0,0.0
+RQ 02,releases sem commits novos,185.0,1202.0,15.4
+RQ 02,repos com mediana do lead time (b) <= 0 (datas de autor posteriores à release),0.0,30.0,0.0

@@ -1,0 +1,11 @@
+{
+  "csv_origem": "alvo/LAB03/data/dataset.csv",
+  "sha256_csv_origem": "03a0e7fa1e95d8da3df2af12fca5f7b2d2055b453f121b44c43a687a88a6a89a",
+  "coluna": "repo",
+  "linhas_no_csv": 300,
+  "repositorios_distintos": 300,
+  "tamanho_pedido": 30,
+  "tamanho_obtido": 30,
+  "semente": 42,
+  "ordenado_antes_do_sorteio": true
+}

@@ -1,0 +1,7 @@
+rq,metrica,variante,coluna,unidade,n,mediana,q1,q3,iqr,min,max,categoria_da_mediana
+RQ 01,Deployment frequency,-,deploy_frequency_semana,releases/semana,30,0.40275,0.186975,0.819825,0.63285,0.0959,4.4301,Medium
+RQ 02,Lead time,(a) por release,lead_time_release_h,horas,30,216.35000000000002,41.915,624.875,582.96,0.01,8149.82,Medium
+RQ 02,Lead time,(b) por commit,lead_time_commit_h,horas,30,204.03500000000003,29.7725,468.4175,438.64500000000004,0.01,2755.85,Medium
+RQ 03,Change failure rate,(a) proxy de CI,cfr_ci,proporção,30,0.025349999999999998,0.00245,0.1168,0.11435000000000001,0.0,0.3971,Elite
+RQ 03,Change failure rate,(b) proxy de entrega,cfr_entrega,proporção,30,0.1381,0.02315,0.336225,0.313075,0.0,0.7101,Elite
+RQ 04,Tempo de recuperação,-,tempo_recuperacao_h,horas,23,18.84,3.3049999999999997,83.13,79.82499999999999,0.15,9567.67,High

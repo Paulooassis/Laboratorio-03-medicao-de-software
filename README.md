@@ -1353,3 +1353,63 @@ com limiares de 0,1 release/semana e 1 hora, preservando zeros e Lead Times nega
 do pipeline. Figuras que perderam significância são removidas na reexecução.
 As convenções de efeito, referências e limitações estão em `notas_rq06.md`.
 `tests/test_rq06.py` usa dados sintéticos somente para verificar as contas e a execução.
+
+## Final — Replicação cruzada: executar o pipeline de outro grupo
+
+Primeira parte da replicação cruzada: executar o pipeline do grupo sorteado pelo
+professor **usando apenas o README dele**, sobre uma subamostra de 30 repositórios do
+dataset original, sem pedir ajuda ao grupo autor. Travar não é fracasso — é resultado, e
+precisa de evidência: cada falha de execução ou documentação faltante vira uma Issue no
+repositório do grupo autor.
+
+### Subamostra
+
+```bash
+python -m replicacao.subamostra --csv <csv-do-outro-grupo>
+```
+
+| Opção | Padrão | Efeito |
+| --- | --- | --- |
+| `--csv` | — | CSV original do outro grupo, com a lista de repositórios (obrigatório) |
+| `--coluna` | detectada | Coluna do repositório, quando o CSV usa um nome fora dos conhecidos |
+| `--tamanho` | 30 | Tamanho da subamostra |
+| `--semente` | 42 | Semente do sorteio |
+| `--saida` | `replicacao` | Destino de `subamostra.csv` e `subamostra.json` |
+
+Termina com 2 quando o CSV não existe, está sem linhas ou não tem nenhuma coluna de
+repositório reconhecida — nesse caso a mensagem lista as colunas encontradas, para que
+`--coluna` resolva.
+
+O sorteio é reproduzível por qualquer pessoa, inclusive pelo grupo autor ao responder as
+Issues, porque três coisas ficam registradas:
+
+- a **semente** (42), publicada no código e repetida em `subamostra.json`;
+- a **ordenação do universo antes do sorteio**: a lista é ordenada e deduplicada, então o
+  resultado depende só do *conjunto* de repositórios e da semente, nunca da ordem das
+  linhas no CSV do outro grupo — dois clones do mesmo dataset dão a mesma subamostra;
+- o **sha256 do CSV de origem**, que amarra a subamostra ao arquivo exato de onde saiu.
+
+O sorteio usa `random.Random(semente).sample` da biblioteca padrão, e não o `sample` do
+pandas, para não depender da versão da biblioteca: o módulo inteiro é stdlib, porque a
+subamostra é sorteada antes de instalar qualquer coisa do ambiente do outro grupo.
+
+### Diário e evidências
+
+| Arquivo | Conteúdo |
+| --- | --- |
+| `replicacao/diario_execucao.md` | Grupo replicado, commit/tag, ambiente, cada comando com tempo, saída, erro e contorno (marcando se o contorno exigiu sair do README), links das Issues abertas e o resumo para o artigo |
+| `replicacao/subamostra.csv` | A lista de 30 repositórios efetivamente usada |
+| `replicacao/subamostra.json` | Semente, coluna, sha256 do CSV de origem e tamanho do universo |
+| `replicacao/resultados_obtidos/` | Os CSVs produzidos pela execução, como saíram do pipeline do outro grupo, sem edição |
+
+Os CSVs obtidos entram sem nenhuma edição, renomeação de coluna ou reordenação: a
+comparação com os resultados publicados pelo grupo autor parte do arquivo original.
+
+### Testes
+
+`tests/test_subamostra.py` cobre as propriedades que fazem o sorteio valer como
+evidência: 30 repositórios distintos, mesma semente e mesmo conjunto dando sempre a mesma
+lista, a ordem das linhas do CSV não alterando o resultado, semente diferente dando lista
+diferente, universo menor que 30 tomado inteiro e registrado como tal, repetidos e vazios
+descartados, cada grafia conhecida da coluna de repositório, CSV com `;` do Excel, e os
+códigos de saída do comando.

@@ -1,0 +1,42 @@
+=================================================================
+ PIPELINE DE MINERACAO DORA - LAB03 
+ Janela: 2025-01-01 ate 2025-12-31
+ Limite de repositorios: 30
+ Criterio de inclusao: >= 5 releases e >= 50 runs
+=================================================================
+
+>>> ETAPA 2: Coleta de Releases e Lead Time (a e b, CFR b com heurística v4)
+[1/30] android/androidify: 7 entregas na janela
+[2/30] Future-House/paper-qa: 31 entregas na janela
+[3/30] golangci/golangci-lint: 35 entregas na janela
+[4/30] falcosecurity/falco: 7 entregas na janela
+[5/30] dotnetcore/BootstrapBlazor: 45 entregas na janela
+[6/30] aws-amplify/amplify-js: 25 entregas na janela
+[7/30] alandtse/alexa_media_player: 23 entregas na janela
+[8/30] v2fly/domain-list-community: 231 entregas na janela
+[9/30] Tencent/cherry-markdown: 17 entregas na janela
+[10/30] pocket-id/pocket-id: 77 entregas na janela
+[11/30] HugoBlox/kit: 9 entregas na janela
+[12/30] HotCakeX/Harden-Windows-Security: 111 entregas na janela
+[13/30] YosysHQ/yosys: 13 entregas na janela
+[14/30] dkron-io/dkron: 7 entregas na janela
+[15/30] element-hq/synapse: 31 entregas na janela
+[16/30] subquery/subql: 163 entregas na janela
+[17/30] GIScience/openrouteservice: 12 entregas na janela
+[18/30] vuejs/vitepress: 5 entregas na janela
+[19/30] cloudnative-pg/cloudnative-pg: 20 entregas na janela
+[20/30] pgcentralfoundation/pgrx: 9 entregas na janela
+[21/30] dmno-dev/varlock: 69 entregas na janela
+[22/30] redpanda-data/connect: 44 entregas na janela
+[23/30] google/magika: 8 entregas na janela
+[24/30] Blackymas/NSPanel_HA_Blueprint: 39 entregas na janela
+[25/30] blockscout/blockscout: 22 entregas na janela
+[26/30] leanprover/lean4: 16 entregas na janela
+[27/30] bitnami/sealed-secrets: 20 entregas na janela
+[28/30] discord-jda/JDA: 15 entregas na janela
+[29/30] langwatch/langwatch: 86 entregas na janela
+[30/30] modelcontextprotocol/modelcontextprotocol: 5 entregas na janela
+Resumo salvo em /private/tmp/claude-501/-Users-rafaelfranco-Documents-Repositorys-Laboratorio-03-medicao-de-software/187145a9-1157-44be-852f-8073d95890cb/scratchpad/replicacao/alvo/LAB03/data_replicacao/lead_time_release.csv
+
+ Pipeline executado com sucesso!
+$S/replicacao/venv314/bin/python -m pipeline --config config_replicacao.yaml   20.45s user 3.13s system 1% cpu 29:06.97 total
