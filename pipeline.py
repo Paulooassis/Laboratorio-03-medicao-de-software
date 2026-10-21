@@ -12,7 +12,9 @@ from dora_selection.pipeline import main as run
 
 OPTIONS = {"inicio": "--start", "fim": "--end", "alvo": "--target", "min_estrelas": "--min-stars",
            "saida": "--output", "processados": "--processed", "tipo_projeto": "--project-types",
-           "workers": "--workers"}
+           "workers": "--workers", "variantes": "--variants"}
+# Chaves sem valor na linha de comando: `true` liga a opção, `false` a omite.
+FLAGS = {"variantes"}
 
 
 def arguments(path):
@@ -30,7 +32,11 @@ def arguments(path):
         raise ValueError(f"{path}: opções desconhecidas em coleta: {', '.join(unknown)}.")
     result = ["--config", str(path)]
     for key, value in section.items():
-        if value is not None:
+        if key in FLAGS:
+            if not isinstance(value, bool):
+                raise ValueError(f"{path}: coleta.{key} deve ser true ou false.")
+            result += [OPTIONS[key]] if value else []
+        elif value is not None:
             result += [OPTIONS[key], str(value)]
     return result
 

@@ -21,6 +21,7 @@ REPOSITORY_FIELDS = [
     "releases_no_new_commits", "releases_no_commit_dates",
     "cfr_a", "cfr_a_runs", "cfr_a_failures", "runs_ignored",
     "cfr_b", "cfr_b_version", "cfr_b_evaluated", "cfr_b_failed", "cfr_b_corrective", "cfr_b_censored",
+    "rework_rate", "rework_evaluated", "rework_corrective", "rework_no_previous",
     "recovery_hours", "recovery_episodes", "recovery_recovered", "recovery_censored",
     "recovery_censored_share", "recovery_inconsistent",
     "deployment_frequency_level", "lead_time_level", "change_failure_rate_level", "recovery_time_level",
@@ -64,6 +65,7 @@ def repository_row(repo, deployment, measured, classification, complete, window,
     per_release, per_commit = measured["lead_time_per_release"], measured["lead_time_per_commit"]
     runs = measured["change_failure_rate"]
     delivery = measured.get("change_failure_rate_b") or {}
+    rework = measured.get("rework") or {}
     ignored = per_release["releases_ignored"]
     compared = Counter(release.get("comparison_status") for release in (deployment.get("releases") or []))
     return {
@@ -85,6 +87,8 @@ def repository_row(repo, deployment, measured, classification, complete, window,
         "cfr_b": delivery.get("change_failure_rate"), "cfr_b_version": delivery.get("heuristic"),
         "cfr_b_evaluated": delivery.get("evaluated"), "cfr_b_failed": delivery.get("failed"),
         "cfr_b_corrective": delivery.get("corrective"), "cfr_b_censored": delivery.get("censored"),
+        "rework_rate": rework.get("rework_rate"), "rework_evaluated": rework.get("evaluated"),
+        "rework_corrective": rework.get("corrective"), "rework_no_previous": rework.get("no_previous"),
         "recovery_hours": recovery["median_recovery_hours"], "recovery_episodes": recovery["episodes"],
         "recovery_recovered": recovery["recovered"], "recovery_censored": recovery["censored"],
         "recovery_censored_share": share(recovery["censored"], recovery["episodes"]),

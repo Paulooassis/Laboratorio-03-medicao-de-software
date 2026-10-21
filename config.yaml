@@ -7,6 +7,7 @@ coleta:
   processados: data/processed
   tipo_projeto: validacao/resultados/tipo_projeto.csv
   workers: 4
+  variantes: true
 heuristica_corretiva:
   versao_candidata: v1
   versao_oficial: v1

@@ -4,12 +4,14 @@ import re
 from pathlib import Path
 import pytest
 from dora_selection.dataset import EPISODE_FIELDS, RELEASE_FIELDS, REPOSITORY_FIELDS
+from dora_selection.variants import DEPLOY_FIELDS, VARIANT_FIELDS
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DICTIONARY = ROOT / "docs" / "dicionario_de_dados.md"
 TABLES = {"repositorios.csv": REPOSITORY_FIELDS, "releases.csv": RELEASE_FIELDS,
-          "episodios_falha.csv": EPISODE_FIELDS}
+          "episodios_falha.csv": EPISODE_FIELDS, "variantes.csv": VARIANT_FIELDS,
+          "deploys_variantes.csv": DEPLOY_FIELDS}
 
 
 def section(name):

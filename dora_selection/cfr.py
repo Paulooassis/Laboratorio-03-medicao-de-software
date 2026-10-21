@@ -180,3 +180,33 @@ def cfr_entrega(releases, fim_janela):
     if result["evaluated"]:
         result["change_failure_rate"] = result["failed"] / result["evaluated"]
     return result
+
+
+def rework_rate(releases):
+    """Deployment rework rate (DORA, 2024) = releases corretivas / releases avaliáveis.
+
+    Usa a mesma heurística e o mesmo predecessor do CFR (b) (`classify_releases`), mas mede
+    outra coisa: o CFR (b) marca a release que **falhou** (a seguida por uma correção em até
+    7 dias); o rework rate marca **a própria correção**, sem janela de tempo. Por isso não
+    há censura: nenhuma release fica fora do denominador por ser recente.
+
+    Fica fora do denominador a primeira release da história (`comparison_status` igual a
+    `no_previous_release`), que não tem release anterior para ser corrigida, e as releases
+    sem data. Ambas são contadas. Sem nenhuma release avaliável, a taxa é None, nunca zero.
+    As releases cujo `compare` falhou continuam no denominador, como no CFR (b): a decisão
+    por SemVer não depende dos commits, e a de tags fora do SemVer vira "não corretiva"
+    por falta de commits, o que subestima a taxa.
+    """
+    ordered, undated, corrective = classify_releases(releases)
+    result = {"heuristic": HEURISTIC_VERSION, "releases": len(ordered) + undated,
+              "ignored_missing_date": undated, "no_previous": 0, "evaluated": 0,
+              "corrective": 0, "rework_rate": None}
+    for (_, release), is_fix in zip(ordered, corrective):
+        if release.get("comparison_status") == "no_previous_release":
+            result["no_previous"] += 1
+            continue
+        result["evaluated"] += 1
+        result["corrective"] += int(is_fix)
+    if result["evaluated"]:
+        result["rework_rate"] = result["corrective"] / result["evaluated"]
+    return result

@@ -5,7 +5,7 @@ import logging
 import pytest
 import yaml
 import pipeline
-from dora_selection.cfr import cfr_entrega
+from dora_selection.cfr import cfr_entrega, rework_rate
 from dora_selection.dataset import (EPISODE_FIELDS, RELEASE_FIELDS, REPOSITORY_FIELDS, build_dataset, censoring,
                                     collection_checks, episode_rows, funnel_table, load_project_types,
                                     release_rows, repository_row, save_dataset)
@@ -22,7 +22,8 @@ REPO = {"full_name": "Owner/Repo", "url": "https://github.com/owner/repo", "star
 @pytest.fixture
 def measured(metrics, releases, window):
     """Amostra de referência com o CFR (b): v4 sai nos últimos 7 dias da janela e fica censurada."""
-    return {**metrics, "change_failure_rate_b": cfr_entrega(releases, window.end)}
+    return {**metrics, "change_failure_rate_b": cfr_entrega(releases, window.end),
+            "rework": rework_rate(releases)}
 
 
 @pytest.fixture
@@ -49,6 +50,23 @@ def test_repository_row_has_every_variant_and_the_rq06_factors(row):
     assert (row["cfr_b"], row["cfr_b_version"], row["cfr_b_evaluated"], row["cfr_b_censored"]) == (0.0, "v1", 3, 1)
     assert row["recovery_hours"] == 4.0
     assert row["overall"] is not None
+
+
+def test_repository_row_has_the_rework_rate_without_censoring(row):
+    # v1 é a primeira da história (fora do denominador); v2 a v4 não são corretivas, e a v4,
+    # que o CFR (b) censura por sair nos últimos 7 dias, continua avaliada no rework rate.
+    assert (row["rework_rate"], row["rework_evaluated"], row["rework_corrective"],
+            row["rework_no_previous"]) == (0.0, 3, 0, 1)
+    assert row["cfr_b_evaluated"] == 3 and row["cfr_b_censored"] == 1
+
+
+def test_repository_row_without_the_heuristic_leaves_the_rework_empty(measured, releases, window):
+    sem_heuristica = {chave: valor for chave, valor in measured.items()
+                      if chave not in ("change_failure_rate_b", "rework")}
+    linha = repository_row(REPO, {"releases": releases}, sem_heuristica,
+                           classify_repository(sem_heuristica), True, window)
+    assert [linha[campo] for campo in ("rework_rate", "rework_evaluated", "rework_corrective",
+                                       "rework_no_previous")] == [None] * 4
 
 
 def test_repository_row_counts_ignored_releases_and_censored_episodes(row):
@@ -193,6 +211,9 @@ def test_config_command_generates_the_final_dataset(configured, tmp_path):
     assert (first["lead_time_a_hours"], first["lead_time_b_hours"], first["cfr_a"]) == ("12.0", "12.0", "0.1")
     # A release de 30/01 sai nos últimos 7 dias da janela: censurada no CFR (b).
     assert (first["cfr_b_version"], first["cfr_b_evaluated"], first["cfr_b_censored"]) == ("v1", "4", "1")
+    # A release de 30/01 também entra no rework rate, que não censura; v0 fica antes da janela.
+    assert (first["rework_rate"], first["rework_evaluated"], first["rework_corrective"],
+            first["rework_no_previous"]) == ("0.0", "5", "0", "0")
     assert len(read_csv(tmp_path / "data" / "releases.csv")) == 10
     assert len(read_csv(tmp_path / "data" / "episodios_falha.csv")) == 10
     assert "| Incluídos na amostra | 2 |" in (tmp_path / "data" / "funil.md").read_text(encoding="utf-8")

@@ -9,6 +9,8 @@ Serve para que outro grupo replique o pipeline e compare os resultados coluna a 
 | [`repositorios.csv`](#repositorioscsv) | repositório incluído | 300 |
 | [`releases.csv`](#releasescsv) | release válida publicada na janela | 18.389 |
 | [`episodios_falha.csv`](#episodios_falhacsv) | episódio de falha de um workflow | 20.117 |
+| [`variantes.csv`](#variantescsv) | repositório × unidade de deploy (RQ 07) | 900 |
+| [`deploys_variantes.csv`](#deploys_variantescsv) | deploy de cada unidade (RQ 07) | a preencher após a coleta |
 | [`funil.md`](#funilmd) | etapa da seleção (tabela Markdown, não CSV) | — |
 
 ## Convenções
@@ -17,7 +19,12 @@ Serve para que outro grupo replique o pipeline e compare os resultados coluna a 
   segundos (2025-01-01T00:00:00Z a 2025-12-31T23:59:59Z). `fim da janela` nas fórmulas
   é esse instante.
 - **Release válida:** release com `draft = false`, `prerelease = false` e `published_at`
-  dentro da janela. Pré-releases e drafts não aparecem em nenhum CSV.
+  dentro da janela. Pré-releases e drafts não aparecem em `repositorios.csv`,
+  `releases.csv` nem `episodios_falha.csv`; as pré-releases só entram nos dois CSVs de
+  variantes da RQ 07.
+- **Unidade de deploy (RQ 07):** `release` (a definição principal), `release_prerelease`
+  (releases e pré-releases da janela numa só sequência) e `tag` (veja
+  [`variantes.csv`](#variantescsv)).
 - **Workflow run válido:** run de `GET /repos/{owner}/{repo}/actions/runs` com
   `head_branch` igual ao branch padrão, `event = push`, `created_at` na janela e
   `status = completed`. É classificado como `success` (`conclusion = success`), `failure`
@@ -49,6 +56,7 @@ Serve para que outro grupo replique o pipeline e compare os resultados coluna a 
 | releases | `GET /repos/{owner}/{repo}/releases` |
 | tags | `GET /repos/{owner}/{repo}/tags` |
 | compare | `GET /repos/{owner}/{repo}/compare/{base}...{head}` (todas as páginas) |
+| tags (GraphQL) | `POST /graphql`: `repository.refs(refPrefix: "refs/tags/", orderBy: {field: TAG_COMMIT_DATE, direction: DESC})`, com `authoredDate` do commit apontado |
 | runs | `GET /repos/{owner}/{repo}/actions/runs?branch={padrão}&event=push&created={período}` |
 
 `base` e `head` do compare são os SHAs das tags da release anterior e da atual (o nome
@@ -120,6 +128,24 @@ Heurística `v1`, resumida: com tag SemVer, a release é corretiva quando, em re
 anterior da mesma linha, muda apenas o patch (sem anterior menor, quando o próprio patch
 é maior que zero); com tag fora do SemVer, quando ao menos metade das primeiras linhas
 das mensagens dos commits contém `fix`, `hotfix` ou `revert` como palavra inteira.
+
+### Rework rate (RQ 08)
+
+A *deployment rework rate* que o DORA acrescentou em 2024: a proporção de entregas
+não planejadas, feitas para corrigir problemas. Usa a mesma heurística `v1` do CFR (b),
+mas mede a **própria correção**, e não a release que falhou. Por isso não há janela de
+7 dias nem censura: uma correção publicada na última semana da janela conta.
+
+| Coluna | Tipo | Unidade | Descrição / fórmula | Origem |
+| --- | --- | --- | --- | --- |
+| `rework_rate` | float | proporção (0 a 1) | `rework_corrective / rework_evaluated`; vazio sem nenhuma release avaliável | releases + compare |
+| `rework_evaluated` | int | releases | Denominador: releases datadas da janela, exceto a primeira da história. As releases com `compare` em erro ficam no denominador, como no CFR (b) | releases: `comparison_status` |
+| `rework_corrective` | int | releases | Releases avaliadas que a heurística classifica como corretivas | releases + compare: `tag_name`, mensagens |
+| `rework_no_previous` | int | releases | Primeira release da história do repositório, sem release anterior para corrigir: fora do denominador | releases: `comparison_status` |
+
+Difere de `cfr_b_corrective` por incluir as corretivas dos últimos 7 dias e por excluir a
+primeira release da história; as duas contagens só coincidem se nenhuma dessas
+situações ocorre.
 
 ### Tempo de recuperação
 
@@ -198,6 +224,83 @@ não abrem, não estendem e não encerram episódios.
 | `recovered` | bool | — | O episódio terminou em sucesso dentro da janela | pipeline |
 | `censored` | bool | — | Sem sucesso posterior até o fim da janela; sempre o oposto de `recovered` | pipeline |
 | `inconsistent` | bool | — | Recuperado com `recovery_hours` negativo; fora da mediana | pipeline |
+
+## variantes.csv
+
+Metade da análise de sensibilidade (RQ 07): as métricas que dependem da **unidade de
+deploy**, calculadas para cada uma das três unidades. Só existe quando
+`coleta.variantes` é `true` no `config.yaml`. Uma linha por repositório e unidade, na
+ordem `release`, `release_prerelease`, `tag` de cada repositório.
+
+| Unidade | Deploy | Data do deploy | Base da 1ª comparação |
+| --- | --- | --- | --- |
+| **release** | Release publicada (definição principal; repete `repositorios.csv`) | `published_at` | Última release publicada antes da janela |
+| **release_prerelease** | Release ou pré-release publicada na janela | `published_at` | Última release (não pré-release) antes da janela |
+| **tag** | Commit apontado por uma ou mais tags da janela | `commit.author.date` do commit da tag | Tag mais recente com commit anterior à janela |
+
+Na unidade `tag`, tags que apontam para o mesmo commit contam como **um** deploy, para
+que um monorepo que marca vários pacotes de uma vez não multiplique a frequência; o nome
+do deploy é o da primeira tag em ordem alfabética. Tags anotadas são seguidas até o
+commit. Como a data da tag é a do commit, o Lead Time dessa unidade é menor que o das
+releases (o deploy acontece quando o commit foi escrito, não quando foi publicado).
+Cada deploy é comparado (`compare`) com o **anterior da mesma unidade**. As fórmulas
+das métricas são as de `repositorios.csv`, com "release" lido como "deploy".
+
+| Coluna | Tipo | Unidade | Descrição / fórmula | Origem |
+| --- | --- | --- | --- | --- |
+| `repository` | string | — | Nome `owner/repo`, igual a `repositorios.csv` | busca: `full_name` |
+| `unit` | string | — | `release`, `release_prerelease` ou `tag` | pipeline |
+| `deploys` | int | deploys | Deploys da unidade com data dentro da janela | releases / tags (GraphQL) |
+| `deploys_without_date` | int | deploys | Deploys sem data legível, fora da contagem | pipeline |
+| `tags` | int | tags | Tags que formam os deploys (maior que `deploys` quando tags dividem o mesmo commit); nas outras unidades, igual a `deploys` | tags |
+| `deployment_frequency_per_week` | float | deploys/semana | `deploys ÷ (duração da janela em semanas)` | pipeline |
+| `lead_time_a_hours` | float | horas | Mediana, entre os deploys, de `data do deploy − commit.author.date` mais antigo do deploy | compare |
+| `lead_time_a_deploys` | int | deploys | Deploys que entraram na mediana de `lead_time_a_hours` | pipeline |
+| `lead_time_b_hours` | float | horas | Mediana de `data do deploy − commit.author.date` entre todos os commits de todos os deploys | compare |
+| `lead_time_b_commits` | int | commits | Commits que entraram na mediana de `lead_time_b_hours` | compare |
+| `deploys_ignored` | int | deploys | Deploys sem Lead Time, somados os motivos abaixo | pipeline |
+| `deploys_no_previous` | int | deploys | Primeiro deploy da unidade, sem base para o compare | pipeline |
+| `compare_not_found` | int | deploys | Compare com HTTP 404 (tag apagada ou reescrita) | compare |
+| `compare_error` | int | deploys | Compare com outro erro | compare |
+| `deploys_no_new_commits` | int | deploys | Compare válido sem commits novos | compare |
+| `deploys_no_commit_dates` | int | deploys | Commits sem `commit.author.date` legível | compare |
+| `cfr_b` | float | proporção | CFR (b) da unidade: `cfr_b_failed ÷ cfr_b_evaluated`, pela heurística `v1`; vazio sem deploy avaliado | pipeline |
+| `cfr_b_evaluated` | int | deploys | Deploys fora dos últimos 7 dias da janela | pipeline |
+| `cfr_b_failed` | int | deploys | Avaliados seguidos, em até 7 dias, de um deploy corretivo da mesma linha `major.minor` | pipeline |
+| `cfr_b_corrective` | int | deploys | Deploys classificados como corretivos pela heurística | pipeline |
+| `cfr_b_censored` | int | deploys | Publicados nos últimos 7 dias da janela, fora do denominador | pipeline |
+| `collection_complete` | bool | — | A unidade foi coletada. `False` indica falha de coleta (datas das tags indisponíveis, listagem de releases com erro ou repositório fora da coleta), e as demais colunas da linha **não** significam "sem deploys". Um `compare` com 404 ou outro erro não torna a unidade incompleta: o deploy sai do Lead Time e é contado em `compare_not_found`/`compare_error` | pipeline |
+
+O CFR (a) e o tempo de recuperação usam workflow runs e não dependem da unidade de
+deploy; para eles vale `repositorios.csv`. Os níveis DORA de cada combinação são
+calculados na análise (RQ 07) a partir destas colunas, com as mesmas faixas da C1.
+
+## deploys_variantes.csv
+
+Uma linha por deploy de cada unidade de `variantes.csv`, ordenadas por data (mesma
+estrutura de `releases.csv`, mais a unidade). Permite auditar uma mediana até os deploys
+e commits que a produziram.
+
+| Coluna | Tipo | Unidade | Descrição / fórmula | Origem |
+| --- | --- | --- | --- | --- |
+| `repository` | string | — | Nome `owner/repo`, igual a `repositorios.csv` | busca: `full_name` |
+| `unit` | string | — | `release`, `release_prerelease` ou `tag` | pipeline |
+| `tag_name` | string | — | Tag do deploy; para tags no mesmo commit, a primeira em ordem alfabética | releases / tags |
+| `tags` | int | tags | Tags que apontam para o commit do deploy | tags |
+| `prerelease` | bool | — | O deploy é uma pré-release; vazio na unidade `tag` | releases: `prerelease` |
+| `published_at` | datetime | — | Data do deploy: publicação (releases) ou `commit.author.date` do commit da tag | releases / tags (GraphQL) |
+| `commit_sha` | string | — | Commit apontado pela tag | tags |
+| `previous_tag_name` | string | — | Deploy anterior da mesma unidade usado como base do compare; vazio no primeiro | pipeline |
+| `comparison_status` | string | — | `completed`, `no_previous_release`, `not_found` ou `error` | compare |
+| `lead_time_status` | string | — | `measured` ou o motivo de não medir, como em `releases.csv` | pipeline |
+| `commits` | int | commits | Commits devolvidos pelo compare, sem duplicatas de SHA | compare |
+| `measured_commits` | int | commits | Commits com `commit.author.date` legível | compare |
+| `lead_time_a_hours` | float | horas | `data do deploy − min(commit.author.date)` | compare |
+| `lead_time_b_hours` | float | horas | Mediana de `data do deploy − commit.author.date` entre os commits do deploy | compare |
+| `corrective` | bool | — | A heurística `v1` classifica o deploy como corretivo | tag_name, mensagens |
+| `cfr_b_censored` | bool | — | Publicado nos últimos 7 dias da janela | pipeline |
+| `cfr_b_failed` | bool | — | Seguido, em até 7 dias, por um corretivo da mesma linha `major.minor` | pipeline |
+| `fixed_by_tag_name` | string | — | Deploy corretivo que caracterizou a falha | pipeline |
 
 ## funil.md
 
