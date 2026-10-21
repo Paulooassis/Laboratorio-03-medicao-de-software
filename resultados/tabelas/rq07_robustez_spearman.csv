@@ -1,0 +1,5 @@
+combinacao,n,rho,p,forca,sinal,mantem_sinal,mantem_significancia,conclusao_mantida
+C1,300,0.07063861290938683,0.2224977091265253,desprezível,positivo,True,True,True
+C2,300,0.5850080883429091,6.125794233427618e-29,moderada,positivo,True,False,False
+C3,300,0.19760201583003598,0.0005768287861846695,fraca,positivo,True,False,False
+C4,300,0.6153900737242854,1.1867531317516715e-32,moderada,positivo,True,False,False

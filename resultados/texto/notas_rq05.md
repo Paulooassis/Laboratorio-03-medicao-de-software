@@ -2,12 +2,11 @@
 
 A unidade de análise é o repositório. Cada variante exclui ausentes par a par; o CFR (b) foi obtido de releases.csv, segundo a agregação da RQ 03. Os p-valores são bilaterais, sem ajuste por multiplicidade, e exploratórios.
 
-Na variante (a) proxy de CI, ρ = 0,2318, p = 0,020337 e n = 100; a força da associação é
-fraca. A associação positiva apresenta uma tensão aparente com a afirmação do DORA: maior
-frequência acompanha maior CFR nesta amostra. As proxies e o mecanismo de medição impedem
-tratar isso como uma refutação direta do DORA.
+Na variante (a) proxy de CI, ρ = 0,0706, p = 0,222498 e n = 300; a força da associação é
+desprezível. Não há evidência estatística de associação monotônica ao nível de 5%; isso
+não confirma nem refuta o DORA, nem demonstra independência.
 
-Na variante (b) proxy de entrega, ρ = 0,6832, p = 4,85952e-15 e n = 100; a força da
+Na variante (b) proxy de entrega, ρ = 0,6154, p = 1,18675e-32 e n = 300; a força da
 associação é moderada. A associação positiva apresenta uma tensão aparente com a afirmação
 do DORA: maior frequência acompanha maior CFR nesta amostra. As proxies e o mecanismo de
 medição impedem tratar isso como uma refutação direta do DORA.
@@ -20,15 +19,15 @@ limites universais ou como teste de significância.
 
 ## Diagnóstico do artefato do CFR (b)
 
-Na amostra válida de DF × CFR (b), o grupo de baixa frequência inclui DF ≤ 0,2445
-releases/semana (Q1), e o de alta frequência DF ≥ 1,2705 (Q3). Ordenamos as datas de
+Na amostra válida de DF × CFR (b), o grupo de baixa frequência inclui DF ≤ 0,2301
+releases/semana (Q1), e o de alta frequência DF ≥ 1,0021 (Q3). Ordenamos as datas de
 publicação dentro de cada repositório e calculamos os intervalos consecutivos, incluindo
 intervalos nulos de releases simultâneas. Primeiro resumimos cada repositório; depois
 comparamos as medianas desses resumos, sem ponderar pelo número de releases.
 
-O intervalo mediano por repositório tem mediana 28,55 dias (IQR 29,00; n = 25) na baixa DF
-e 0,95 dias (IQR 1,94; n = 25) na alta DF. A mediana da fração de intervalos de até sete
-dias é 0,20 e 0,92, respectivamente.
+O intervalo mediano por repositório tem mediana 27,90 dias (IQR 23,04; n = 87) na baixa DF
+e 1,39 dias (IQR 2,79; n = 75) na alta DF. A mediana da fração de intervalos de até sete
+dias é 0,25 e 0,88, respectivamente.
 
 O grupo de alta DF apresenta intervalos menores e maior fração dentro de sete dias, padrão
 compatível com mais oportunidades de a heurística marcar falha. O CFR (b) procura uma

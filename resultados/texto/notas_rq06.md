@@ -1,6 +1,6 @@
 # RQ 06 — Fatores associados ao desempenho DORA
 
-A entrada contém 100 repositórios, não uma amostra presumida de 300. Cada repositório tem o mesmo peso. A análise é univariada, bilateral, com α = 0,05. As métricas principais são DF, LT (a), CFR (a) e recuperação da C1 estrita; não há fallback de LT (a) para (b), nem imputação de episódios censurados. O CFR (b) suplementar usa releases.csv e a mesma agregação/censura da RQ 05.
+A entrada contém 300 repositórios, não uma amostra presumida de 300. Cada repositório tem o mesmo peso. A análise é univariada, bilateral, com α = 0,05. As métricas principais são DF, LT (a), CFR (a) e recuperação da C1 estrita; não há fallback de LT (a) para (b), nem imputação de episódios censurados. O CFR (b) suplementar usa releases.csv e a mesma agregação/censura da RQ 05.
 
 Durações negativas encontradas: LT (b): 1. Os Lead Times negativos são preservados, conforme a política do pipeline documentada no README (rebase ou cherry-pick podem gerar essas diferenças de datas). Não se toma módulo nem se troca por zero. São uma limitação temporal da proxy; não representam tempo de entrega fisicamente negativo nem justificam alegar desempenho superior.
 
@@ -8,13 +8,13 @@ Durações negativas encontradas: LT (b): 1. Os Lead Times negativos são preser
 
 Os grupos são fixados com os metadados antes de excluir a métrica ausente em cada teste. Idade é (window_end − created_at) em dias de 24 horas; datas ausentes não são estimadas. Estrelas, contribuidores e idade usam [pandas.qcut][qcut], com quatro quantis e duplicates='drop': cortes coincidentes são removidos; empates não são separados por posição arbitrária. Os grupos restantes são Q1…Qk, em ordem crescente, e podem ter tamanhos diferentes ou intervalos vazios. Um fator constante não permite teste. Os intervalos são abertos à esquerda e fechados à direita, exceto o primeiro, que inclui o mínimo. Todos os limites exatos e n estão em rq06_grupos.csv.
 
-- Linguagem: TypeScript: n=31; Python: n=19; Outras: n=49.
+- Linguagem: TypeScript: n=88; Python: n=60; Go: n=38; Rust: n=30; C++: n=19; JavaScript: n=18; Outras: n=46.
 
-- Estrelas: Q1 [65165; 76791.5] estrelas: n=25; Q2 (76791.5; 93780] estrelas: n=25; Q3 (93780; 120355.25] estrelas: n=25; Q4 (120355.25; 391686] estrelas: n=25.
+- Estrelas: Q1 [33630; 40120.75] estrelas: n=75; Q2 (40120.75; 51148.5] estrelas: n=75; Q3 (51148.5; 76686] estrelas: n=75; Q4 (76686; 391637] estrelas: n=75.
 
-- Contribuidores: Q1 [37; 386.25] pessoas: n=25; Q2 (386.25; 897] pessoas: n=25; Q3 (897; 1848.25] pessoas: n=25; Q4 (1848.25; 8872] pessoas: n=25.
+- Contribuidores: Q1 [11; 269.75] pessoas: n=75; Q2 (269.75; 536.5] pessoas: n=75; Q3 (536.5; 1140] pessoas: n=75; Q4 (1140; 9905] pessoas: n=75.
 
-- Idade: Q1 [28.930486; 1025.8099] dias: n=25; Q2 (1025.8099; 2785.9488] dias: n=25; Q3 (2785.9488; 4160.249] dias: n=25; Q4 (4160.249; 6129.0608] dias: n=25.
+- Idade: sem metadados válidos.
 
 Entre as seis linguagens mais frequentes, mantêm-se separadas apenas as que têm pelo menos 15 repositórios. As demais conhecidas formam Outras; se Outras tiver menos de 15, absorve a menor linguagem mantida até atingir esse mínimo. Linguagem ausente fica fora desse fator. A quantidade de linguagens separadas depende dos dados: não se fabricam grupos de 15 para alcançar cinco ou seis linguagens.
 
@@ -26,31 +26,29 @@ Para KW, ε² = H/(n−1); a convenção descritiva de [Mangiafico][efeitos] é:
 
 ### Família principal
 
-16 testes planejados; 16 estimáveis; 3 significativo(s) após Holm; 3 com efeito ao menos médio na convenção adotada.
+16 testes planejados; 12 estimáveis; 4 significativo(s) após Holm; 3 com efeito ao menos médio na convenção adotada.
 
-- Linguagem × LT (a): n=99, p Holm=0,00137956, ε²=0,1897 (médio).
+- Linguagem × DF: n=299, p Holm=7,69074e-05, ε²=0,1131 (médio).
 
-- Contribuidores × LT (a): n=100, p Holm=0,00807179, ε²=0,1761 (médio).
+- Linguagem × LT (a): n=299, p Holm=9,36108e-08, ε²=0,1641 (médio).
 
-- Idade × LT (a): n=100, p Holm=1,05808e-07, ε²=0,4139 (grande).
+- Contribuidores × DF: n=300, p Holm=0,0295575, ε²=0,0459 (pequeno).
 
-Nenhum fator teve associação significativa após Holm com DF, CFR (a), Recuperação nesta família.
+- Contribuidores × LT (a): n=300, p Holm=1,5438e-05, ε²=0,1002 (médio).
 
-Efeitos ao menos médios sem significância após Holm: Linguagem × DF (p Holm=0,0778555); Contribuidores × Recuperação (p Holm=0,283173); Idade × DF (p Holm=0,0654068); Idade × CFR (a) (p Holm=0,350186). Permanecem inconclusivos apesar da magnitude estimada.
+Nenhum fator teve associação significativa após Holm com CFR (a), Recuperação nesta família.
 
 ### Família suplementar
 
-8 testes planejados; 8 estimáveis; 5 significativo(s) após Holm; 5 com efeito ao menos médio na convenção adotada.
+8 testes planejados; 6 estimáveis; 4 significativo(s) após Holm; 3 com efeito ao menos médio na convenção adotada.
 
-- Linguagem × LT (b): n=99, p Holm=0,00164919, ε²=0,1673 (médio).
+- Linguagem × LT (b): n=299, p Holm=3,41586e-05, ε²=0,1140 (médio).
 
-- Linguagem × CFR (b): n=99, p Holm=0,0108861, ε²=0,1251 (médio).
+- Linguagem × CFR (b): n=299, p Holm=3,41586e-05, ε²=0,1127 (médio).
 
-- Contribuidores × LT (b): n=100, p Holm=0,000272124, ε²=0,2331 (médio).
+- Contribuidores × LT (b): n=300, p Holm=2,14666e-10, ε²=0,1727 (médio).
 
-- Idade × LT (b): n=100, p Holm=7,77588e-10, ε²=0,5010 (grande).
-
-- Idade × CFR (b): n=100, p Holm=0,0108861, ε²=0,1462 (médio).
+- Contribuidores × CFR (b): n=300, p Holm=0,0246437, ε²=0,0394 (pequeno).
 
 ### Família exploratória
 
@@ -60,57 +58,53 @@ Efeitos ao menos médios sem significância após Holm: Linguagem × DF (p Holm=
 
 Nenhum fator teve associação significativa após Holm com DF, CFR (a), Recuperação nesta família.
 
+Efeitos ao menos médios sem significância após Holm: Tipo do projeto × Recuperação (p Holm=0,306442). Permanecem inconclusivos apesar da magnitude estimada.
+
 ## Post-hoc e direção
 
 Somente KW significativo após Holm abre comparações MW bilaterais par a par. Holm reúne todos os pares das métricas selecionadas dentro de cada fator e família (não só por métrica). A tabela rq06_posthoc registra todos esses pares, Cliff's delta e direção; MW global com dois grupos já é a comparação direta. DF maior indica sentido favorável; LT, CFR e recuperação menores indicam sentido favorável. Dominância de postos não exige diferença entre medianas.
 
-- principal, Linguagem × LT (a): A=Outras, B=Python; p Holm=0,00504661; δ=0,4758 (grande); A tende a ter valores maiores; sentido favorável a B.
+- principal, Linguagem × DF: A=Go, B=TypeScript; p Holm=0,00472351; δ=-0,4312 (médio); A tende a ter valores menores; sentido favorável a B.
 
-- principal, Linguagem × LT (a): A=Outras, B=TypeScript; p Holm=0,000311876; δ=0,5181 (grande); A tende a ter valores maiores; sentido favorável a B.
+- principal, Linguagem × DF: A=Outras, B=TypeScript; p Holm=3,91656e-05; δ=-0,5168 (grande); A tende a ter valores menores; sentido favorável a B.
 
-- principal, Contribuidores × LT (a): A=Q1, B=Q2; p Holm=0,0105383; δ=-0,4976 (grande); A tende a ter valores menores; sentido favorável a A.
+- principal, Linguagem × LT (a): A=C++, B=Python; p Holm=0,00255241; δ=0,6105 (grande); A tende a ter valores maiores; sentido favorável a B.
 
-- principal, Contribuidores × LT (a): A=Q1, B=Q3; p Holm=0,00473284; δ=-0,5552 (grande); A tende a ter valores menores; sentido favorável a A.
+- principal, Linguagem × LT (a): A=C++, B=TypeScript; p Holm=0,000323004; δ=0,6555 (grande); A tende a ter valores maiores; sentido favorável a B.
 
-- principal, Contribuidores × LT (a): A=Q1, B=Q4; p Holm=0,00473284; δ=-0,5520 (grande); A tende a ter valores menores; sentido favorável a A.
+- principal, Linguagem × LT (a): A=Go, B=TypeScript; p Holm=0,00225741; δ=0,4528 (médio); A tende a ter valores maiores; sentido favorável a B.
 
-- principal, Idade × LT (a): A=Q1, B=Q2; p Holm=0,0478058; δ=-0,3280 (pequeno); A tende a ter valores menores; sentido favorável a A.
+- principal, Linguagem × LT (a): A=Outras, B=Python; p Holm=0,00835512; δ=0,4188 (médio); A tende a ter valores maiores; sentido favorável a B.
 
-- principal, Idade × LT (a): A=Q1, B=Q3; p Holm=0,000256615; δ=-0,6608 (grande); A tende a ter valores menores; sentido favorável a A.
+- principal, Linguagem × LT (a): A=Outras, B=TypeScript; p Holm=3,10461e-05; δ=0,5222 (grande); A tende a ter valores maiores; sentido favorável a B.
 
-- principal, Idade × LT (a): A=Q1, B=Q4; p Holm=2,0064e-06; δ=-0,8432 (grande); A tende a ter valores menores; sentido favorável a A.
+- principal, Contribuidores × DF: A=Q1, B=Q3; p Holm=0,00273607; δ=-0,3417 (médio); A tende a ter valores menores; sentido favorável a B.
 
-- principal, Idade × LT (a): A=Q2, B=Q3; p Holm=0,0156176; δ=-0,4624 (médio); A tende a ter valores menores; sentido favorável a A.
+- principal, Contribuidores × LT (a): A=Q1, B=Q4; p Holm=6,02801e-06; δ=-0,4756 (grande); A tende a ter valores menores; sentido favorável a A.
 
-- principal, Idade × LT (a): A=Q2, B=Q4; p Holm=9,98645e-06; δ=-0,7856 (grande); A tende a ter valores menores; sentido favorável a A.
+- principal, Contribuidores × LT (a): A=Q2, B=Q4; p Holm=0,000732552; δ=-0,3753 (médio); A tende a ter valores menores; sentido favorável a A.
 
-- principal, Idade × LT (a): A=Q3, B=Q4; p Holm=0,0340145; δ=-0,3952 (médio); A tende a ter valores menores; sentido favorável a A.
+- principal, Contribuidores × LT (a): A=Q3, B=Q4; p Holm=0,000397581; δ=-0,3909 (médio); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Linguagem × LT (b): A=Outras, B=Python; p Holm=0,00141831; δ=0,5789 (grande); A tende a ter valores maiores; sentido favorável a B.
+- suplementar, Linguagem × LT (b): A=C++, B=Python; p Holm=0,0017737; δ=0,6263 (grande); A tende a ter valores maiores; sentido favorável a B.
 
-- suplementar, Linguagem × LT (b): A=Outras, B=TypeScript; p Holm=0,0227548; δ=0,3693 (médio); A tende a ter valores maiores; sentido favorável a B.
+- suplementar, Linguagem × LT (b): A=JavaScript, B=Python; p Holm=0,00363406; δ=0,6111 (grande); A tende a ter valores maiores; sentido favorável a B.
 
-- suplementar, Linguagem × CFR (b): A=Outras, B=TypeScript; p Holm=0,00153438; δ=-0,4806 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Linguagem × LT (b): A=Outras, B=Python; p Holm=0,00339979; δ=0,4471 (médio); A tende a ter valores maiores; sentido favorável a B.
 
-- suplementar, Contribuidores × LT (b): A=Q1, B=Q2; p Holm=0,00988484; δ=-0,5008 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Linguagem × CFR (b): A=C++, B=TypeScript; p Holm=0,0150385; δ=-0,5185 (grande); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Contribuidores × LT (b): A=Q1, B=Q3; p Holm=0,000714891; δ=-0,6288 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Linguagem × CFR (b): A=Go, B=TypeScript; p Holm=0,00901061; δ=-0,4136 (médio); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Contribuidores × LT (b): A=Q1, B=Q4; p Holm=0,000300554; δ=-0,6704 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Linguagem × CFR (b): A=Outras, B=TypeScript; p Holm=0,000186382; δ=-0,4832 (grande); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Idade × LT (b): A=Q1, B=Q2; p Holm=0,0138812; δ=-0,5136 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Contribuidores × LT (b): A=Q1, B=Q4; p Holm=3,53653e-10; δ=-0,6292 (grande); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Idade × LT (b): A=Q1, B=Q3; p Holm=1,77816e-06; δ=-0,8656 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Contribuidores × LT (b): A=Q2, B=Q4; p Holm=5,83573e-08; δ=-0,5524 (grande); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Idade × LT (b): A=Q1, B=Q4; p Holm=1,02562e-06; δ=-0,8848 (grande); A tende a ter valores menores; sentido favorável a A.
+- suplementar, Contribuidores × LT (b): A=Q3, B=Q4; p Holm=9,85804e-05; δ=-0,4183 (médio); A tende a ter valores menores; sentido favorável a A.
 
-- suplementar, Idade × LT (b): A=Q2, B=Q3; p Holm=0,000277709; δ=-0,6928 (grande); A tende a ter valores menores; sentido favorável a A.
-
-- suplementar, Idade × LT (b): A=Q2, B=Q4; p Holm=0,000489764; δ=-0,6672 (grande); A tende a ter valores menores; sentido favorável a A.
-
-- suplementar, Idade × CFR (b): A=Q1, B=Q4; p Holm=0,0138812; δ=0,5120 (grande); A tende a ter valores maiores; sentido favorável a B.
-
-- suplementar, Idade × CFR (b): A=Q2, B=Q4; p Holm=0,0138812; δ=0,5136 (grande); A tende a ter valores maiores; sentido favorável a B.
+- suplementar, Contribuidores × CFR (b): A=Q2, B=Q4; p Holm=0,0283729; δ=0,2775 (pequeno); A tende a ter valores maiores; sentido favorável a B.
 
 - exploratoria, Tipo do projeto × LT (a): A=application/service, B=cli; p Holm=0,0102348; δ=0,5661 (grande); A tende a ter valores maiores; sentido favorável a B.
 
@@ -118,7 +112,7 @@ Somente KW significativo após Holm abre comparações MW bilaterais par a par. 
 
 ## Tipo de projeto e limites da interpretação
 
-Rótulos coletivos, provisórios (não são consenso independente): validacao/rotulos/rotulos_grupo.csv; 60 repositórios com métricas e tipo elegível; 0 do tipo other excluídos.
+Rótulos consensuais: validacao/resultados/tipo_projeto.csv; 60 repositórios com métricas e tipo elegível; 0 do tipo other excluídos.
 
 Os tipos elegíveis são biblioteca/framework, aplicação/serviço e CLI. Não se estendem rótulos aos projetos não rotulados. Se algum tipo efetivo tiver n<5, comparam-se apenas os dois maiores por MW; a restrição e os grupos ficam na tabela. Não se mistura esta amostra com a família principal.
 

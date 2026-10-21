@@ -1,5 +1,5 @@
 familia,fator,metrica,n,grupos,teste,h,u,p,epsilon_quadrado,delta,interpretacao,restricao,status,p_holm,rejeita
-exploratoria,tipo,df,60,application/service: 27; cli: 14; library/framework: 19,KW,3.9922683429577495,,0.13585947880673055,0.0676655651348771,,pequeno,,ok,0.33597571336249266,False
+exploratoria,tipo,df,60,application/service: 27; cli: 14; library/framework: 19,KW,3.9922683429577495,,0.13585947880673058,0.0676655651348771,,pequeno,,ok,0.3064422103023461,False
 exploratoria,tipo,lt_a,60,application/service: 27; cli: 14; library/framework: 19,KW,10.550164573546795,,0.005117535585455398,0.17881634870418295,,médio,,ok,0.020470142341821592,True
-exploratoria,tipo,cfr_a,60,application/service: 27; cli: 14; library/framework: 19,KW,1.4738068771113875,,0.4785936178886615,0.02497977757815911,,pequeno,,ok,0.4785936178886615,False
-exploratoria,tipo,recuperacao,58,application/service: 26; cli: 14; library/framework: 18,KW,4.378657383917471,,0.11199190445416422,0.07681855059504335,,pequeno,,ok,0.33597571336249266,False
+exploratoria,tipo,cfr_a,60,application/service: 27; cli: 14; library/framework: 19,KW,1.7144261816038406,,0.4243430414658328,0.029058070874641368,,pequeno,,ok,0.4243430414658328,False
+exploratoria,tipo,recuperacao,58,application/service: 26; cli: 14; library/framework: 18,KW,4.56267675437752,,0.10214740343411535,0.08004696060311439,,médio,,ok,0.3064422103023461,False

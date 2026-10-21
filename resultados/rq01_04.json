@@ -1,0 +1,5498 @@
+{
+  "sintese": [
+    {
+      "metrica": "RQ 01 Deployment Frequency",
+      "variante": "única",
+      "unidade": "releases/semana",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 0.4602739726027397,
+      "q1": 0.2301369863013698,
+      "q3": 1.0020547945205478,
+      "iqr": 0.771917808219178
+    },
+    {
+      "metrica": "RQ 02 Lead Time",
+      "variante": "(a) por release",
+      "unidade": "horas",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 324.9067361111111,
+      "q1": 116.7348611111111,
+      "q3": 996.9004166666667,
+      "iqr": 880.1655555555557
+    },
+    {
+      "metrica": "RQ 02 Lead Time",
+      "variante": "(a) por release",
+      "unidade": "dias",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 13.537780671296296,
+      "q1": 4.8639525462962965,
+      "q3": 41.537517361111114,
+      "iqr": 36.67356481481482
+    },
+    {
+      "metrica": "RQ 02 Lead Time",
+      "variante": "(b) por commit",
+      "unidade": "horas",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 411.8088888888889,
+      "q1": 128.16322916666667,
+      "q3": 1844.3250347222224,
+      "iqr": 1716.1618055555557
+    },
+    {
+      "metrica": "RQ 02 Lead Time",
+      "variante": "(b) por commit",
+      "unidade": "dias",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 17.158703703703704,
+      "q1": 5.340134548611111,
+      "q3": 76.84687644675927,
+      "iqr": 71.50674189814816
+    },
+    {
+      "metrica": "RQ 02 Lead Time",
+      "variante": "razão (a)/(b)",
+      "unidade": "vezes",
+      "n": 299,
+      "ausentes": 1,
+      "mediana": 1.2870883718836934,
+      "q1": 0.5329502057035138,
+      "q3": 1.9569228406371253,
+      "iqr": 1.4239726349336115
+    },
+    {
+      "metrica": "RQ 03 Change Failure Rate",
+      "variante": "(a) proxy de CI",
+      "unidade": "proporção",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 0.05627392961415405,
+      "q1": 0.013264700892281774,
+      "q3": 0.13289967462662539,
+      "iqr": 0.11963497373434362
+    },
+    {
+      "metrica": "RQ 03 Change Failure Rate",
+      "variante": "(b) proxy de entrega",
+      "unidade": "proporção",
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 0.2692307692307692,
+      "q1": 0.10535714285714286,
+      "q3": 0.5,
+      "iqr": 0.39464285714285713
+    },
+    {
+      "metrica": "RQ 04 Tempo de recuperação",
+      "variante": "episódios recuperados",
+      "unidade": "horas",
+      "n": 264,
+      "ausentes": 36,
+      "mediana": 4.937569444444445,
+      "q1": 1.7459027777777778,
+      "q3": 18.74583333333333,
+      "iqr": 16.99993055555555
+    },
+    {
+      "metrica": "RQ 04 Tempo de recuperação",
+      "variante": "episódios recuperados",
+      "unidade": "dias",
+      "n": 264,
+      "ausentes": 36,
+      "mediana": 0.2057320601851852,
+      "q1": 0.07274594907407408,
+      "q3": 0.7810763888888889,
+      "iqr": 0.7083304398148148
+    },
+    {
+      "metrica": "RQ 04 Tempo de recuperação",
+      "variante": "limite inferior com censurados",
+      "unidade": "horas",
+      "n": 268,
+      "ausentes": 32,
+      "mediana": 5.221180555555556,
+      "q1": 1.8169097222222221,
+      "q3": 22.216840277777777,
+      "iqr": 20.399930555555557
+    },
+    {
+      "metrica": "RQ 04 Tempo de recuperação",
+      "variante": "limite inferior com censurados",
+      "unidade": "dias",
+      "n": 268,
+      "ausentes": 32,
+      "mediana": 0.2175491898148148,
+      "q1": 0.07570457175925926,
+      "q3": 0.9257016782407407,
+      "iqr": 0.8499971064814814
+    },
+    {
+      "metrica": "RQ 04 Censura",
+      "variante": "episódios censurados por repositório",
+      "unidade": "proporção",
+      "n": 268,
+      "ausentes": 32,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.028781512605042015,
+      "iqr": 0.028781512605042015
+    }
+  ],
+  "rq01": {
+    "resumo": {
+      "n": 300,
+      "ausentes": 0,
+      "mediana": 0.4602739726027397,
+      "q1": 0.2301369863013698,
+      "q3": 1.0020547945205478,
+      "iqr": 0.771917808219178
+    },
+    "repositorios": 300,
+    "repositorios_sem_release": 0,
+    "repositorios_sem_valor": 0,
+    "figura": "rq01_deployment_frequency.pdf"
+  },
+  "rq02": {
+    "a_release": {
+      "horas": {
+        "n": 300,
+        "ausentes": 0,
+        "mediana": 324.9067361111111,
+        "q1": 116.7348611111111,
+        "q3": 996.9004166666667,
+        "iqr": 880.1655555555557
+      },
+      "dias": {
+        "n": 300,
+        "ausentes": 0,
+        "mediana": 13.537780671296296,
+        "q1": 4.8639525462962965,
+        "q3": 41.537517361111114,
+        "iqr": 36.67356481481482
+      }
+    },
+    "b_commit": {
+      "horas": {
+        "n": 300,
+        "ausentes": 0,
+        "mediana": 411.8088888888889,
+        "q1": 128.16322916666667,
+        "q3": 1844.3250347222224,
+        "iqr": 1716.1618055555557
+      },
+      "dias": {
+        "n": 300,
+        "ausentes": 0,
+        "mediana": 17.158703703703704,
+        "q1": 5.340134548611111,
+        "q3": 76.84687644675927,
+        "iqr": 71.50674189814816
+      }
+    },
+    "razao_a_b": {
+      "n": 299,
+      "ausentes": 1,
+      "mediana": 1.2870883718836934,
+      "q1": 0.5329502057035138,
+      "q3": 1.9569228406371253,
+      "iqr": 1.4239726349336115
+    },
+    "maiores_razoes": [
+      {
+        "repository": "slidevjs/slidev",
+        "lead_time_a_horas": 45.72958333333333,
+        "lead_time_b_horas": 1.2191666666666667,
+        "razao_a_b": 37.50888585099111,
+        "tag_name": "v52.2.1",
+        "commits": 21.0,
+        "release_horas": 1069.6558333333332,
+        "mediana_commits_horas": 279.3202777777778,
+        "razao_release_commits": 3.829495809768356,
+        "intervalo_commits_dias": null,
+        "commit_antigo_esquecido": true
+      },
+      {
+        "repository": "evanw/esbuild",
+        "lead_time_a_horas": 273.3986111111111,
+        "lead_time_b_horas": 7.727222222222222,
+        "razao_a_b": 35.38122798188223,
+        "tag_name": "v0.27.0",
+        "commits": 8.0,
+        "release_horas": 2129.4225,
+        "mediana_commits_horas": 15.139444444444443,
+        "razao_release_commits": 140.65393930497964,
+        "intervalo_commits_dias": null,
+        "commit_antigo_esquecido": true
+      },
+      {
+        "repository": "lfnovo/open-notebook",
+        "lead_time_a_horas": 521.4279166666666,
+        "lead_time_b_horas": 28.306944444444444,
+        "razao_a_b": 18.420494578283694,
+        "tag_name": "v0.2.0",
+        "commits": 28.0,
+        "release_horas": 1938.4875,
+        "mediana_commits_horas": 893.2776388888889,
+        "razao_release_commits": 2.1700839868903516,
+        "intervalo_commits_dias": null,
+        "commit_antigo_esquecido": true
+      },
+      {
+        "repository": "filebrowser/filebrowser",
+        "lead_time_a_horas": 19.377222222222223,
+        "lead_time_b_horas": 1.2327777777777778,
+        "razao_a_b": 15.718341595313206,
+        "tag_name": "v2.32.1",
+        "commits": 30.0,
+        "release_horas": 3631.4847222222224,
+        "mediana_commits_horas": 290.1538888888889,
+        "razao_release_commits": 12.515719627707137,
+        "intervalo_commits_dias": null,
+        "commit_antigo_esquecido": true
+      },
+      {
+        "repository": "rust-lang/rust",
+        "lead_time_a_horas": 22191.10944444445,
+        "lead_time_b_horas": 1920.5577777777776,
+        "razao_a_b": 11.55451280935747,
+        "tag_name": "1.89.0",
+        "commits": 6403.0,
+        "release_horas": 78877.95166666666,
+        "mediana_commits_horas": 2135.926111111111,
+        "razao_release_commits": 36.92915745368845,
+        "intervalo_commits_dias": null,
+        "commit_antigo_esquecido": true
+      }
+    ],
+    "repositorios_com_commit_antigo_esquecido": 5,
+    "releases_ignoradas": [
+      {
+        "motivo": "Sem release anterior",
+        "coluna": "releases_no_previous",
+        "releases": 23,
+        "origem": "repositorios.csv",
+        "proporcao_das_releases_observadas": 0.001250747729620969
+      },
+      {
+        "motivo": "compare com 404",
+        "coluna": "releases_compare_not_found",
+        "releases": 2,
+        "origem": "repositorios.csv",
+        "proporcao_das_releases_observadas": 0.00010876067214095382
+      },
+      {
+        "motivo": "compare com erro",
+        "coluna": "releases_compare_error",
+        "releases": 1,
+        "origem": "repositorios.csv",
+        "proporcao_das_releases_observadas": 5.438033607047691e-05
+      },
+      {
+        "motivo": "Sem commits novos",
+        "coluna": "releases_no_new_commits",
+        "releases": 3026,
+        "origem": "repositorios.csv",
+        "proporcao_das_releases_observadas": 0.16455489694926315
+      },
+      {
+        "motivo": "Commits sem data",
+        "coluna": "releases_no_commit_dates",
+        "releases": 0,
+        "origem": "repositorios.csv",
+        "proporcao_das_releases_observadas": 0.0
+      },
+      {
+        "motivo": "Sem data de publicação",
+        "coluna": "releases_no_date",
+        "releases": 0,
+        "origem": "releases.csv",
+        "proporcao_das_releases_observadas": 0.0
+      },
+      {
+        "motivo": "Total ignorado",
+        "coluna": "",
+        "releases": 3052,
+        "origem": "",
+        "proporcao_das_releases_observadas": 0.16596878568709555
+      }
+    ],
+    "releases_ignoradas_total": 3052,
+    "releases_observadas": 18389,
+    "figura": "rq02_lead_time_variantes.pdf"
+  },
+  "rq03": {
+    "a_ci": {
+      "resumo": {
+        "n": 300,
+        "ausentes": 0,
+        "mediana": 0.05627392961415405,
+        "q1": 0.013264700892281774,
+        "q3": 0.13289967462662539,
+        "iqr": 0.11963497373434362
+      },
+      "runs_considerados": 730432,
+      "runs_ignorados": 60959,
+      "repositorios_sem_run_considerado": 0
+    },
+    "b_entrega": {
+      "resumo": {
+        "n": 300,
+        "ausentes": 0,
+        "mediana": 0.2692307692307692,
+        "q1": 0.10535714285714286,
+        "q3": 0.5,
+        "iqr": 0.39464285714285713
+      },
+      "origem": "releases.csv",
+      "releases_avaliadas": 18143,
+      "releases_que_falharam": 10974,
+      "releases_censuradas": 246
+    },
+    "por_repositorio": [
+      {
+        "repository": "1Panel-dev/1Panel",
+        "releases_cfr": 28,
+        "censuradas": 1,
+        "falhas": 8,
+        "avaliadas": 27,
+        "cfr_entrega": 0.2962962962962963
+      },
+      {
+        "repository": "2dust/v2rayN",
+        "releases_cfr": 30,
+        "censuradas": 1,
+        "falhas": 8,
+        "avaliadas": 29,
+        "cfr_entrega": 0.27586206896551724
+      },
+      {
+        "repository": "2dust/v2rayNG",
+        "releases_cfr": 18,
+        "censuradas": 1,
+        "falhas": 1,
+        "avaliadas": 17,
+        "cfr_entrega": 0.058823529411764705
+      },
+      {
+        "repository": "AdguardTeam/AdGuardHome",
+        "releases_cfr": 16,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 16,
+        "cfr_entrega": 0.125
+      },
+      {
+        "repository": "Aider-AI/aider",
+        "releases_cfr": 16,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 16,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "AlistGo/alist",
+        "releases_cfr": 18,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 18,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "AstrBotDevs/AstrBot",
+        "releases_cfr": 105,
+        "censuradas": 3,
+        "falhas": 78,
+        "avaliadas": 102,
+        "cfr_entrega": 0.7647058823529411
+      },
+      {
+        "repository": "BerriAI/litellm",
+        "releases_cfr": 430,
+        "censuradas": 0,
+        "falhas": 417,
+        "avaliadas": 430,
+        "cfr_entrega": 0.9697674418604652
+      },
+      {
+        "repository": "ChrisTitusTech/winutil",
+        "releases_cfr": 11,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 11,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "ChromeDevTools/chrome-devtools-mcp",
+        "releases_cfr": 26,
+        "censuradas": 0,
+        "falhas": 13,
+        "avaliadas": 26,
+        "cfr_entrega": 0.5
+      },
+      {
+        "repository": "ClickHouse/ClickHouse",
+        "releases_cfr": 110,
+        "censuradas": 1,
+        "falhas": 0,
+        "avaliadas": 109,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "Comfy-Org/ComfyUI",
+        "releases_cfr": 67,
+        "censuradas": 1,
+        "falhas": 46,
+        "avaliadas": 66,
+        "cfr_entrega": 0.696969696969697
+      },
+      {
+        "repository": "CopilotKit/CopilotKit",
+        "releases_cfr": 57,
+        "censuradas": 0,
+        "falhas": 38,
+        "avaliadas": 57,
+        "cfr_entrega": 0.6666666666666666
+      },
+      {
+        "repository": "DayuanJiang/next-ai-draw-io",
+        "releases_cfr": 9,
+        "censuradas": 1,
+        "falhas": 6,
+        "avaliadas": 8,
+        "cfr_entrega": 0.75
+      },
+      {
+        "repository": "DioxusLabs/dioxus",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 5,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "Dokploy/dokploy",
+        "releases_cfr": 79,
+        "censuradas": 0,
+        "falhas": 62,
+        "avaliadas": 79,
+        "cfr_entrega": 0.7848101265822784
+      },
+      {
+        "repository": "Eugeny/tabby",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 12,
+        "cfr_entrega": 0.4166666666666667
+      },
+      {
+        "repository": "Fission-AI/OpenSpec",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 22,
+        "cfr_entrega": 0.22727272727272727
+      },
+      {
+        "repository": "FlowiseAI/Flowise",
+        "releases_cfr": 19,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 19,
+        "cfr_entrega": 0.15789473684210525
+      },
+      {
+        "repository": "FuelLabs/fuel-core",
+        "releases_cfr": 21,
+        "censuradas": 0,
+        "falhas": 6,
+        "avaliadas": 21,
+        "cfr_entrega": 0.2857142857142857
+      },
+      {
+        "repository": "FuelLabs/sway",
+        "releases_cfr": 25,
+        "censuradas": 0,
+        "falhas": 9,
+        "avaliadas": 25,
+        "cfr_entrega": 0.36
+      },
+      {
+        "repository": "HKUDS/LightRAG",
+        "releases_cfr": 56,
+        "censuradas": 0,
+        "falhas": 27,
+        "avaliadas": 56,
+        "cfr_entrega": 0.48214285714285715
+      },
+      {
+        "repository": "Homebrew/brew",
+        "releases_cfr": 62,
+        "censuradas": 1,
+        "falhas": 36,
+        "avaliadas": 61,
+        "cfr_entrega": 0.5901639344262295
+      },
+      {
+        "repository": "ItzCrazyKns/Vane",
+        "releases_cfr": 8,
+        "censuradas": 2,
+        "falhas": 2,
+        "avaliadas": 6,
+        "cfr_entrega": 0.3333333333333333
+      },
+      {
+        "repository": "JuliaLang/julia",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 13,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "Kong/insomnia",
+        "releases_cfr": 15,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 15,
+        "cfr_entrega": 0.13333333333333333
+      },
+      {
+        "repository": "LizardByte/Sunshine",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "MHSanaei/3x-ui",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 9,
+        "avaliadas": 22,
+        "cfr_entrega": 0.4090909090909091
+      },
+      {
+        "repository": "Mintplex-Labs/anything-llm",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 13,
+        "cfr_entrega": 0.07692307692307693
+      },
+      {
+        "repository": "OpenHands/OpenHands",
+        "releases_cfr": 61,
+        "censuradas": 1,
+        "falhas": 11,
+        "avaliadas": 60,
+        "cfr_entrega": 0.18333333333333332
+      },
+      {
+        "repository": "PaddlePaddle/PaddleOCR",
+        "releases_cfr": 11,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 11,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "PostHog/posthog",
+        "releases_cfr": 45,
+        "censuradas": 1,
+        "falhas": 30,
+        "avaliadas": 44,
+        "cfr_entrega": 0.6818181818181818
+      },
+      {
+        "repository": "PowerShell/PowerShell",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 10,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "RSSNext/Folo",
+        "releases_cfr": 48,
+        "censuradas": 0,
+        "falhas": 21,
+        "avaliadas": 48,
+        "cfr_entrega": 0.4375
+      },
+      {
+        "repository": "RocketChat/Rocket.Chat",
+        "releases_cfr": 86,
+        "censuradas": 1,
+        "falhas": 17,
+        "avaliadas": 85,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "SeleniumHQ/selenium",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 12,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "Significant-Gravitas/AutoGPT",
+        "releases_cfr": 52,
+        "censuradas": 0,
+        "falhas": 31,
+        "avaliadas": 52,
+        "cfr_entrega": 0.5961538461538461
+      },
+      {
+        "repository": "SillyTavern/SillyTavern",
+        "releases_cfr": 13,
+        "censuradas": 1,
+        "falhas": 0,
+        "avaliadas": 12,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "Stirling-Tools/Stirling-PDF",
+        "releases_cfr": 49,
+        "censuradas": 0,
+        "falhas": 26,
+        "avaliadas": 49,
+        "cfr_entrega": 0.5306122448979592
+      },
+      {
+        "repository": "TanStack/query",
+        "releases_cfr": 350,
+        "censuradas": 45,
+        "falhas": 246,
+        "avaliadas": 305,
+        "cfr_entrega": 0.8065573770491803
+      },
+      {
+        "repository": "Tencent/WeKnora",
+        "releases_cfr": 14,
+        "censuradas": 3,
+        "falhas": 6,
+        "avaliadas": 11,
+        "cfr_entrega": 0.5454545454545454
+      },
+      {
+        "repository": "Textualize/textual",
+        "releases_cfr": 40,
+        "censuradas": 0,
+        "falhas": 12,
+        "avaliadas": 40,
+        "cfr_entrega": 0.3
+      },
+      {
+        "repository": "TriliumNext/Trilium",
+        "releases_cfr": 28,
+        "censuradas": 2,
+        "falhas": 10,
+        "avaliadas": 26,
+        "cfr_entrega": 0.38461538461538464
+      },
+      {
+        "repository": "TryGhost/Ghost",
+        "releases_cfr": 95,
+        "censuradas": 0,
+        "falhas": 51,
+        "avaliadas": 95,
+        "cfr_entrega": 0.5368421052631579
+      },
+      {
+        "repository": "VSCodium/vscodium",
+        "releases_cfr": 50,
+        "censuradas": 1,
+        "falhas": 33,
+        "avaliadas": 49,
+        "cfr_entrega": 0.673469387755102
+      },
+      {
+        "repository": "WerWolv/ImHex",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 7,
+        "cfr_entrega": 0.5714285714285714
+      },
+      {
+        "repository": "XTLS/Xray-core",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 12,
+        "cfr_entrega": 0.08333333333333333
+      },
+      {
+        "repository": "aaif-goose/goose",
+        "releases_cfr": 78,
+        "censuradas": 0,
+        "falhas": 48,
+        "avaliadas": 78,
+        "cfr_entrega": 0.6153846153846154
+      },
+      {
+        "repository": "agno-agi/agno",
+        "releases_cfr": 150,
+        "censuradas": 0,
+        "falhas": 133,
+        "avaliadas": 150,
+        "cfr_entrega": 0.8866666666666667
+      },
+      {
+        "repository": "alibaba/arthas",
+        "releases_cfr": 6,
+        "censuradas": 1,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "angular/angular",
+        "releases_cfr": 78,
+        "censuradas": 0,
+        "falhas": 45,
+        "avaliadas": 78,
+        "cfr_entrega": 0.5769230769230769
+      },
+      {
+        "repository": "anomalyco/opencode",
+        "releases_cfr": 645,
+        "censuradas": 23,
+        "falhas": 606,
+        "avaliadas": 622,
+        "cfr_entrega": 0.9742765273311897
+      },
+      {
+        "repository": "ant-design/ant-design",
+        "releases_cfr": 47,
+        "censuradas": 1,
+        "falhas": 14,
+        "avaliadas": 46,
+        "cfr_entrega": 0.30434782608695654
+      },
+      {
+        "repository": "apache/airflow",
+        "releases_cfr": 17,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 17,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "apache/dubbo",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 7,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "apache/superset",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 12,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "apple/container",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 8,
+        "cfr_entrega": 0.125
+      },
+      {
+        "repository": "appsmithorg/appsmith",
+        "releases_cfr": 40,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 40,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "aristocratos/btop",
+        "releases_cfr": 6,
+        "censuradas": 1,
+        "falhas": 1,
+        "avaliadas": 5,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "aseprite/aseprite",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 10,
+        "cfr_entrega": 0.3
+      },
+      {
+        "repository": "astral-sh/ruff",
+        "releases_cfr": 55,
+        "censuradas": 0,
+        "falhas": 25,
+        "avaliadas": 55,
+        "cfr_entrega": 0.45454545454545453
+      },
+      {
+        "repository": "astral-sh/uv",
+        "releases_cfr": 105,
+        "censuradas": 2,
+        "falhas": 89,
+        "avaliadas": 103,
+        "cfr_entrega": 0.8640776699029126
+      },
+      {
+        "repository": "axios/axios",
+        "releases_cfr": 17,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 17,
+        "cfr_entrega": 0.29411764705882354
+      },
+      {
+        "repository": "babel/babel",
+        "releases_cfr": 20,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 20,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "backstage/backstage",
+        "releases_cfr": 36,
+        "censuradas": 1,
+        "falhas": 15,
+        "avaliadas": 35,
+        "cfr_entrega": 0.42857142857142855
+      },
+      {
+        "repository": "bevyengine/bevy",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 9,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "bitcoin/bitcoin",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 7,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "blakeblackshear/frigate",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 7,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "bmad-code-org/BMAD-METHOD",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 8,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "browser-use/browser-use",
+        "releases_cfr": 86,
+        "censuradas": 0,
+        "falhas": 64,
+        "avaliadas": 86,
+        "cfr_entrega": 0.7441860465116279
+      },
+      {
+        "repository": "bumptech/glide",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 7,
+        "cfr_entrega": 0.7142857142857143
+      },
+      {
+        "repository": "bytedance/UI-TARS-desktop",
+        "releases_cfr": 29,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 29,
+        "cfr_entrega": 0.13793103448275862
+      },
+      {
+        "repository": "calcom/cal.diy",
+        "releases_cfr": 225,
+        "censuradas": 1,
+        "falhas": 196,
+        "avaliadas": 224,
+        "cfr_entrega": 0.875
+      },
+      {
+        "repository": "casey/just",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 13,
+        "cfr_entrega": 0.38461538461538464
+      },
+      {
+        "repository": "ccxt/ccxt",
+        "releases_cfr": 83,
+        "censuradas": 1,
+        "falhas": 71,
+        "avaliadas": 82,
+        "cfr_entrega": 0.8658536585365854
+      },
+      {
+        "repository": "chakra-ui/chakra-ui",
+        "releases_cfr": 166,
+        "censuradas": 0,
+        "falhas": 71,
+        "avaliadas": 166,
+        "cfr_entrega": 0.42771084337349397
+      },
+      {
+        "repository": "chatwoot/chatwoot",
+        "releases_cfr": 15,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 15,
+        "cfr_entrega": 0.26666666666666666
+      },
+      {
+        "repository": "cli/cli",
+        "releases_cfr": 31,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 31,
+        "cfr_entrega": 0.22580645161290322
+      },
+      {
+        "repository": "cline/cline",
+        "releases_cfr": 166,
+        "censuradas": 0,
+        "falhas": 119,
+        "avaliadas": 166,
+        "cfr_entrega": 0.7168674698795181
+      },
+      {
+        "repository": "code-yeongyu/oh-my-openagent",
+        "releases_cfr": 75,
+        "censuradas": 14,
+        "falhas": 50,
+        "avaliadas": 61,
+        "cfr_entrega": 0.819672131147541
+      },
+      {
+        "repository": "colinhacks/zod",
+        "releases_cfr": 107,
+        "censuradas": 5,
+        "falhas": 90,
+        "avaliadas": 102,
+        "cfr_entrega": 0.8823529411764706
+      },
+      {
+        "repository": "commaai/openpilot",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 6,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "continuedev/continue",
+        "releases_cfr": 198,
+        "censuradas": 0,
+        "falhas": 97,
+        "avaliadas": 198,
+        "cfr_entrega": 0.4898989898989899
+      },
+      {
+        "repository": "crewAIInc/crewAI",
+        "releases_cfr": 52,
+        "censuradas": 0,
+        "falhas": 13,
+        "avaliadas": 52,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "curl/curl",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 8,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "dani-garcia/vaultwarden",
+        "releases_cfr": 9,
+        "censuradas": 2,
+        "falhas": 3,
+        "avaliadas": 7,
+        "cfr_entrega": 0.42857142857142855
+      },
+      {
+        "repository": "danielmiessler/Fabric",
+        "releases_cfr": 229,
+        "censuradas": 5,
+        "falhas": 216,
+        "avaliadas": 224,
+        "cfr_entrega": 0.9642857142857143
+      },
+      {
+        "repository": "daytonaio/daytona",
+        "releases_cfr": 50,
+        "censuradas": 0,
+        "falhas": 18,
+        "avaliadas": 50,
+        "cfr_entrega": 0.36
+      },
+      {
+        "repository": "dbeaver/dbeaver",
+        "releases_cfr": 24,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 24,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "deepspeedai/DeepSpeed",
+        "releases_cfr": 18,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 18,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "denoland/deno",
+        "releases_cfr": 51,
+        "censuradas": 0,
+        "falhas": 22,
+        "avaliadas": 51,
+        "cfr_entrega": 0.43137254901960786
+      },
+      {
+        "repository": "dgtlmoon/changedetection.io",
+        "releases_cfr": 67,
+        "censuradas": 0,
+        "falhas": 43,
+        "avaliadas": 67,
+        "cfr_entrega": 0.6417910447761194
+      },
+      {
+        "repository": "directus/directus",
+        "releases_cfr": 25,
+        "censuradas": 0,
+        "falhas": 10,
+        "avaliadas": 25,
+        "cfr_entrega": 0.4
+      },
+      {
+        "repository": "docker/compose",
+        "releases_cfr": 29,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 29,
+        "cfr_entrega": 0.27586206896551724
+      },
+      {
+        "repository": "docling-project/docling",
+        "releases_cfr": 73,
+        "censuradas": 0,
+        "falhas": 20,
+        "avaliadas": 73,
+        "cfr_entrega": 0.273972602739726
+      },
+      {
+        "repository": "earendil-works/pi",
+        "releases_cfr": 76,
+        "censuradas": 6,
+        "falhas": 57,
+        "avaliadas": 70,
+        "cfr_entrega": 0.8142857142857143
+      },
+      {
+        "repository": "elastic/elasticsearch",
+        "releases_cfr": 59,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 59,
+        "cfr_entrega": 0.03389830508474576
+      },
+      {
+        "repository": "electron/electron",
+        "releases_cfr": 137,
+        "censuradas": 0,
+        "falhas": 55,
+        "avaliadas": 137,
+        "cfr_entrega": 0.40145985401459855
+      },
+      {
+        "repository": "etcd-io/etcd",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 22,
+        "cfr_entrega": 0.09090909090909091
+      },
+      {
+        "repository": "ethereum/go-ethereum",
+        "releases_cfr": 21,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 21,
+        "cfr_entrega": 0.3333333333333333
+      },
+      {
+        "repository": "evanw/esbuild",
+        "releases_cfr": 17,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 17,
+        "cfr_entrega": 0.058823529411764705
+      },
+      {
+        "repository": "exelban/stats",
+        "releases_cfr": 41,
+        "censuradas": 1,
+        "falhas": 20,
+        "avaliadas": 40,
+        "cfr_entrega": 0.5
+      },
+      {
+        "repository": "expressjs/express",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 5,
+        "cfr_entrega": 0.4
+      },
+      {
+        "repository": "facebook/docusaurus",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 6,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "facebookresearch/faiss",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 6,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "fastapi/fastapi",
+        "releases_cfr": 51,
+        "censuradas": 2,
+        "falhas": 29,
+        "avaliadas": 49,
+        "cfr_entrega": 0.5918367346938775
+      },
+      {
+        "repository": "fastify/fastify",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 12,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "filebrowser/filebrowser",
+        "releases_cfr": 57,
+        "censuradas": 1,
+        "falhas": 32,
+        "avaliadas": 56,
+        "cfr_entrega": 0.5714285714285714
+      },
+      {
+        "repository": "files-community/Files",
+        "releases_cfr": 8,
+        "censuradas": 1,
+        "falhas": 2,
+        "avaliadas": 7,
+        "cfr_entrega": 0.2857142857142857
+      },
+      {
+        "repository": "firecracker-microvm/firecracker",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 6,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "firecrawl/firecrawl",
+        "releases_cfr": 28,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 28,
+        "cfr_entrega": 0.10714285714285714
+      },
+      {
+        "repository": "fish-shell/fish-shell",
+        "releases_cfr": 14,
+        "censuradas": 3,
+        "falhas": 3,
+        "avaliadas": 11,
+        "cfr_entrega": 0.2727272727272727
+      },
+      {
+        "repository": "freqtrade/freqtrade",
+        "releases_cfr": 16,
+        "censuradas": 1,
+        "falhas": 1,
+        "avaliadas": 15,
+        "cfr_entrega": 0.06666666666666667
+      },
+      {
+        "repository": "getsentry/sentry",
+        "releases_cfr": 18,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 18,
+        "cfr_entrega": 0.1111111111111111
+      },
+      {
+        "repository": "ggml-org/llama.cpp",
+        "releases_cfr": 2251,
+        "censuradas": 44,
+        "falhas": 2207,
+        "avaliadas": 2207,
+        "cfr_entrega": 1.0
+      },
+      {
+        "repository": "ggml-org/whisper.cpp",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 7,
+        "cfr_entrega": 0.2857142857142857
+      },
+      {
+        "repository": "github/spec-kit",
+        "releases_cfr": 90,
+        "censuradas": 0,
+        "falhas": 86,
+        "avaliadas": 90,
+        "cfr_entrega": 0.9555555555555556
+      },
+      {
+        "repository": "gitroomhq/postiz-app",
+        "releases_cfr": 137,
+        "censuradas": 4,
+        "falhas": 72,
+        "avaliadas": 133,
+        "cfr_entrega": 0.5413533834586466
+      },
+      {
+        "repository": "gkd-kit/gkd",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 10,
+        "cfr_entrega": 0.5
+      },
+      {
+        "repository": "go-gitea/gitea",
+        "releases_cfr": 21,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 21,
+        "cfr_entrega": 0.19047619047619047
+      },
+      {
+        "repository": "godotengine/godot",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 6,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "gohugoio/hugo",
+        "releases_cfr": 46,
+        "censuradas": 4,
+        "falhas": 23,
+        "avaliadas": 42,
+        "cfr_entrega": 0.5476190476190477
+      },
+      {
+        "repository": "google-gemini/gemini-cli",
+        "releases_cfr": 238,
+        "censuradas": 3,
+        "falhas": 124,
+        "avaliadas": 235,
+        "cfr_entrega": 0.5276595744680851
+      },
+      {
+        "repository": "google/guava",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 6,
+        "avaliadas": 9,
+        "cfr_entrega": 0.6666666666666666
+      },
+      {
+        "repository": "google/langextract",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 12,
+        "cfr_entrega": 0.5833333333333334
+      },
+      {
+        "repository": "google/zx",
+        "releases_cfr": 23,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 23,
+        "cfr_entrega": 0.17391304347826086
+      },
+      {
+        "repository": "gradio-app/gradio",
+        "releases_cfr": 1821,
+        "censuradas": 0,
+        "falhas": 1257,
+        "avaliadas": 1821,
+        "cfr_entrega": 0.6902800658978583
+      },
+      {
+        "repository": "grafana/grafana",
+        "releases_cfr": 90,
+        "censuradas": 0,
+        "falhas": 20,
+        "avaliadas": 90,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "grpc/grpc",
+        "releases_cfr": 16,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 16,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "halo-dev/halo",
+        "releases_cfr": 25,
+        "censuradas": 3,
+        "falhas": 6,
+        "avaliadas": 22,
+        "cfr_entrega": 0.2727272727272727
+      },
+      {
+        "repository": "harness/harness",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "hashicorp/terraform",
+        "releases_cfr": 20,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 20,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "hashicorp/vault",
+        "releases_cfr": 15,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 15,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "home-assistant/core",
+        "releases_cfr": 58,
+        "censuradas": 1,
+        "falhas": 0,
+        "avaliadas": 57,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "huggingface/diffusers",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 8,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "huggingface/pytorch-image-models",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 10,
+        "cfr_entrega": 0.1
+      },
+      {
+        "repository": "huggingface/transformers",
+        "releases_cfr": 60,
+        "censuradas": 0,
+        "falhas": 30,
+        "avaliadas": 60,
+        "cfr_entrega": 0.5
+      },
+      {
+        "repository": "hyprwm/Hyprland",
+        "releases_cfr": 14,
+        "censuradas": 1,
+        "falhas": 5,
+        "avaliadas": 13,
+        "cfr_entrega": 0.38461538461538464
+      },
+      {
+        "repository": "immich-app/immich",
+        "releases_cfr": 60,
+        "censuradas": 0,
+        "falhas": 34,
+        "avaliadas": 60,
+        "cfr_entrega": 0.5666666666666667
+      },
+      {
+        "repository": "infiniflow/ragflow",
+        "releases_cfr": 18,
+        "censuradas": 2,
+        "falhas": 2,
+        "avaliadas": 16,
+        "cfr_entrega": 0.125
+      },
+      {
+        "repository": "ionic-team/ionic-framework",
+        "releases_cfr": 40,
+        "censuradas": 1,
+        "falhas": 15,
+        "avaliadas": 39,
+        "cfr_entrega": 0.38461538461538464
+      },
+      {
+        "repository": "jax-ml/jax",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 13,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "jdx/mise",
+        "releases_cfr": 193,
+        "censuradas": 1,
+        "falhas": 128,
+        "avaliadas": 192,
+        "cfr_entrega": 0.6666666666666666
+      },
+      {
+        "repository": "jellyfin/jellyfin",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 10,
+        "cfr_entrega": 0.1
+      },
+      {
+        "repository": "jesseduffield/lazygit",
+        "releases_cfr": 19,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 19,
+        "cfr_entrega": 0.2631578947368421
+      },
+      {
+        "repository": "jestjs/jest",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 8,
+        "cfr_entrega": 0.5
+      },
+      {
+        "repository": "jgm/pandoc",
+        "releases_cfr": 11,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 11,
+        "cfr_entrega": 0.09090909090909091
+      },
+      {
+        "repository": "juanfont/headscale",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 10,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "junegunn/fzf",
+        "releases_cfr": 19,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 19,
+        "cfr_entrega": 0.15789473684210525
+      },
+      {
+        "repository": "juspay/hyperswitch",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 8,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "k3s-io/k3s",
+        "releases_cfr": 44,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 44,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "keras-team/keras",
+        "releases_cfr": 11,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 11,
+        "cfr_entrega": 0.18181818181818182
+      },
+      {
+        "repository": "keycloak/keycloak",
+        "releases_cfr": 26,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 26,
+        "cfr_entrega": 0.2692307692307692
+      },
+      {
+        "repository": "khoj-ai/khoj",
+        "releases_cfr": 32,
+        "censuradas": 0,
+        "falhas": 18,
+        "avaliadas": 32,
+        "cfr_entrega": 0.5625
+      },
+      {
+        "repository": "kovidgoyal/kitty",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 13,
+        "cfr_entrega": 0.23076923076923078
+      },
+      {
+        "repository": "langchain-ai/langchain",
+        "releases_cfr": 382,
+        "censuradas": 1,
+        "falhas": 328,
+        "avaliadas": 381,
+        "cfr_entrega": 0.8608923884514436
+      },
+      {
+        "repository": "langchain-ai/langgraph",
+        "releases_cfr": 257,
+        "censuradas": 0,
+        "falhas": 187,
+        "avaliadas": 257,
+        "cfr_entrega": 0.7276264591439688
+      },
+      {
+        "repository": "langflow-ai/langflow",
+        "releases_cfr": 29,
+        "censuradas": 0,
+        "falhas": 13,
+        "avaliadas": 29,
+        "cfr_entrega": 0.4482758620689655
+      },
+      {
+        "repository": "langfuse/langfuse",
+        "releases_cfr": 233,
+        "censuradas": 0,
+        "falhas": 83,
+        "avaliadas": 233,
+        "cfr_entrega": 0.3562231759656652
+      },
+      {
+        "repository": "langgenius/dify",
+        "releases_cfr": 36,
+        "censuradas": 1,
+        "falhas": 11,
+        "avaliadas": 35,
+        "cfr_entrega": 0.3142857142857143
+      },
+      {
+        "repository": "laurent22/joplin",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 9,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "lfnovo/open-notebook",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 8,
+        "cfr_entrega": 0.125
+      },
+      {
+        "repository": "llvm/llvm-project",
+        "releases_cfr": 19,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 19,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "localstack/localstack",
+        "releases_cfr": 17,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 17,
+        "cfr_entrega": 0.29411764705882354
+      },
+      {
+        "repository": "logseq/logseq",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 5,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "makeplane/plane",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 13,
+        "cfr_entrega": 0.23076923076923078
+      },
+      {
+        "repository": "markedjs/marked",
+        "releases_cfr": 20,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 20,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "mastodon/mastodon",
+        "releases_cfr": 47,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 47,
+        "cfr_entrega": 0.14893617021276595
+      },
+      {
+        "repository": "mattermost/mattermost",
+        "releases_cfr": 85,
+        "censuradas": 0,
+        "falhas": 11,
+        "avaliadas": 85,
+        "cfr_entrega": 0.12941176470588237
+      },
+      {
+        "repository": "medusajs/medusa",
+        "releases_cfr": 33,
+        "censuradas": 0,
+        "falhas": 13,
+        "avaliadas": 33,
+        "cfr_entrega": 0.3939393939393939
+      },
+      {
+        "repository": "meilisearch/meilisearch",
+        "releases_cfr": 40,
+        "censuradas": 0,
+        "falhas": 19,
+        "avaliadas": 40,
+        "cfr_entrega": 0.475
+      },
+      {
+        "repository": "mermaid-js/mermaid",
+        "releases_cfr": 33,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 33,
+        "cfr_entrega": 0.24242424242424243
+      },
+      {
+        "repository": "metabase/metabase",
+        "releases_cfr": 99,
+        "censuradas": 0,
+        "falhas": 45,
+        "avaliadas": 99,
+        "cfr_entrega": 0.45454545454545453
+      },
+      {
+        "repository": "microsoft/PowerToys",
+        "releases_cfr": 16,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 16,
+        "cfr_entrega": 0.1875
+      },
+      {
+        "repository": "microsoft/TypeScript",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 5,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "microsoft/WSL",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 10,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "microsoft/autogen",
+        "releases_cfr": 31,
+        "censuradas": 0,
+        "falhas": 18,
+        "avaliadas": 31,
+        "cfr_entrega": 0.5806451612903226
+      },
+      {
+        "repository": "microsoft/graphrag",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 13,
+        "cfr_entrega": 0.23076923076923078
+      },
+      {
+        "repository": "microsoft/playwright",
+        "releases_cfr": 16,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 16,
+        "cfr_entrega": 0.0625
+      },
+      {
+        "repository": "microsoft/playwright-mcp",
+        "releases_cfr": 46,
+        "censuradas": 1,
+        "falhas": 26,
+        "avaliadas": 45,
+        "cfr_entrega": 0.5777777777777777
+      },
+      {
+        "repository": "microsoft/terminal",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 10,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "microsoft/vscode",
+        "releases_cfr": 38,
+        "censuradas": 0,
+        "falhas": 21,
+        "avaliadas": 38,
+        "cfr_entrega": 0.5526315789473685
+      },
+      {
+        "repository": "milvus-io/milvus",
+        "releases_cfr": 43,
+        "censuradas": 1,
+        "falhas": 8,
+        "avaliadas": 42,
+        "cfr_entrega": 0.19047619047619047
+      },
+      {
+        "repository": "mitmproxy/mitmproxy",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 10,
+        "cfr_entrega": 0.1
+      },
+      {
+        "repository": "moby/moby",
+        "releases_cfr": 41,
+        "censuradas": 0,
+        "falhas": 17,
+        "avaliadas": 41,
+        "cfr_entrega": 0.4146341463414634
+      },
+      {
+        "repository": "modelcontextprotocol/servers",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 9,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "moeru-ai/airi",
+        "releases_cfr": 30,
+        "censuradas": 4,
+        "falhas": 8,
+        "avaliadas": 26,
+        "cfr_entrega": 0.3076923076923077
+      },
+      {
+        "repository": "mozilla/pdf.js",
+        "releases_cfr": 12,
+        "censuradas": 1,
+        "falhas": 0,
+        "avaliadas": 11,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "mrdoob/three.js",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 10,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "mudler/LocalAI",
+        "releases_cfr": 25,
+        "censuradas": 0,
+        "falhas": 9,
+        "avaliadas": 25,
+        "cfr_entrega": 0.36
+      },
+      {
+        "repository": "mui/material-ui",
+        "releases_cfr": 33,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 33,
+        "cfr_entrega": 0.24242424242424243
+      },
+      {
+        "repository": "n8n-io/n8n",
+        "releases_cfr": 135,
+        "censuradas": 0,
+        "falhas": 95,
+        "avaliadas": 135,
+        "cfr_entrega": 0.7037037037037037
+      },
+      {
+        "repository": "neovim/neovim",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 7,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "nestjs/nest",
+        "releases_cfr": 31,
+        "censuradas": 1,
+        "falhas": 14,
+        "avaliadas": 30,
+        "cfr_entrega": 0.4666666666666667
+      },
+      {
+        "repository": "netdata/netdata",
+        "releases_cfr": 30,
+        "censuradas": 0,
+        "falhas": 9,
+        "avaliadas": 30,
+        "cfr_entrega": 0.3
+      },
+      {
+        "repository": "nextcloud/server",
+        "releases_cfr": 36,
+        "censuradas": 0,
+        "falhas": 6,
+        "avaliadas": 36,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "nicolargo/glances",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 7,
+        "cfr_entrega": 0.14285714285714285
+      },
+      {
+        "repository": "nocodb/nocodb",
+        "releases_cfr": 24,
+        "censuradas": 0,
+        "falhas": 12,
+        "avaliadas": 24,
+        "cfr_entrega": 0.5
+      },
+      {
+        "repository": "nodejs/node",
+        "releases_cfr": 54,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 54,
+        "cfr_entrega": 0.07407407407407407
+      },
+      {
+        "repository": "novuhq/novu",
+        "releases_cfr": 50,
+        "censuradas": 0,
+        "falhas": 29,
+        "avaliadas": 50,
+        "cfr_entrega": 0.58
+      },
+      {
+        "repository": "nushell/nushell",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 12,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "nuxt/nuxt",
+        "releases_cfr": 35,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 35,
+        "cfr_entrega": 0.22857142857142856
+      },
+      {
+        "repository": "obsproject/obs-studio",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 12,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "ocornut/imgui",
+        "releases_cfr": 11,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 11,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "open-webui/open-webui",
+        "releases_cfr": 61,
+        "censuradas": 0,
+        "falhas": 40,
+        "avaliadas": 61,
+        "cfr_entrega": 0.6557377049180327
+      },
+      {
+        "repository": "openai/codex",
+        "releases_cfr": 68,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 68,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "openclaw/openclaw",
+        "releases_cfr": 11,
+        "censuradas": 2,
+        "falhas": 4,
+        "avaliadas": 9,
+        "cfr_entrega": 0.4444444444444444
+      },
+      {
+        "repository": "opendatalab/MinerU",
+        "releases_cfr": 48,
+        "censuradas": 1,
+        "falhas": 32,
+        "avaliadas": 47,
+        "cfr_entrega": 0.6808510638297872
+      },
+      {
+        "repository": "outline/outline",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 13,
+        "cfr_entrega": 0.23076923076923078
+      },
+      {
+        "repository": "oven-sh/bun",
+        "releases_cfr": 33,
+        "censuradas": 0,
+        "falhas": 9,
+        "avaliadas": 33,
+        "cfr_entrega": 0.2727272727272727
+      },
+      {
+        "repository": "paperless-ngx/paperless-ngx",
+        "releases_cfr": 34,
+        "censuradas": 0,
+        "falhas": 22,
+        "avaliadas": 34,
+        "cfr_entrega": 0.6470588235294118
+      },
+      {
+        "repository": "pathwaycom/pathway",
+        "releases_cfr": 28,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 28,
+        "cfr_entrega": 0.14285714285714285
+      },
+      {
+        "repository": "payloadcms/payload",
+        "releases_cfr": 77,
+        "censuradas": 0,
+        "falhas": 16,
+        "avaliadas": 77,
+        "cfr_entrega": 0.2077922077922078
+      },
+      {
+        "repository": "pbatard/rufus",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "pear-devs/pear-desktop",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 9,
+        "cfr_entrega": 0.1111111111111111
+      },
+      {
+        "repository": "penpot/penpot",
+        "releases_cfr": 24,
+        "censuradas": 2,
+        "falhas": 9,
+        "avaliadas": 22,
+        "cfr_entrega": 0.4090909090909091
+      },
+      {
+        "repository": "permissionlesstech/bitchat",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 12,
+        "cfr_entrega": 0.4166666666666667
+      },
+      {
+        "repository": "php/php-src",
+        "releases_cfr": 34,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 34,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "pingcap/tidb",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 8,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "pixijs/pixijs",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 22,
+        "cfr_entrega": 0.36363636363636365
+      },
+      {
+        "repository": "pmndrs/zustand",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 9,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "pnpm/pnpm",
+        "releases_cfr": 58,
+        "censuradas": 1,
+        "falhas": 22,
+        "avaliadas": 57,
+        "cfr_entrega": 0.38596491228070173
+      },
+      {
+        "repository": "pola-rs/polars",
+        "releases_cfr": 36,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 36,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "prettier/prettier",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 12,
+        "cfr_entrega": 0.5833333333333334
+      },
+      {
+        "repository": "prisma/orm",
+        "releases_cfr": 34,
+        "censuradas": 0,
+        "falhas": 11,
+        "avaliadas": 34,
+        "cfr_entrega": 0.3235294117647059
+      },
+      {
+        "repository": "prometheus/prometheus",
+        "releases_cfr": 18,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 18,
+        "cfr_entrega": 0.1111111111111111
+      },
+      {
+        "repository": "protocolbuffers/protobuf",
+        "releases_cfr": 16,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 16,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "puppeteer/puppeteer",
+        "releases_cfr": 139,
+        "censuradas": 0,
+        "falhas": 57,
+        "avaliadas": 139,
+        "cfr_entrega": 0.41007194244604317
+      },
+      {
+        "repository": "pyenv/pyenv",
+        "releases_cfr": 25,
+        "censuradas": 0,
+        "falhas": 6,
+        "avaliadas": 25,
+        "cfr_entrega": 0.24
+      },
+      {
+        "repository": "python-poetry/poetry",
+        "releases_cfr": 9,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 9,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "pytorch/pytorch",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 6,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "qdrant/qdrant",
+        "releases_cfr": 20,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 20,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "rails/rails",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 12,
+        "cfr_entrega": 0.16666666666666666
+      },
+      {
+        "repository": "rclone/rclone",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 13,
+        "cfr_entrega": 0.07692307692307693
+      },
+      {
+        "repository": "react-hook-form/react-hook-form",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 4,
+        "avaliadas": 22,
+        "cfr_entrega": 0.18181818181818182
+      },
+      {
+        "repository": "react/react",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 12,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "react/react-native",
+        "releases_cfr": 35,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 35,
+        "cfr_entrega": 0.05714285714285714
+      },
+      {
+        "repository": "redis/redis",
+        "releases_cfr": 28,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 28,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "refinedev/refine",
+        "releases_cfr": 115,
+        "censuradas": 0,
+        "falhas": 35,
+        "avaliadas": 115,
+        "cfr_entrega": 0.30434782608695654
+      },
+      {
+        "repository": "remix-run/react-router",
+        "releases_cfr": 36,
+        "censuradas": 0,
+        "falhas": 8,
+        "avaliadas": 36,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "remotion-dev/remotion",
+        "releases_cfr": 125,
+        "censuradas": 4,
+        "falhas": 115,
+        "avaliadas": 121,
+        "cfr_entrega": 0.9504132231404959
+      },
+      {
+        "repository": "run-llama/llama_index",
+        "releases_cfr": 76,
+        "censuradas": 1,
+        "falhas": 53,
+        "avaliadas": 75,
+        "cfr_entrega": 0.7066666666666667
+      },
+      {
+        "repository": "rust-lang/rust",
+        "releases_cfr": 12,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 12,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "rustdesk/rustdesk",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 8,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "saadeghi/daisyui",
+        "releases_cfr": 126,
+        "censuradas": 0,
+        "falhas": 112,
+        "avaliadas": 126,
+        "cfr_entrega": 0.8888888888888888
+      },
+      {
+        "repository": "schollz/croc",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 8,
+        "cfr_entrega": 0.375
+      },
+      {
+        "repository": "scikit-learn/scikit-learn",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "scrapy/scrapy",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 5,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "seaweedfs/seaweedfs",
+        "releases_cfr": 24,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 24,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "sgl-project/sglang",
+        "releases_cfr": 23,
+        "censuradas": 0,
+        "falhas": 6,
+        "avaliadas": 23,
+        "cfr_entrega": 0.2608695652173913
+      },
+      {
+        "repository": "shadcn-ui/ui",
+        "releases_cfr": 31,
+        "censuradas": 0,
+        "falhas": 11,
+        "avaliadas": 31,
+        "cfr_entrega": 0.3548387096774194
+      },
+      {
+        "repository": "slidevjs/slidev",
+        "releases_cfr": 40,
+        "censuradas": 0,
+        "falhas": 11,
+        "avaliadas": 40,
+        "cfr_entrega": 0.275
+      },
+      {
+        "repository": "spring-projects/spring-boot",
+        "releases_cfr": 30,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 30,
+        "cfr_entrega": 0.06666666666666667
+      },
+      {
+        "repository": "spring-projects/spring-framework",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 22,
+        "cfr_entrega": 0.13636363636363635
+      },
+      {
+        "repository": "stanfordnlp/dspy",
+        "releases_cfr": 38,
+        "censuradas": 0,
+        "falhas": 24,
+        "avaliadas": 38,
+        "cfr_entrega": 0.631578947368421
+      },
+      {
+        "repository": "storybookjs/storybook",
+        "releases_cfr": 82,
+        "censuradas": 1,
+        "falhas": 60,
+        "avaliadas": 81,
+        "cfr_entrega": 0.7407407407407407
+      },
+      {
+        "repository": "strapi/strapi",
+        "releases_cfr": 66,
+        "censuradas": 1,
+        "falhas": 20,
+        "avaliadas": 65,
+        "cfr_entrega": 0.3076923076923077
+      },
+      {
+        "repository": "streamlit/streamlit",
+        "releases_cfr": 23,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 23,
+        "cfr_entrega": 0.21739130434782608
+      },
+      {
+        "repository": "supabase/supabase",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 6,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "sveltejs/svelte",
+        "releases_cfr": 208,
+        "censuradas": 0,
+        "falhas": 172,
+        "avaliadas": 208,
+        "cfr_entrega": 0.8269230769230769
+      },
+      {
+        "repository": "swc-project/swc",
+        "releases_cfr": 167,
+        "censuradas": 2,
+        "falhas": 147,
+        "avaliadas": 165,
+        "cfr_entrega": 0.8909090909090909
+      },
+      {
+        "repository": "sxyazi/yazi",
+        "releases_cfr": 8,
+        "censuradas": 1,
+        "falhas": 2,
+        "avaliadas": 7,
+        "cfr_entrega": 0.2857142857142857
+      },
+      {
+        "repository": "syncthing/syncthing",
+        "releases_cfr": 22,
+        "censuradas": 0,
+        "falhas": 10,
+        "avaliadas": 22,
+        "cfr_entrega": 0.45454545454545453
+      },
+      {
+        "repository": "tabler/tabler",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "tailscale/tailscale",
+        "releases_cfr": 23,
+        "censuradas": 0,
+        "falhas": 10,
+        "avaliadas": 23,
+        "cfr_entrega": 0.43478260869565216
+      },
+      {
+        "repository": "tailwindlabs/tailwindcss",
+        "releases_cfr": 39,
+        "censuradas": 0,
+        "falhas": 20,
+        "avaliadas": 39,
+        "cfr_entrega": 0.5128205128205128
+      },
+      {
+        "repository": "tauri-apps/tauri",
+        "releases_cfr": 225,
+        "censuradas": 0,
+        "falhas": 142,
+        "avaliadas": 225,
+        "cfr_entrega": 0.6311111111111111
+      },
+      {
+        "repository": "tldraw/tldraw",
+        "releases_cfr": 40,
+        "censuradas": 0,
+        "falhas": 18,
+        "avaliadas": 40,
+        "cfr_entrega": 0.45
+      },
+      {
+        "repository": "toeverything/AFFiNE",
+        "releases_cfr": 28,
+        "censuradas": 0,
+        "falhas": 15,
+        "avaliadas": 28,
+        "cfr_entrega": 0.5357142857142857
+      },
+      {
+        "repository": "traefik/traefik",
+        "releases_cfr": 46,
+        "censuradas": 2,
+        "falhas": 7,
+        "avaliadas": 44,
+        "cfr_entrega": 0.1590909090909091
+      },
+      {
+        "repository": "trpc/trpc",
+        "releases_cfr": 26,
+        "censuradas": 0,
+        "falhas": 7,
+        "avaliadas": 26,
+        "cfr_entrega": 0.2692307692307692
+      },
+      {
+        "repository": "tw93/Mole",
+        "releases_cfr": 14,
+        "censuradas": 3,
+        "falhas": 0,
+        "avaliadas": 11,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "tw93/Pake",
+        "releases_cfr": 8,
+        "censuradas": 1,
+        "falhas": 1,
+        "avaliadas": 7,
+        "cfr_entrega": 0.14285714285714285
+      },
+      {
+        "repository": "twbs/bootstrap",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 1,
+        "avaliadas": 5,
+        "cfr_entrega": 0.2
+      },
+      {
+        "repository": "twentyhq/twenty",
+        "releases_cfr": 26,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 26,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "typeorm/typeorm",
+        "releases_cfr": 8,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 8,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "typst/typst",
+        "releases_cfr": 5,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 5,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "ueberdosis/tiptap",
+        "releases_cfr": 76,
+        "censuradas": 0,
+        "falhas": 45,
+        "avaliadas": 76,
+        "cfr_entrega": 0.5921052631578947
+      },
+      {
+        "repository": "ultralytics/ultralytics",
+        "releases_cfr": 188,
+        "censuradas": 3,
+        "falhas": 182,
+        "avaliadas": 185,
+        "cfr_entrega": 0.9837837837837838
+      },
+      {
+        "repository": "unionlabs/union",
+        "releases_cfr": 7,
+        "censuradas": 0,
+        "falhas": 2,
+        "avaliadas": 7,
+        "cfr_entrega": 0.2857142857142857
+      },
+      {
+        "repository": "upstash/context7",
+        "releases_cfr": 31,
+        "censuradas": 2,
+        "falhas": 17,
+        "avaliadas": 29,
+        "cfr_entrega": 0.5862068965517241
+      },
+      {
+        "repository": "usebruno/bruno",
+        "releases_cfr": 32,
+        "censuradas": 0,
+        "falhas": 13,
+        "avaliadas": 32,
+        "cfr_entrega": 0.40625
+      },
+      {
+        "repository": "usememos/memos",
+        "releases_cfr": 10,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 10,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "v2fly/v2ray-core",
+        "releases_cfr": 18,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 18,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "vectorize-io/hindsight",
+        "releases_cfr": 19,
+        "censuradas": 0,
+        "falhas": 17,
+        "avaliadas": 19,
+        "cfr_entrega": 0.8947368421052632
+      },
+      {
+        "repository": "ventoy/Ventoy",
+        "releases_cfr": 11,
+        "censuradas": 0,
+        "falhas": 5,
+        "avaliadas": 11,
+        "cfr_entrega": 0.45454545454545453
+      },
+      {
+        "repository": "vercel/next.js",
+        "releases_cfr": 73,
+        "censuradas": 0,
+        "falhas": 24,
+        "avaliadas": 73,
+        "cfr_entrega": 0.3287671232876712
+      },
+      {
+        "repository": "vitejs/vite",
+        "releases_cfr": 114,
+        "censuradas": 0,
+        "falhas": 58,
+        "avaliadas": 114,
+        "cfr_entrega": 0.5087719298245614
+      },
+      {
+        "repository": "vlang/v",
+        "releases_cfr": 56,
+        "censuradas": 2,
+        "falhas": 12,
+        "avaliadas": 54,
+        "cfr_entrega": 0.2222222222222222
+      },
+      {
+        "repository": "vllm-project/vllm",
+        "releases_cfr": 24,
+        "censuradas": 0,
+        "falhas": 6,
+        "avaliadas": 24,
+        "cfr_entrega": 0.25
+      },
+      {
+        "repository": "vuejs/core",
+        "releases_cfr": 13,
+        "censuradas": 0,
+        "falhas": 3,
+        "avaliadas": 13,
+        "cfr_entrega": 0.23076923076923078
+      },
+      {
+        "repository": "vuetifyjs/vuetify",
+        "releases_cfr": 53,
+        "censuradas": 1,
+        "falhas": 28,
+        "avaliadas": 52,
+        "cfr_entrega": 0.5384615384615384
+      },
+      {
+        "repository": "wailsapp/wails",
+        "releases_cfr": 6,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 6,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "webpack/webpack",
+        "releases_cfr": 23,
+        "censuradas": 0,
+        "falhas": 11,
+        "avaliadas": 23,
+        "cfr_entrega": 0.4782608695652174
+      },
+      {
+        "repository": "withastro/astro",
+        "releases_cfr": 449,
+        "censuradas": 0,
+        "falhas": 187,
+        "avaliadas": 449,
+        "cfr_entrega": 0.41648106904231624
+      },
+      {
+        "repository": "xtekky/gpt4free",
+        "releases_cfr": 180,
+        "censuradas": 3,
+        "falhas": 91,
+        "avaliadas": 177,
+        "cfr_entrega": 0.5141242937853108
+      },
+      {
+        "repository": "xyflow/xyflow",
+        "releases_cfr": 84,
+        "censuradas": 0,
+        "falhas": 35,
+        "avaliadas": 84,
+        "cfr_entrega": 0.4166666666666667
+      },
+      {
+        "repository": "yt-dlp/yt-dlp",
+        "releases_cfr": 26,
+        "censuradas": 0,
+        "falhas": 0,
+        "avaliadas": 26,
+        "cfr_entrega": 0.0
+      },
+      {
+        "repository": "zed-industries/zed",
+        "releases_cfr": 180,
+        "censuradas": 0,
+        "falhas": 128,
+        "avaliadas": 180,
+        "cfr_entrega": 0.7111111111111111
+      },
+      {
+        "repository": "zen-browser/desktop",
+        "releases_cfr": 76,
+        "censuradas": 0,
+        "falhas": 24,
+        "avaliadas": 76,
+        "cfr_entrega": 0.3157894736842105
+      }
+    ],
+    "figura": "rq03_cfr_variantes.pdf"
+  },
+  "rq04": {
+    "recuperados": {
+      "horas": {
+        "n": 264,
+        "ausentes": 36,
+        "mediana": 4.937569444444445,
+        "q1": 1.7459027777777778,
+        "q3": 18.74583333333333,
+        "iqr": 16.99993055555555
+      },
+      "dias": {
+        "n": 264,
+        "ausentes": 36,
+        "mediana": 0.2057320601851852,
+        "q1": 0.07274594907407408,
+        "q3": 0.7810763888888889,
+        "iqr": 0.7083304398148148
+      },
+      "origem": "episodios_falha.csv"
+    },
+    "limite_inferior": {
+      "horas": {
+        "n": 268,
+        "ausentes": 32,
+        "mediana": 5.221180555555556,
+        "q1": 1.8169097222222221,
+        "q3": 22.216840277777777,
+        "iqr": 20.399930555555557
+      },
+      "dias": {
+        "n": 268,
+        "ausentes": 32,
+        "mediana": 0.2175491898148148,
+        "q1": 0.07570457175925926,
+        "q3": 0.9257016782407407,
+        "iqr": 0.8499971064814814
+      }
+    },
+    "vies_da_censura_horas": 0.28361111111111104,
+    "episodios": {
+      "total": 20117,
+      "recuperados": 19921,
+      "censurados": 196,
+      "inconsistentes": 124
+    },
+    "proporcao_censurada": {
+      "n": 268,
+      "ausentes": 32,
+      "mediana": 0.0,
+      "q1": 0.0,
+      "q3": 0.028781512605042015,
+      "iqr": 0.028781512605042015
+    },
+    "por_repositorio": [
+      {
+        "repository": "1Panel-dev/1Panel",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.48444444444444446,
+        "mediana_limite_horas": 0.48444444444444446,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "2dust/v2rayN",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 13.353611111111109,
+        "mediana_limite_horas": 13.353611111111109,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "2dust/v2rayNG",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.6241666666666666,
+        "mediana_limite_horas": 0.6241666666666666,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "AdguardTeam/AdGuardHome",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 24.74083333333333,
+        "mediana_limite_horas": 24.74083333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Aider-AI/aider",
+        "episodios": 3,
+        "recuperados": 0,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": null,
+        "mediana_limite_horas": 960.6108333333332,
+        "proporcao_censurada": 1.0
+      },
+      {
+        "repository": "AlistGo/alist",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 9621.837222222222,
+        "mediana_limite_horas": 9621.837222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "AstrBotDevs/AstrBot",
+        "episodios": 17,
+        "recuperados": 17,
+        "censurados": 0,
+        "inconsistentes": 1,
+        "mediana_horas": 0.42874999999999996,
+        "mediana_limite_horas": 0.42874999999999996,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "BerriAI/litellm",
+        "episodios": 6,
+        "recuperados": 5,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.595,
+        "mediana_limite_horas": 0.7743055555555556,
+        "proporcao_censurada": 0.16666666666666666
+      },
+      {
+        "repository": "ChrisTitusTech/winutil",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 431.66777777777776,
+        "mediana_limite_horas": 431.66777777777776,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ChromeDevTools/chrome-devtools-mcp",
+        "episodios": 50,
+        "recuperados": 50,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.6945833333333333,
+        "mediana_limite_horas": 1.6945833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ClickHouse/ClickHouse",
+        "episodios": 363,
+        "recuperados": 362,
+        "censurados": 1,
+        "inconsistentes": 3,
+        "mediana_horas": 4.2652777777777775,
+        "mediana_limite_horas": 4.270555555555555,
+        "proporcao_censurada": 0.0027548209366391185
+      },
+      {
+        "repository": "Comfy-Org/ComfyUI",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 21.750833333333333,
+        "mediana_limite_horas": 21.750833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "CopilotKit/CopilotKit",
+        "episodios": 33,
+        "recuperados": 32,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 14.251944444444444,
+        "mediana_limite_horas": 14.336388888888887,
+        "proporcao_censurada": 0.030303030303030304
+      },
+      {
+        "repository": "DayuanJiang/next-ai-draw-io",
+        "episodios": 19,
+        "recuperados": 19,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.270833333333333,
+        "mediana_limite_horas": 2.270833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "DioxusLabs/dioxus",
+        "episodios": 15,
+        "recuperados": 15,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.578611111111111,
+        "mediana_limite_horas": 2.578611111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Dokploy/dokploy",
+        "episodios": 11,
+        "recuperados": 11,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.6638888888888889,
+        "mediana_limite_horas": 0.6638888888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Eugeny/tabby",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 70.5363888888889,
+        "mediana_limite_horas": 70.5363888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Fission-AI/OpenSpec",
+        "episodios": 11,
+        "recuperados": 11,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.343611111111111,
+        "mediana_limite_horas": 1.343611111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "FuelLabs/fuel-core",
+        "episodios": 11,
+        "recuperados": 11,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 10.528055555555556,
+        "mediana_limite_horas": 10.528055555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "FuelLabs/sway",
+        "episodios": 4,
+        "recuperados": 3,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 169.87444444444444,
+        "mediana_limite_horas": 663.9452777777777,
+        "proporcao_censurada": 0.25
+      },
+      {
+        "repository": "HKUDS/LightRAG",
+        "episodios": 11,
+        "recuperados": 11,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.9141666666666666,
+        "mediana_limite_horas": 2.9141666666666666,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Homebrew/brew",
+        "episodios": 34,
+        "recuperados": 33,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 3.753888888888889,
+        "mediana_limite_horas": 3.83625,
+        "proporcao_censurada": 0.029411764705882353
+      },
+      {
+        "repository": "Kong/insomnia",
+        "episodios": 30,
+        "recuperados": 30,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 7.408055555555556,
+        "mediana_limite_horas": 7.408055555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "LizardByte/Sunshine",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 132.18722222222223,
+        "mediana_limite_horas": 132.18722222222223,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Mintplex-Labs/anything-llm",
+        "episodios": 4,
+        "recuperados": 4,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.0050000000000003,
+        "mediana_limite_horas": 3.0050000000000003,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "OpenHands/OpenHands",
+        "episodios": 191,
+        "recuperados": 191,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.9836111111111112,
+        "mediana_limite_horas": 1.9836111111111112,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "PaddlePaddle/PaddleOCR",
+        "episodios": 8,
+        "recuperados": 7,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 81.26138888888889,
+        "mediana_limite_horas": 112.56083333333333,
+        "proporcao_censurada": 0.125
+      },
+      {
+        "repository": "PostHog/posthog",
+        "episodios": 1651,
+        "recuperados": 1643,
+        "censurados": 8,
+        "inconsistentes": 5,
+        "mediana_horas": 0.45513888888888887,
+        "mediana_limite_horas": 0.4572222222222222,
+        "proporcao_censurada": 0.004845548152634767
+      },
+      {
+        "repository": "PowerShell/PowerShell",
+        "episodios": 31,
+        "recuperados": 30,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 15.3975,
+        "mediana_limite_horas": 16.701666666666668,
+        "proporcao_censurada": 0.03225806451612903
+      },
+      {
+        "repository": "RSSNext/Folo",
+        "episodios": 65,
+        "recuperados": 64,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.1415277777777777,
+        "mediana_limite_horas": 1.1619444444444444,
+        "proporcao_censurada": 0.015384615384615385
+      },
+      {
+        "repository": "RocketChat/Rocket.Chat",
+        "episodios": 106,
+        "recuperados": 106,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.6429166666666664,
+        "mediana_limite_horas": 3.6429166666666664,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "SeleniumHQ/selenium",
+        "episodios": 59,
+        "recuperados": 58,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 11.699305555555554,
+        "mediana_limite_horas": 12.264722222222222,
+        "proporcao_censurada": 0.01694915254237288
+      },
+      {
+        "repository": "Significant-Gravitas/AutoGPT",
+        "episodios": 11,
+        "recuperados": 9,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 166.93444444444444,
+        "mediana_limite_horas": 179.85166666666666,
+        "proporcao_censurada": 0.18181818181818182
+      },
+      {
+        "repository": "Stirling-Tools/Stirling-PDF",
+        "episodios": 35,
+        "recuperados": 33,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 1.753611111111111,
+        "mediana_limite_horas": 3.858055555555556,
+        "proporcao_censurada": 0.05714285714285714
+      },
+      {
+        "repository": "TanStack/query",
+        "episodios": 13,
+        "recuperados": 13,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.1525,
+        "mediana_limite_horas": 1.1525,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "Tencent/WeKnora",
+        "episodios": 7,
+        "recuperados": 7,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.0194444444444444,
+        "mediana_limite_horas": 2.0194444444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "TriliumNext/Trilium",
+        "episodios": 240,
+        "recuperados": 239,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.3819444444444444,
+        "mediana_limite_horas": 1.3956944444444446,
+        "proporcao_censurada": 0.004166666666666667
+      },
+      {
+        "repository": "TryGhost/Ghost",
+        "episodios": 72,
+        "recuperados": 71,
+        "censurados": 1,
+        "inconsistentes": 1,
+        "mediana_horas": 2.105833333333333,
+        "mediana_limite_horas": 2.1075,
+        "proporcao_censurada": 0.013888888888888888
+      },
+      {
+        "repository": "VSCodium/vscodium",
+        "episodios": 16,
+        "recuperados": 16,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 31.876527777777774,
+        "mediana_limite_horas": 31.876527777777774,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "WerWolv/ImHex",
+        "episodios": 33,
+        "recuperados": 33,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 11.609444444444444,
+        "mediana_limite_horas": 11.609444444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "XTLS/Xray-core",
+        "episodios": 32,
+        "recuperados": 32,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.591111111111111,
+        "mediana_limite_horas": 1.591111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "aaif-goose/goose",
+        "episodios": 137,
+        "recuperados": 135,
+        "censurados": 2,
+        "inconsistentes": 1,
+        "mediana_horas": 2.5586111111111114,
+        "mediana_limite_horas": 2.5845833333333332,
+        "proporcao_censurada": 0.014598540145985401
+      },
+      {
+        "repository": "agno-agi/agno",
+        "episodios": 35,
+        "recuperados": 34,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.49,
+        "mediana_limite_horas": 1.5044444444444445,
+        "proporcao_censurada": 0.02857142857142857
+      },
+      {
+        "repository": "alibaba/arthas",
+        "episodios": 5,
+        "recuperados": 3,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 26.389722222222225,
+        "mediana_limite_horas": 54.72222222222222,
+        "proporcao_censurada": 0.4
+      },
+      {
+        "repository": "angular/angular",
+        "episodios": 54,
+        "recuperados": 54,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.1670833333333333,
+        "mediana_limite_horas": 1.1670833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "anomalyco/opencode",
+        "episodios": 300,
+        "recuperados": 298,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 0.33125000000000004,
+        "mediana_limite_horas": 0.33305555555555555,
+        "proporcao_censurada": 0.006666666666666667
+      },
+      {
+        "repository": "ant-design/ant-design",
+        "episodios": 21,
+        "recuperados": 21,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.7911111111111118,
+        "mediana_limite_horas": 2.7911111111111118,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "apache/airflow",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.4372222222222222,
+        "mediana_limite_horas": 1.4372222222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "apache/dubbo",
+        "episodios": 6,
+        "recuperados": 6,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.2181944444444444,
+        "mediana_limite_horas": 2.2181944444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "apache/superset",
+        "episodios": 203,
+        "recuperados": 202,
+        "censurados": 1,
+        "inconsistentes": 5,
+        "mediana_horas": 0.6441666666666667,
+        "mediana_limite_horas": 0.6491666666666667,
+        "proporcao_censurada": 0.0049261083743842365
+      },
+      {
+        "repository": "apple/container",
+        "episodios": 7,
+        "recuperados": 7,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 18.77833333333333,
+        "mediana_limite_horas": 18.77833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "aristocratos/btop",
+        "episodios": 8,
+        "recuperados": 7,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 164.87416666666667,
+        "mediana_limite_horas": 205.32777777777778,
+        "proporcao_censurada": 0.125
+      },
+      {
+        "repository": "astral-sh/ruff",
+        "episodios": 57,
+        "recuperados": 57,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.57,
+        "mediana_limite_horas": 1.57,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "astral-sh/uv",
+        "episodios": 128,
+        "recuperados": 128,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.440416666666668,
+        "mediana_limite_horas": 5.440416666666668,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "axios/axios",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 24.36055555555556,
+        "mediana_limite_horas": 24.36055555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "babel/babel",
+        "episodios": 12,
+        "recuperados": 12,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 23.07402777777778,
+        "mediana_limite_horas": 23.07402777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "backstage/backstage",
+        "episodios": 144,
+        "recuperados": 141,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 1.0788888888888888,
+        "mediana_limite_horas": 1.112361111111111,
+        "proporcao_censurada": 0.020833333333333332
+      },
+      {
+        "repository": "bevyengine/bevy",
+        "episodios": 44,
+        "recuperados": 44,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 6.926805555555555,
+        "mediana_limite_horas": 6.926805555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "bitcoin/bitcoin",
+        "episodios": 8,
+        "recuperados": 8,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 4.356666666666667,
+        "mediana_limite_horas": 4.356666666666667,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "blakeblackshear/frigate",
+        "episodios": 43,
+        "recuperados": 43,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 18.56194444444445,
+        "mediana_limite_horas": 18.56194444444445,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "bmad-code-org/BMAD-METHOD",
+        "episodios": 2,
+        "recuperados": 0,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": null,
+        "mediana_limite_horas": 320.5983333333333,
+        "proporcao_censurada": 1.0
+      },
+      {
+        "repository": "browser-use/browser-use",
+        "episodios": 33,
+        "recuperados": 33,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 15.348888888888888,
+        "mediana_limite_horas": 15.348888888888888,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "bumptech/glide",
+        "episodios": 5,
+        "recuperados": 4,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 9602.175972222221,
+        "mediana_limite_horas": 9601.128611111111,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "bytedance/UI-TARS-desktop",
+        "episodios": 13,
+        "recuperados": 12,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.000277777777778,
+        "mediana_limite_horas": 2.991111111111111,
+        "proporcao_censurada": 0.07692307692307693
+      },
+      {
+        "repository": "calcom/cal.diy",
+        "episodios": 51,
+        "recuperados": 50,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 9.946666666666665,
+        "mediana_limite_horas": 9.990833333333333,
+        "proporcao_censurada": 0.0196078431372549
+      },
+      {
+        "repository": "ccxt/ccxt",
+        "episodios": 9,
+        "recuperados": 4,
+        "censurados": 5,
+        "inconsistentes": 0,
+        "mediana_horas": 107.0586111111111,
+        "mediana_limite_horas": 1477.878611111111,
+        "proporcao_censurada": 0.5555555555555556
+      },
+      {
+        "repository": "chakra-ui/chakra-ui",
+        "episodios": 9,
+        "recuperados": 9,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 22.128055555555555,
+        "mediana_limite_horas": 22.128055555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "chatwoot/chatwoot",
+        "episodios": 13,
+        "recuperados": 13,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 6.033055555555555,
+        "mediana_limite_horas": 6.033055555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "cli/cli",
+        "episodios": 10,
+        "recuperados": 8,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 19.05972222222222,
+        "mediana_limite_horas": 140.9423611111111,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "cline/cline",
+        "episodios": 126,
+        "recuperados": 125,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.3586111111111112,
+        "mediana_limite_horas": 1.3587500000000001,
+        "proporcao_censurada": 0.007936507936507936
+      },
+      {
+        "repository": "code-yeongyu/oh-my-openagent",
+        "episodios": 4,
+        "recuperados": 4,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.9259722222222226,
+        "mediana_limite_horas": 3.9259722222222226,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "colinhacks/zod",
+        "episodios": 10,
+        "recuperados": 10,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.636111111111111,
+        "mediana_limite_horas": 1.636111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "commaai/openpilot",
+        "episodios": 39,
+        "recuperados": 39,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.5877777777777777,
+        "mediana_limite_horas": 0.5877777777777777,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "continuedev/continue",
+        "episodios": 107,
+        "recuperados": 106,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.8247222222222224,
+        "mediana_limite_horas": 1.8952777777777776,
+        "proporcao_censurada": 0.009345794392523364
+      },
+      {
+        "repository": "crewAIInc/crewAI",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 21.57888888888889,
+        "mediana_limite_horas": 21.57888888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "curl/curl",
+        "episodios": 431,
+        "recuperados": 431,
+        "censurados": 0,
+        "inconsistentes": 1,
+        "mediana_horas": 2.061111111111111,
+        "mediana_limite_horas": 2.061111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "daytonaio/daytona",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.931111111111111,
+        "mediana_limite_horas": 1.931111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "dbeaver/dbeaver",
+        "episodios": 7,
+        "recuperados": 7,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 12.543333333333331,
+        "mediana_limite_horas": 12.543333333333331,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "deepspeedai/DeepSpeed",
+        "episodios": 5,
+        "recuperados": 4,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 13.658194444444446,
+        "mediana_limite_horas": 16.40277777777778,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "denoland/deno",
+        "episodios": 94,
+        "recuperados": 94,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 17.393194444444447,
+        "mediana_limite_horas": 17.393194444444447,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "dgtlmoon/changedetection.io",
+        "episodios": 8,
+        "recuperados": 8,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 26.564305555555556,
+        "mediana_limite_horas": 26.564305555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "directus/directus",
+        "episodios": 12,
+        "recuperados": 12,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.054722222222223,
+        "mediana_limite_horas": 5.054722222222223,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "docker/compose",
+        "episodios": 21,
+        "recuperados": 20,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 27.701944444444443,
+        "mediana_limite_horas": 30.94361111111111,
+        "proporcao_censurada": 0.047619047619047616
+      },
+      {
+        "repository": "earendil-works/pi",
+        "episodios": 11,
+        "recuperados": 10,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.3934722222222224,
+        "mediana_limite_horas": 1.736388888888889,
+        "proporcao_censurada": 0.09090909090909091
+      },
+      {
+        "repository": "elastic/elasticsearch",
+        "episodios": 12,
+        "recuperados": 12,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.1155555555555554,
+        "mediana_limite_horas": 1.1155555555555554,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "electron/electron",
+        "episodios": 49,
+        "recuperados": 48,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 16.520138888888887,
+        "mediana_limite_horas": 17.297777777777778,
+        "proporcao_censurada": 0.02040816326530612
+      },
+      {
+        "repository": "etcd-io/etcd",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.1461111111111111,
+        "mediana_limite_horas": 0.1461111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ethereum/go-ethereum",
+        "episodios": 65,
+        "recuperados": 65,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 6.050833333333333,
+        "mediana_limite_horas": 6.050833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "evanw/esbuild",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 8.10736111111111,
+        "mediana_limite_horas": 8.10736111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "expressjs/express",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 254.7422222222222,
+        "mediana_limite_horas": 254.7422222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "facebook/docusaurus",
+        "episodios": 11,
+        "recuperados": 10,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 4.861944444444445,
+        "mediana_limite_horas": 5.4319444444444445,
+        "proporcao_censurada": 0.09090909090909091
+      },
+      {
+        "repository": "fastapi/fastapi",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 16.291944444444443,
+        "mediana_limite_horas": 16.291944444444443,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "fastify/fastify",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 25.015,
+        "mediana_limite_horas": 25.015,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "filebrowser/filebrowser",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.1530555555555555,
+        "mediana_limite_horas": 0.1530555555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "files-community/Files",
+        "episodios": 15,
+        "recuperados": 15,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.7736111111111112,
+        "mediana_limite_horas": 2.7736111111111112,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "firecrawl/firecrawl",
+        "episodios": 17,
+        "recuperados": 17,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.5725,
+        "mediana_limite_horas": 0.5725,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "fish-shell/fish-shell",
+        "episodios": 17,
+        "recuperados": 16,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.2425,
+        "mediana_limite_horas": 1.505,
+        "proporcao_censurada": 0.058823529411764705
+      },
+      {
+        "repository": "freqtrade/freqtrade",
+        "episodios": 42,
+        "recuperados": 42,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 12.91611111111111,
+        "mediana_limite_horas": 12.91611111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "getsentry/sentry",
+        "episodios": 257,
+        "recuperados": 257,
+        "censurados": 0,
+        "inconsistentes": 2,
+        "mediana_horas": 0.4055555555555555,
+        "mediana_limite_horas": 0.4055555555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ggml-org/llama.cpp",
+        "episodios": 181,
+        "recuperados": 181,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 10.205,
+        "mediana_limite_horas": 10.205,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ggml-org/whisper.cpp",
+        "episodios": 13,
+        "recuperados": 11,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 172.74666666666667,
+        "mediana_limite_horas": 172.74666666666667,
+        "proporcao_censurada": 0.15384615384615385
+      },
+      {
+        "repository": "github/spec-kit",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1053.8658333333333,
+        "mediana_limite_horas": 1053.8658333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "gitroomhq/postiz-app",
+        "episodios": 15,
+        "recuperados": 14,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.38319444444444445,
+        "mediana_limite_horas": 0.4091666666666667,
+        "proporcao_censurada": 0.06666666666666667
+      },
+      {
+        "repository": "gkd-kit/gkd",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 40.699444444444445,
+        "mediana_limite_horas": 40.699444444444445,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "go-gitea/gitea",
+        "episodios": 7,
+        "recuperados": 7,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 12.606944444444444,
+        "mediana_limite_horas": 12.606944444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "godotengine/godot",
+        "episodios": 4,
+        "recuperados": 4,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 4.6125,
+        "mediana_limite_horas": 4.6125,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "gohugoio/hugo",
+        "episodios": 28,
+        "recuperados": 28,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 16.416527777777777,
+        "mediana_limite_horas": 16.416527777777777,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "google-gemini/gemini-cli",
+        "episodios": 275,
+        "recuperados": 274,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.051111111111111,
+        "mediana_limite_horas": 1.0516666666666667,
+        "proporcao_censurada": 0.0036363636363636364
+      },
+      {
+        "repository": "google/guava",
+        "episodios": 5,
+        "recuperados": 4,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 7.614583333333333,
+        "mediana_limite_horas": 11.456388888888888,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "google/zx",
+        "episodios": 4,
+        "recuperados": 3,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 77.3463888888889,
+        "mediana_limite_horas": 77.35388888888889,
+        "proporcao_censurada": 0.25
+      },
+      {
+        "repository": "gradio-app/gradio",
+        "episodios": 63,
+        "recuperados": 62,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 14.038888888888888,
+        "mediana_limite_horas": 14.725277777777778,
+        "proporcao_censurada": 0.015873015873015872
+      },
+      {
+        "repository": "grafana/grafana",
+        "episodios": 1703,
+        "recuperados": 1702,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.9,
+        "mediana_limite_horas": 0.9011111111111112,
+        "proporcao_censurada": 0.0005871990604815032
+      },
+      {
+        "repository": "halo-dev/halo",
+        "episodios": 9,
+        "recuperados": 8,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 6.601388888888889,
+        "mediana_limite_horas": 12.294444444444444,
+        "proporcao_censurada": 0.1111111111111111
+      },
+      {
+        "repository": "harness/harness",
+        "episodios": 1,
+        "recuperados": 0,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": null,
+        "mediana_limite_horas": 3018.623611111111,
+        "proporcao_censurada": 1.0
+      },
+      {
+        "repository": "hashicorp/terraform",
+        "episodios": 19,
+        "recuperados": 19,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 19.8025,
+        "mediana_limite_horas": 19.8025,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "hashicorp/vault",
+        "episodios": 42,
+        "recuperados": 42,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.415138888888889,
+        "mediana_limite_horas": 3.415138888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "home-assistant/core",
+        "episodios": 317,
+        "recuperados": 317,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.635833333333333,
+        "mediana_limite_horas": 3.635833333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "huggingface/diffusers",
+        "episodios": 6,
+        "recuperados": 3,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 37.37472222222223,
+        "mediana_limite_horas": 558.18875,
+        "proporcao_censurada": 0.5
+      },
+      {
+        "repository": "huggingface/transformers",
+        "episodios": 295,
+        "recuperados": 293,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 0.8813888888888889,
+        "mediana_limite_horas": 0.8858333333333334,
+        "proporcao_censurada": 0.006779661016949152
+      },
+      {
+        "repository": "hyprwm/Hyprland",
+        "episodios": 67,
+        "recuperados": 64,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 4.6530555555555555,
+        "mediana_limite_horas": 4.779166666666667,
+        "proporcao_censurada": 0.04477611940298507
+      },
+      {
+        "repository": "immich-app/immich",
+        "episodios": 126,
+        "recuperados": 126,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.858611111111111,
+        "mediana_limite_horas": 1.858611111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "infiniflow/ragflow",
+        "episodios": 78,
+        "recuperados": 77,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.8588888888888888,
+        "mediana_limite_horas": 1.9908333333333332,
+        "proporcao_censurada": 0.01282051282051282
+      },
+      {
+        "repository": "jax-ml/jax",
+        "episodios": 162,
+        "recuperados": 161,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.5475,
+        "mediana_limite_horas": 1.5569444444444445,
+        "proporcao_censurada": 0.006172839506172839
+      },
+      {
+        "repository": "jdx/mise",
+        "episodios": 46,
+        "recuperados": 46,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.7809722222222222,
+        "mediana_limite_horas": 1.7809722222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "jellyfin/jellyfin",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.1691666666666665,
+        "mediana_limite_horas": 5.1691666666666665,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "jesseduffield/lazygit",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.3375,
+        "mediana_limite_horas": 0.3375,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "jestjs/jest",
+        "episodios": 11,
+        "recuperados": 10,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 49.677083333333336,
+        "mediana_limite_horas": 58.10138888888889,
+        "proporcao_censurada": 0.09090909090909091
+      },
+      {
+        "repository": "jgm/pandoc",
+        "episodios": 27,
+        "recuperados": 27,
+        "censurados": 0,
+        "inconsistentes": 1,
+        "mediana_horas": 11.98986111111111,
+        "mediana_limite_horas": 11.98986111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "juanfont/headscale",
+        "episodios": 31,
+        "recuperados": 30,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 6.825694444444444,
+        "mediana_limite_horas": 6.875555555555556,
+        "proporcao_censurada": 0.03225806451612903
+      },
+      {
+        "repository": "junegunn/fzf",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.1605555555555555,
+        "mediana_limite_horas": 0.1605555555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "juspay/hyperswitch",
+        "episodios": 4,
+        "recuperados": 3,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 3.1025,
+        "mediana_limite_horas": 12.036805555555555,
+        "proporcao_censurada": 0.25
+      },
+      {
+        "repository": "k3s-io/k3s",
+        "episodios": 27,
+        "recuperados": 24,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 22.59847222222222,
+        "mediana_limite_horas": 27.848333333333333,
+        "proporcao_censurada": 0.1111111111111111
+      },
+      {
+        "repository": "keras-team/keras",
+        "episodios": 15,
+        "recuperados": 15,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 16.4875,
+        "mediana_limite_horas": 16.4875,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "keycloak/keycloak",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 41.09,
+        "mediana_limite_horas": 41.09,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "khoj-ai/khoj",
+        "episodios": 7,
+        "recuperados": 5,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 165.27027777777778,
+        "mediana_limite_horas": 372.3413888888889,
+        "proporcao_censurada": 0.2857142857142857
+      },
+      {
+        "repository": "kovidgoyal/kitty",
+        "episodios": 55,
+        "recuperados": 55,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.3569444444444444,
+        "mediana_limite_horas": 0.3569444444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "langchain-ai/langchain",
+        "episodios": 59,
+        "recuperados": 59,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.3191666666666666,
+        "mediana_limite_horas": 1.3191666666666666,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "langchain-ai/langgraph",
+        "episodios": 8,
+        "recuperados": 7,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 8.097222222222221,
+        "mediana_limite_horas": 9.675138888888888,
+        "proporcao_censurada": 0.125
+      },
+      {
+        "repository": "langflow-ai/langflow",
+        "episodios": 10,
+        "recuperados": 8,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 231.37597222222223,
+        "mediana_limite_horas": 367.12694444444446,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "langfuse/langfuse",
+        "episodios": 47,
+        "recuperados": 47,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.896388888888889,
+        "mediana_limite_horas": 1.896388888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "langgenius/dify",
+        "episodios": 73,
+        "recuperados": 72,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.3027777777777778,
+        "mediana_limite_horas": 1.3733333333333333,
+        "proporcao_censurada": 0.0136986301369863
+      },
+      {
+        "repository": "laurent22/joplin",
+        "episodios": 75,
+        "recuperados": 75,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.967222222222222,
+        "mediana_limite_horas": 5.967222222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "lfnovo/open-notebook",
+        "episodios": 4,
+        "recuperados": 4,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 23.48125,
+        "mediana_limite_horas": 23.48125,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "llvm/llvm-project",
+        "episodios": 29,
+        "recuperados": 26,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 2.992916666666667,
+        "mediana_limite_horas": 3.765277777777778,
+        "proporcao_censurada": 0.10344827586206896
+      },
+      {
+        "repository": "localstack/localstack",
+        "episodios": 19,
+        "recuperados": 19,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 13.117777777777778,
+        "mediana_limite_horas": 13.117777777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "logseq/logseq",
+        "episodios": 103,
+        "recuperados": 101,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 2.6169444444444445,
+        "mediana_limite_horas": 2.654166666666667,
+        "proporcao_censurada": 0.019417475728155338
+      },
+      {
+        "repository": "makeplane/plane",
+        "episodios": 22,
+        "recuperados": 21,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.2566666666666666,
+        "mediana_limite_horas": 0.3097222222222221,
+        "proporcao_censurada": 0.045454545454545456
+      },
+      {
+        "repository": "mastodon/mastodon",
+        "episodios": 41,
+        "recuperados": 41,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.4444444444444444,
+        "mediana_limite_horas": 1.4444444444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "mattermost/mattermost",
+        "episodios": 51,
+        "recuperados": 50,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 5.013194444444444,
+        "mediana_limite_horas": 5.171944444444445,
+        "proporcao_censurada": 0.0196078431372549
+      },
+      {
+        "repository": "medusajs/medusa",
+        "episodios": 142,
+        "recuperados": 142,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.203333333333333,
+        "mediana_limite_horas": 3.203333333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "meilisearch/meilisearch",
+        "episodios": 6,
+        "recuperados": 6,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 31.393055555555556,
+        "mediana_limite_horas": 31.393055555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "mermaid-js/mermaid",
+        "episodios": 8,
+        "recuperados": 7,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 9602.260555555556,
+        "mediana_limite_horas": 6064.3230555555565,
+        "proporcao_censurada": 0.125
+      },
+      {
+        "repository": "metabase/metabase",
+        "episodios": 389,
+        "recuperados": 386,
+        "censurados": 3,
+        "inconsistentes": 33,
+        "mediana_horas": 1.336111111111111,
+        "mediana_limite_horas": 1.3470833333333334,
+        "proporcao_censurada": 0.007712082262210797
+      },
+      {
+        "repository": "microsoft/TypeScript",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.5166666666666666,
+        "mediana_limite_horas": 2.5166666666666666,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "microsoft/WSL",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 122.08888888888887,
+        "mediana_limite_horas": 122.08888888888887,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "microsoft/graphrag",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 23.595277777777778,
+        "mediana_limite_horas": 23.595277777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "microsoft/playwright",
+        "episodios": 395,
+        "recuperados": 388,
+        "censurados": 7,
+        "inconsistentes": 0,
+        "mediana_horas": 4.485138888888889,
+        "mediana_limite_horas": 4.588888888888889,
+        "proporcao_censurada": 0.017721518987341773
+      },
+      {
+        "repository": "microsoft/playwright-mcp",
+        "episodios": 11,
+        "recuperados": 10,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 171.96055555555557,
+        "mediana_limite_horas": 144.3361111111111,
+        "proporcao_censurada": 0.09090909090909091
+      },
+      {
+        "repository": "microsoft/vscode",
+        "episodios": 11,
+        "recuperados": 11,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.602777777777778,
+        "mediana_limite_horas": 1.602777777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "milvus-io/milvus",
+        "episodios": 26,
+        "recuperados": 24,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 6.391249999999999,
+        "mediana_limite_horas": 8.651388888888889,
+        "proporcao_censurada": 0.07692307692307693
+      },
+      {
+        "repository": "mitmproxy/mitmproxy",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 33.42263888888889,
+        "mediana_limite_horas": 33.42263888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "moby/moby",
+        "episodios": 153,
+        "recuperados": 151,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 6.680833333333333,
+        "mediana_limite_horas": 6.7875,
+        "proporcao_censurada": 0.013071895424836602
+      },
+      {
+        "repository": "modelcontextprotocol/servers",
+        "episodios": 4,
+        "recuperados": 3,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 11.602222222222222,
+        "mediana_limite_horas": 16.82125,
+        "proporcao_censurada": 0.25
+      },
+      {
+        "repository": "moeru-ai/airi",
+        "episodios": 106,
+        "recuperados": 104,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 2.385972222222222,
+        "mediana_limite_horas": 2.393888888888889,
+        "proporcao_censurada": 0.018867924528301886
+      },
+      {
+        "repository": "mozilla/pdf.js",
+        "episodios": 11,
+        "recuperados": 11,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 55.25722222222223,
+        "mediana_limite_horas": 55.25722222222223,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "mrdoob/three.js",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 9680.87,
+        "mediana_limite_horas": 9680.87,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "mudler/LocalAI",
+        "episodios": 96,
+        "recuperados": 95,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 17.441388888888888,
+        "mediana_limite_horas": 17.581111111111113,
+        "proporcao_censurada": 0.010416666666666666
+      },
+      {
+        "repository": "mui/material-ui",
+        "episodios": 23,
+        "recuperados": 23,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.1519444444444447,
+        "mediana_limite_horas": 2.1519444444444447,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "n8n-io/n8n",
+        "episodios": 179,
+        "recuperados": 176,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 0.8431944444444444,
+        "mediana_limite_horas": 0.8961111111111111,
+        "proporcao_censurada": 0.01675977653631285
+      },
+      {
+        "repository": "neovim/neovim",
+        "episodios": 153,
+        "recuperados": 152,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 4.560138888888888,
+        "mediana_limite_horas": 4.4752777777777775,
+        "proporcao_censurada": 0.006535947712418301
+      },
+      {
+        "repository": "netdata/netdata",
+        "episodios": 59,
+        "recuperados": 59,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 6.960277777777778,
+        "mediana_limite_horas": 6.960277777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "nextcloud/server",
+        "episodios": 61,
+        "recuperados": 60,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 3.0038888888888886,
+        "mediana_limite_horas": 3.095833333333333,
+        "proporcao_censurada": 0.01639344262295082
+      },
+      {
+        "repository": "nicolargo/glances",
+        "episodios": 20,
+        "recuperados": 20,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.7027777777777777,
+        "mediana_limite_horas": 0.7027777777777777,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "nocodb/nocodb",
+        "episodios": 29,
+        "recuperados": 28,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 44.66041666666666,
+        "mediana_limite_horas": 45.136944444444445,
+        "proporcao_censurada": 0.034482758620689655
+      },
+      {
+        "repository": "nodejs/node",
+        "episodios": 174,
+        "recuperados": 174,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.143055555555556,
+        "mediana_limite_horas": 5.143055555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "novuhq/novu",
+        "episodios": 29,
+        "recuperados": 28,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.7041666666666666,
+        "mediana_limite_horas": 1.7041666666666666,
+        "proporcao_censurada": 0.034482758620689655
+      },
+      {
+        "repository": "nushell/nushell",
+        "episodios": 7,
+        "recuperados": 7,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 6.204166666666667,
+        "mediana_limite_horas": 6.204166666666667,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "nuxt/nuxt",
+        "episodios": 33,
+        "recuperados": 33,
+        "censurados": 0,
+        "inconsistentes": 11,
+        "mediana_horas": 5.270416666666667,
+        "mediana_limite_horas": 5.270416666666667,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "obsproject/obs-studio",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.8255555555555556,
+        "mediana_limite_horas": 0.8255555555555556,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ocornut/imgui",
+        "episodios": 15,
+        "recuperados": 15,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.276111111111111,
+        "mediana_limite_horas": 2.276111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "open-webui/open-webui",
+        "episodios": 16,
+        "recuperados": 16,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 122.76694444444445,
+        "mediana_limite_horas": 122.76694444444445,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "openai/codex",
+        "episodios": 262,
+        "recuperados": 262,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.3073611111111112,
+        "mediana_limite_horas": 1.3073611111111112,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "openclaw/openclaw",
+        "episodios": 52,
+        "recuperados": 51,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.9797222222222224,
+        "mediana_limite_horas": 2.1277777777777778,
+        "proporcao_censurada": 0.019230769230769232
+      },
+      {
+        "repository": "opendatalab/MinerU",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2033.680833333333,
+        "mediana_limite_horas": 2033.680833333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "outline/outline",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 9600.637222222222,
+        "mediana_limite_horas": 9600.637222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "oven-sh/bun",
+        "episodios": 5,
+        "recuperados": 4,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 9624.54013888889,
+        "mediana_limite_horas": 9614.550277777778,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "paperless-ngx/paperless-ngx",
+        "episodios": 8,
+        "recuperados": 8,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.7593055555555555,
+        "mediana_limite_horas": 1.7593055555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "pathwaycom/pathway",
+        "episodios": 2,
+        "recuperados": 1,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 22.7675,
+        "mediana_limite_horas": 4812.802361111111,
+        "proporcao_censurada": 0.5
+      },
+      {
+        "repository": "payloadcms/payload",
+        "episodios": 121,
+        "recuperados": 120,
+        "censurados": 1,
+        "inconsistentes": 1,
+        "mediana_horas": 2.9244444444444446,
+        "mediana_limite_horas": 2.960138888888889,
+        "proporcao_censurada": 0.008264462809917356
+      },
+      {
+        "repository": "pear-devs/pear-desktop",
+        "episodios": 4,
+        "recuperados": 3,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 9600.549166666666,
+        "mediana_limite_horas": 6061.080694444444,
+        "proporcao_censurada": 0.25
+      },
+      {
+        "repository": "penpot/penpot",
+        "episodios": 24,
+        "recuperados": 23,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.4941666666666666,
+        "mediana_limite_horas": 1.56,
+        "proporcao_censurada": 0.041666666666666664
+      },
+      {
+        "repository": "permissionlesstech/bitchat",
+        "episodios": 13,
+        "recuperados": 12,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.401111111111111,
+        "mediana_limite_horas": 1.5763888888888888,
+        "proporcao_censurada": 0.07692307692307693
+      },
+      {
+        "repository": "php/php-src",
+        "episodios": 39,
+        "recuperados": 39,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.102777777777778,
+        "mediana_limite_horas": 3.102777777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "pingcap/tidb",
+        "episodios": 1,
+        "recuperados": 0,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": null,
+        "mediana_limite_horas": 2995.040555555556,
+        "proporcao_censurada": 1.0
+      },
+      {
+        "repository": "pixijs/pixijs",
+        "episodios": 2,
+        "recuperados": 1,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.3797222222222222,
+        "mediana_limite_horas": 27.840694444444445,
+        "proporcao_censurada": 0.5
+      },
+      {
+        "repository": "pmndrs/zustand",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 38.901944444444446,
+        "mediana_limite_horas": 38.901944444444446,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "pnpm/pnpm",
+        "episodios": 39,
+        "recuperados": 38,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 17.905555555555555,
+        "mediana_limite_horas": 17.041944444444443,
+        "proporcao_censurada": 0.02564102564102564
+      },
+      {
+        "repository": "pola-rs/polars",
+        "episodios": 60,
+        "recuperados": 59,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 6.0425,
+        "mediana_limite_horas": 6.4286111111111115,
+        "proporcao_censurada": 0.016666666666666666
+      },
+      {
+        "repository": "prettier/prettier",
+        "episodios": 62,
+        "recuperados": 62,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.7508333333333335,
+        "mediana_limite_horas": 1.7508333333333335,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "prisma/orm",
+        "episodios": 28,
+        "recuperados": 26,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 7.140138888888888,
+        "mediana_limite_horas": 9.633888888888887,
+        "proporcao_censurada": 0.07142857142857142
+      },
+      {
+        "repository": "prometheus/prometheus",
+        "episodios": 44,
+        "recuperados": 44,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.036944444444444,
+        "mediana_limite_horas": 5.036944444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "protocolbuffers/protobuf",
+        "episodios": 57,
+        "recuperados": 56,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.9230555555555555,
+        "mediana_limite_horas": 2.94,
+        "proporcao_censurada": 0.017543859649122806
+      },
+      {
+        "repository": "puppeteer/puppeteer",
+        "episodios": 58,
+        "recuperados": 57,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 23.54138888888889,
+        "mediana_limite_horas": 23.75486111111111,
+        "proporcao_censurada": 0.017241379310344827
+      },
+      {
+        "repository": "pytorch/pytorch",
+        "episodios": 3036,
+        "recuperados": 3033,
+        "censurados": 3,
+        "inconsistentes": 36,
+        "mediana_horas": 4.398888888888889,
+        "mediana_limite_horas": 4.399166666666667,
+        "proporcao_censurada": 0.0009881422924901185
+      },
+      {
+        "repository": "qdrant/qdrant",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 72.12444444444445,
+        "mediana_limite_horas": 72.12444444444445,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "rails/rails",
+        "episodios": 13,
+        "recuperados": 13,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 8.895277777777778,
+        "mediana_limite_horas": 8.895277777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "rclone/rclone",
+        "episodios": 69,
+        "recuperados": 69,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 15.815,
+        "mediana_limite_horas": 15.815,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "react/react",
+        "episodios": 19,
+        "recuperados": 19,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 6.761388888888889,
+        "mediana_limite_horas": 6.761388888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "react/react-native",
+        "episodios": 73,
+        "recuperados": 71,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 5.950555555555556,
+        "mediana_limite_horas": 6.208611111111111,
+        "proporcao_censurada": 0.0273972602739726
+      },
+      {
+        "repository": "redis/redis",
+        "episodios": 13,
+        "recuperados": 13,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 7.5075,
+        "mediana_limite_horas": 7.5075,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "refinedev/refine",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 22.738333333333333,
+        "mediana_limite_horas": 22.738333333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "remix-run/react-router",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 361.35777777777776,
+        "mediana_limite_horas": 361.35777777777776,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "remotion-dev/remotion",
+        "episodios": 137,
+        "recuperados": 137,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.05,
+        "mediana_limite_horas": 3.05,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "run-llama/llama_index",
+        "episodios": 23,
+        "recuperados": 21,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 7.186111111111111,
+        "mediana_limite_horas": 11.985,
+        "proporcao_censurada": 0.08695652173913043
+      },
+      {
+        "repository": "rustdesk/rustdesk",
+        "episodios": 20,
+        "recuperados": 20,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 22.483194444444443,
+        "mediana_limite_horas": 22.483194444444443,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "saadeghi/daisyui",
+        "episodios": 6,
+        "recuperados": 6,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.6725,
+        "mediana_limite_horas": 0.6725,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "schollz/croc",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.2088888888888889,
+        "mediana_limite_horas": 0.2088888888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "scikit-learn/scikit-learn",
+        "episodios": 7,
+        "recuperados": 7,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.8288888888888888,
+        "mediana_limite_horas": 1.8288888888888888,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "scrapy/scrapy",
+        "episodios": 9,
+        "recuperados": 8,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.462083333333333,
+        "mediana_limite_horas": 1.9116666666666664,
+        "proporcao_censurada": 0.1111111111111111
+      },
+      {
+        "repository": "seaweedfs/seaweedfs",
+        "episodios": 80,
+        "recuperados": 79,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.731111111111111,
+        "mediana_limite_horas": 1.701111111111111,
+        "proporcao_censurada": 0.0125
+      },
+      {
+        "repository": "sgl-project/sglang",
+        "episodios": 914,
+        "recuperados": 903,
+        "censurados": 11,
+        "inconsistentes": 3,
+        "mediana_horas": 3.1940277777777775,
+        "mediana_limite_horas": 3.250833333333333,
+        "proporcao_censurada": 0.012035010940919038
+      },
+      {
+        "repository": "shadcn-ui/ui",
+        "episodios": 11,
+        "recuperados": 10,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 8.775972222222222,
+        "mediana_limite_horas": 13.699444444444444,
+        "proporcao_censurada": 0.09090909090909091
+      },
+      {
+        "repository": "slidevjs/slidev",
+        "episodios": 10,
+        "recuperados": 10,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 7.828333333333333,
+        "mediana_limite_horas": 7.828333333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "spring-projects/spring-boot",
+        "episodios": 136,
+        "recuperados": 136,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.0969444444444445,
+        "mediana_limite_horas": 3.0969444444444445,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "spring-projects/spring-framework",
+        "episodios": 41,
+        "recuperados": 41,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.5811111111111111,
+        "mediana_limite_horas": 1.5811111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "stanfordnlp/dspy",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.1391666666666667,
+        "mediana_limite_horas": 3.1391666666666667,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "storybookjs/storybook",
+        "episodios": 67,
+        "recuperados": 66,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.685694444444444,
+        "mediana_limite_horas": 2.6994444444444445,
+        "proporcao_censurada": 0.014925373134328358
+      },
+      {
+        "repository": "strapi/strapi",
+        "episodios": 40,
+        "recuperados": 39,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 18.735,
+        "mediana_limite_horas": 18.78611111111111,
+        "proporcao_censurada": 0.025
+      },
+      {
+        "repository": "streamlit/streamlit",
+        "episodios": 74,
+        "recuperados": 73,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.298611111111111,
+        "mediana_limite_horas": 2.311805555555556,
+        "proporcao_censurada": 0.013513513513513514
+      },
+      {
+        "repository": "supabase/supabase",
+        "episodios": 94,
+        "recuperados": 94,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.4575,
+        "mediana_limite_horas": 1.4575,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "sveltejs/svelte",
+        "episodios": 16,
+        "recuperados": 15,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.4294444444444445,
+        "mediana_limite_horas": 2.6056944444444445,
+        "proporcao_censurada": 0.0625
+      },
+      {
+        "repository": "swc-project/swc",
+        "episodios": 27,
+        "recuperados": 26,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.6391666666666667,
+        "mediana_limite_horas": 0.6394444444444445,
+        "proporcao_censurada": 0.037037037037037035
+      },
+      {
+        "repository": "sxyazi/yazi",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.6113888888888889,
+        "mediana_limite_horas": 0.6113888888888889,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "syncthing/syncthing",
+        "episodios": 10,
+        "recuperados": 10,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 73.49111111111111,
+        "mediana_limite_horas": 73.49111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "tabler/tabler",
+        "episodios": 2,
+        "recuperados": 2,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 2.64625,
+        "mediana_limite_horas": 2.64625,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "tailscale/tailscale",
+        "episodios": 61,
+        "recuperados": 60,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 2.0994444444444444,
+        "mediana_limite_horas": 2.111388888888889,
+        "proporcao_censurada": 0.01639344262295082
+      },
+      {
+        "repository": "tailwindlabs/tailwindcss",
+        "episodios": 33,
+        "recuperados": 32,
+        "censurados": 1,
+        "inconsistentes": 1,
+        "mediana_horas": 16.785,
+        "mediana_limite_horas": 16.88652777777778,
+        "proporcao_censurada": 0.030303030303030304
+      },
+      {
+        "repository": "tauri-apps/tauri",
+        "episodios": 24,
+        "recuperados": 24,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 97.30166666666665,
+        "mediana_limite_horas": 97.30166666666665,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "tldraw/tldraw",
+        "episodios": 118,
+        "recuperados": 117,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 1.1413888888888888,
+        "mediana_limite_horas": 1.2726388888888889,
+        "proporcao_censurada": 0.00847457627118644
+      },
+      {
+        "repository": "toeverything/AFFiNE",
+        "episodios": 29,
+        "recuperados": 27,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 11.942777777777778,
+        "mediana_limite_horas": 11.942777777777778,
+        "proporcao_censurada": 0.06896551724137931
+      },
+      {
+        "repository": "traefik/traefik",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 145.78,
+        "mediana_limite_horas": 145.78,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "trpc/trpc",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.9827777777777778,
+        "mediana_limite_horas": 3.9827777777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "tw93/Mole",
+        "episodios": 41,
+        "recuperados": 37,
+        "censurados": 4,
+        "inconsistentes": 0,
+        "mediana_horas": 1.6855555555555557,
+        "mediana_limite_horas": 3.075,
+        "proporcao_censurada": 0.0975609756097561
+      },
+      {
+        "repository": "tw93/Pake",
+        "episodios": 5,
+        "recuperados": 5,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 279.7161111111111,
+        "mediana_limite_horas": 279.7161111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "twbs/bootstrap",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.6097222222222223,
+        "mediana_limite_horas": 0.6097222222222223,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "twentyhq/twenty",
+        "episodios": 473,
+        "recuperados": 470,
+        "censurados": 3,
+        "inconsistentes": 0,
+        "mediana_horas": 1.6380555555555556,
+        "mediana_limite_horas": 1.6425,
+        "proporcao_censurada": 0.006342494714587738
+      },
+      {
+        "repository": "typeorm/typeorm",
+        "episodios": 3,
+        "recuperados": 3,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 5.652777777777778,
+        "mediana_limite_horas": 5.652777777777778,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "ueberdosis/tiptap",
+        "episodios": 11,
+        "recuperados": 9,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 11.460833333333332,
+        "mediana_limite_horas": 90.54305555555555,
+        "proporcao_censurada": 0.18181818181818182
+      },
+      {
+        "repository": "ultralytics/ultralytics",
+        "episodios": 15,
+        "recuperados": 14,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 3.7345833333333336,
+        "mediana_limite_horas": 2.7847222222222223,
+        "proporcao_censurada": 0.06666666666666667
+      },
+      {
+        "repository": "unionlabs/union",
+        "episodios": 5,
+        "recuperados": 3,
+        "censurados": 2,
+        "inconsistentes": 0,
+        "mediana_horas": 21.156388888888888,
+        "mediana_limite_horas": 2318.185555555556,
+        "proporcao_censurada": 0.4
+      },
+      {
+        "repository": "upstash/context7",
+        "episodios": 6,
+        "recuperados": 6,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 15.818888888888887,
+        "mediana_limite_horas": 15.818888888888887,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "usebruno/bruno",
+        "episodios": 63,
+        "recuperados": 63,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 3.921944444444444,
+        "mediana_limite_horas": 3.921944444444444,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "usememos/memos",
+        "episodios": 39,
+        "recuperados": 39,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.4008333333333333,
+        "mediana_limite_horas": 0.4008333333333333,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "v2fly/v2ray-core",
+        "episodios": 10,
+        "recuperados": 10,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 15.624305555555555,
+        "mediana_limite_horas": 15.624305555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "vectorize-io/hindsight",
+        "episodios": 5,
+        "recuperados": 4,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 20.520833333333332,
+        "mediana_limite_horas": 28.450277777777774,
+        "proporcao_censurada": 0.2
+      },
+      {
+        "repository": "vercel/next.js",
+        "episodios": 438,
+        "recuperados": 437,
+        "censurados": 1,
+        "inconsistentes": 18,
+        "mediana_horas": 2.093888888888889,
+        "mediana_limite_horas": 2.1104166666666666,
+        "proporcao_censurada": 0.00228310502283105
+      },
+      {
+        "repository": "vitejs/vite",
+        "episodios": 23,
+        "recuperados": 23,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.3322222222222222,
+        "mediana_limite_horas": 0.3322222222222222,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "vlang/v",
+        "episodios": 64,
+        "recuperados": 56,
+        "censurados": 8,
+        "inconsistentes": 0,
+        "mediana_horas": 6.890138888888889,
+        "mediana_limite_horas": 6.420277777777778,
+        "proporcao_censurada": 0.125
+      },
+      {
+        "repository": "vllm-project/vllm",
+        "episodios": 26,
+        "recuperados": 26,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.9801388888888887,
+        "mediana_limite_horas": 1.9801388888888887,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "vuejs/core",
+        "episodios": 10,
+        "recuperados": 10,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 0.0676388888888888,
+        "mediana_limite_horas": 0.0676388888888888,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "vuetifyjs/vuetify",
+        "episodios": 22,
+        "recuperados": 22,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 1.8891666666666667,
+        "mediana_limite_horas": 1.8891666666666667,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "wailsapp/wails",
+        "episodios": 17,
+        "recuperados": 16,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 32.13180555555556,
+        "mediana_limite_horas": 38.32694444444444,
+        "proporcao_censurada": 0.058823529411764705
+      },
+      {
+        "repository": "webpack/webpack",
+        "episodios": 63,
+        "recuperados": 62,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 4.8381944444444445,
+        "mediana_limite_horas": 4.903888888888889,
+        "proporcao_censurada": 0.015873015873015872
+      },
+      {
+        "repository": "withastro/astro",
+        "episodios": 60,
+        "recuperados": 60,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 8.390416666666667,
+        "mediana_limite_horas": 8.390416666666667,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "xtekky/gpt4free",
+        "episodios": 25,
+        "recuperados": 24,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 5.407777777777778,
+        "mediana_limite_horas": 5.993611111111111,
+        "proporcao_censurada": 0.04
+      },
+      {
+        "repository": "xyflow/xyflow",
+        "episodios": 1,
+        "recuperados": 1,
+        "censurados": 0,
+        "inconsistentes": 0,
+        "mediana_horas": 80.45305555555555,
+        "mediana_limite_horas": 80.45305555555555,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "yt-dlp/yt-dlp",
+        "episodios": 6,
+        "recuperados": 6,
+        "censurados": 0,
+        "inconsistentes": 1,
+        "mediana_horas": 58.46111111111111,
+        "mediana_limite_horas": 58.46111111111111,
+        "proporcao_censurada": 0.0
+      },
+      {
+        "repository": "zed-industries/zed",
+        "episodios": 249,
+        "recuperados": 248,
+        "censurados": 1,
+        "inconsistentes": 0,
+        "mediana_horas": 0.8055555555555556,
+        "mediana_limite_horas": 0.8066666666666666,
+        "proporcao_censurada": 0.004016064257028112
+      }
+    ],
+    "figura": "rq04_tempo_de_recuperacao.pdf"
+  }
+}

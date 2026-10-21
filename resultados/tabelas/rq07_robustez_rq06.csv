@@ -1,0 +1,5 @@
+combinacao,rejeitam_h0,iguais_a_c1,so_nesta,so_na_c1,lista
+C1,4,4,0,0,contribuidores/df; contribuidores/lt; linguagem/df; linguagem/lt
+C2,6,4,2,0,contribuidores/cfr; contribuidores/df; contribuidores/lt; linguagem/cfr; linguagem/df; linguagem/lt
+C3,3,3,0,1,contribuidores/lt; linguagem/df; linguagem/lt
+C4,7,4,3,0,contribuidores/cfr; contribuidores/df; contribuidores/lt; estrelas/df; linguagem/cfr; linguagem/df; linguagem/lt
