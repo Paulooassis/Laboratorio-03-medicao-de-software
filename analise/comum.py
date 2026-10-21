@@ -3,7 +3,7 @@
 Todas as RQs partem dos mesmos três arquivos em `data/processed/` e das mesmas
 estatísticas. Aqui ficam a leitura com os tipos corretos (datas em UTC, vazios como
 NaN, indicadores como booleano com NA), mediana/IQR, testes não paramétricos,
-efeitos e correção de Holm. O contrato está em `docs/dicionario_de_dados.md`.
+efeitos e correção de Holm. O contrato está em `docs/contrato_csv_analise.md`.
 
 Cada CSV declara as colunas obrigatórias e as opcionais. Uma coluna opcional ausente
 entra como NaN, e cada RQ decide se recalcula o valor a partir das tabelas detalhadas

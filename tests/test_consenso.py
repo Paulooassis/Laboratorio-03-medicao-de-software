@@ -135,9 +135,11 @@ def test_duplicate_decision_and_missing_columns(tmp_path, sheets):
         read_decisions(path, {})
 
 
-def test_needs_two_sheets_with_the_same_items(tmp_path, sheets):
-    with pytest.raises(ValueError, match="pelo menos dois"):
-        compute_consensus(sheets[:1])
+def test_accepts_group_sheet_and_checks_same_items(tmp_path, sheets):
+    consensus, pending = compute_consensus(sheets[:1])
+    assert len(consensus) == 8
+    assert not pending
+    assert {row["method"] for row in consensus} == {"group"}
     short = write_csv(tmp_path / "short.csv", EVALUATOR_FIELDS, sheet_rows(0)[:3])
     with pytest.raises(ValueError, match="itens diferentes"):
         compute_consensus([sheets[0], short])
@@ -151,7 +153,8 @@ def run_cli(tmp_path, monkeypatch, decisions_rows=None):
     if decisions_rows is not None:
         write_csv(tmp_path / "validacao" / "decisoes.csv", DECISION_FIELDS, decisions_rows)
     monkeypatch.chdir(tmp_path)
-    return main([])
+    paths = [str(labels / f"rotulos_{name}.csv") for name in "ABC"]
+    return main(paths)
 
 
 def test_cli_with_pending_items_writes_only_the_agenda(tmp_path, monkeypatch, capsys):

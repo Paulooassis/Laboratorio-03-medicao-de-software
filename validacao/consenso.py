@@ -1,4 +1,4 @@
-"""S2-06: consenso entre avaliadores e protocolo de desempate (validacao/PROTOCOLO.md).
+"""S2-06: consolidação dos rótulos do grupo.
 
 Aplica a maioria simples a cada item das planilhas dos avaliadores (as mesmas lidas por
 `validacao.concordancia`) e separa o que precisa ir para a reunião de consenso:
@@ -16,6 +16,9 @@ Saídas: `validacao/resultados/pendencias.csv` (pauta da reunião, sempre gravad
 `validacao/resultados/tipo_projeto.csv` (tipo do projeto consensual, fator da RQ 06).
 Os dois últimos só são gravados quando nenhum item fica sem rótulo.
 
+Sem argumentos, usa ``validacao/rotulos/rotulos_grupo.csv``. Também preserva o
+fluxo de maioria e desempate quando várias planilhas são informadas explicitamente.
+
 Uso: python -m validacao.consenso [planilhas...] [--decisions validacao/decisoes.csv]
 """
 import argparse
@@ -25,12 +28,13 @@ from collections import Counter
 from pathlib import Path
 
 from dora_selection.gold_sample import MANUAL_VALUES
-from .concordancia import (DIMENSIONS, LABELS_DIRECTORY, LABELS_PATTERN, check_same_items,
+from .concordancia import (DIMENSIONS, LABELS_DIRECTORY, check_same_items,
                            normalized, read_labels, read_rows)
 
 
 DECISIONS = Path("validacao/decisoes.csv")
 CONSENSUS = Path("validacao/consenso.csv")
+GROUP_LABELS = LABELS_DIRECTORY / "rotulos_grupo.csv"
 PENDING = Path("validacao/resultados/pendencias.csv")
 PROJECT_TYPE = Path("validacao/resultados/tipo_projeto.csv")
 UNCERTAIN = "uncertain"
@@ -93,6 +97,12 @@ def resolve(votes, decisions):
     for (dimension, item), item_votes in votes.items():
         level = LEVELS[dimension]
         repository, release_id = (item, "") if level == "repository" else item
+        if len(item_votes) == 1:
+            row = {"dimension": dimension, "level": level, "repository": repository,
+                   "release_id": release_id, "votes": item_votes[0]}
+            consensus.append({**row, "label": item_votes[0], "method": "group",
+                              "justification": ""})
+            continue
         winner = majority(item_votes)
         reason = ("tie" if winner is None else "uncertain_majority" if winner == UNCERTAIN
                   else "uncertain_vote" if UNCERTAIN in item_votes else None)
@@ -121,9 +131,9 @@ def project_types(consensus):
 
 
 def compute_consensus(paths, decisions_path=DECISIONS):
-    """Consenso e pauta a partir de duas ou mais planilhas e das decisões da reunião."""
-    if len(paths) < 2:
-        raise ValueError("São necessárias as planilhas de pelo menos dois avaliadores.")
+    """Consolida uma planilha do grupo ou calcula consenso entre várias planilhas."""
+    if not paths:
+        raise ValueError("Informe a planilha de rótulos do grupo.")
     sheets = {str(path): read_labels(path) for path in paths}
     check_same_items(sheets)
     votes = collect_votes(sheets)
@@ -142,13 +152,13 @@ def write_csv(path, fields, rows):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Lab03S02 — consenso da amostra-ouro")
     parser.add_argument("labels", nargs="*", type=Path,
-                        help=f"Planilhas preenchidas (padrão: {LABELS_DIRECTORY / LABELS_PATTERN})")
+                        help=f"Planilhas preenchidas (padrão: {GROUP_LABELS})")
     parser.add_argument("--decisions", type=Path, default=DECISIONS)
     parser.add_argument("--output", type=Path, default=CONSENSUS)
     parser.add_argument("--pending", type=Path, default=PENDING)
     parser.add_argument("--project-type", type=Path, default=PROJECT_TYPE)
     args = parser.parse_args(argv)
-    paths = args.labels or sorted(LABELS_DIRECTORY.glob(LABELS_PATTERN))
+    paths = args.labels or [GROUP_LABELS]
     try:
         consensus, pending = compute_consensus(paths, args.decisions)
         write_csv(args.pending, PENDING_FIELDS, pending)
