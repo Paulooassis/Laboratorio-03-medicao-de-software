@@ -11,7 +11,10 @@ Há dois arquivos gerados, conforme o que você precisa colar:
 | [`artigo-overleaf.tex`](artigo-overleaf.tex) | Documento inteiro, com preâmbulo e bibliografia embutida — substitui o `.tex` principal |
 | [`secoes-overleaf.tex`](secoes-overleaf.tex) | Só as seções, para colar no corpo de um documento que já existe |
 
-Os dois referenciam as figuras como `figuras/<arquivo>.pdf`.
+Os dois referenciam as figuras como `figuras/<arquivo>.pdf` e **já trazem a
+bibliografia**, que vive no fim de [`secoes/07-conclusao.tex`](secoes/07-conclusao.tex) em
+um bloco `thebibliography` — não há `.bib` nem `bibtex` no projeto, de propósito: uma
+fonte só, e o documento compila em duas passadas simples.
 
 1. Abra o [template SBC no Overleaf](https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr)
    com *Open as Template* — ele já traz `sbc-template.sty`.
@@ -20,7 +23,8 @@ Os dois referenciam as figuras como `figuras/<arquivo>.pdf`.
 3. Cole o arquivo escolhido acima.
 
 Ao colar apenas as seções, confira que o preâmbulo tem `graphicx`, `amsmath`, `booktabs`,
-`multirow` e `url`.
+`multirow` e `url`. Se o documento de destino já tiver um `thebibliography`, remova um dos
+dois para a lista não sair duplicada.
 
 ## Fonte modular
 
