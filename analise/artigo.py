@@ -18,6 +18,9 @@ import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from scipy.stats import pearsonr, spearmanr
 
+from dora_selection import rating
+
+from . import classificacao_c1 as c1
 from . import comum, estilo
 
 
@@ -192,7 +195,169 @@ def executar(dados, saida="resultados"):
     tabela = tabela_correlacao(quadro)
     comum.salvar_tabela(tabela, saida, "artigo_correlacao", casas=3)
     figuras = [figura_violino(quadro, saida), figura_correlacao(quadro, saida),
-               figura_dispersao(quadro, saida)]
+               figura_dispersao(quadro, saida), figura_rq06(quadro, saida),
+               figura_rq07(dados, saida), figura_rq08(quadro, saida)]
     resultado = {"correlacoes": tabela, "figuras": [caminho.name for caminho in figuras]}
     comum.salvar_json(resultado, saida, "artigo_figuras")
     return resultado
+
+
+# ------------------------------------------------ RQ 06, RQ 07 e RQ 08: figuras próprias
+
+# Linguagens com amostra suficiente para um boxplot honesto.
+LINGUAGENS = 5
+NIVEIS_ORDEM = (rating.ELITE, rating.HIGH, rating.MEDIUM, rating.LOW)
+
+
+def quartis_de(serie):
+    """Rótulo do quartil de cada valor, para estratificar um fator numérico."""
+    valores = comum.serie_numerica(serie)
+    cortes = valores.quantile([0.25, 0.5, 0.75]).to_list()
+    def rotular(valor):
+        if valor != valor:
+            return None
+        return "Q1" if valor <= cortes[0] else ("Q2" if valor <= cortes[1]
+                                                else ("Q3" if valor <= cortes[2] else "Q4"))
+    return valores.map(rotular)
+
+
+def caixas_por_grupo(eixo, quadro, coluna_grupo, coluna_valor, ordem, cor):
+    """Boxplots de uma métrica por grupo, em escala log, com o n de cada grupo no rótulo."""
+    amostras, rotulos = [], []
+    for grupo in ordem:
+        valores = comum.serie_numerica(quadro.loc[quadro[coluna_grupo] == grupo, coluna_valor])
+        valores = valores.dropna()
+        valores = valores[valores > 0]
+        if valores.empty:
+            continue
+        amostras.append(np.log10(valores).to_numpy())
+        rotulos.append(f"{grupo}\nn={valores.size}")
+    if not amostras:
+        eixo.set_axis_off()
+        return eixo
+    desenho = eixo.boxplot(amostras, tick_labels=rotulos, patch_artist=True, widths=0.6,
+                           medianprops={"color": "black", "linewidth": 1.1},
+                           flierprops={"marker": ".", "markersize": 2.5, "alpha": 0.45})
+    for caixa in desenho["boxes"]:
+        caixa.set(facecolor=cor, alpha=0.45, edgecolor=cor, linewidth=0.9)
+    limites = range(int(np.floor(min(a.min() for a in amostras))),
+                    int(np.ceil(max(a.max() for a in amostras))) + 1)
+    eixo.set_yticks(list(limites))
+    eixo.set_yticklabels([f"$10^{{{e}}}$" for e in limites])
+    eixo.grid(axis="x", visible=False)
+    return eixo
+
+
+def figura_rq06(quadro, saida):
+    """RQ 06: lead time (a) por linguagem e por quartil de contribuidores."""
+    plt = estilo.aplicar()
+    dados = quadro.copy()
+    dados["quartil"] = quartis_de(dados["contributors"])
+    principais = (dados["language"].value_counts().head(LINGUAGENS).index.tolist())
+    figura, (esquerda, direita) = plt.subplots(1, 2, figsize=(estilo.LARGURA, 3.0))
+    caixas_por_grupo(esquerda, dados, "language", "release_lead_time_hours", principais,
+                     estilo.NIVEIS["High"])
+    esquerda.set(ylabel="lead time (a), horas (log)",
+                 title="Por linguagem principal ($\\varepsilon^2 = 0{,}164$)")
+    caixas_por_grupo(direita, dados, "quartil", "release_lead_time_hours",
+                     ("Q1", "Q2", "Q3", "Q4"), estilo.NIVEIS["Medium"])
+    direita.set(xlabel="quartis de contribuidores, do menor ao maior",
+                title="Por número de contribuidores ($\\varepsilon^2 = 0{,}100$)")
+    figura.tight_layout()
+    return estilo.salvar(figura, saida, "artigo_rq06_fatores")
+
+
+def classificar_em(base, quadro, lead_time, cfr):
+    """Categoria geral sob um par de variantes, partindo da classificação C1 autoritativa.
+
+    A frequência, o CFR (a) e a recuperação vêm de `classificacao_c1`, e não das colunas
+    cruas: a recuperação de um repositório sem episódio recuperado é classificada pelo
+    limite inferior dos censurados, que a coluna sozinha não reproduz. É a mesma fonte
+    que a RQ 07 usa, de modo que a matriz bate com a tabela de sensibilidade.
+    """
+    niveis = []
+    for (_, referencia), (_, linha) in zip(base.iterrows(), quadro.iterrows()):
+        atual = {
+            "deployment_frequency": referencia["deployment_frequency_level"],
+            "lead_time": (referencia["lead_time_level"] if lead_time == "a"
+                          else c1.nivel("lead_time", linha["commit_lead_time_hours"])),
+            "change_failure_rate": (referencia["change_failure_rate_level"] if cfr == "a"
+                                    else c1.nivel("change_failure_rate",
+                                                  linha["delivery_change_failure_rate"])),
+            "recovery_time": referencia["recovery_time_level"]}
+        atual = {chave: (None if pd.isna(nivel) else nivel) for chave, nivel in atual.items()}
+        niveis.append(rating.overall_classification(
+            [atual[nome] for nome in rating.METRICS])["overall"])
+    return pd.Series(niveis, index=quadro.index)
+
+
+def figura_rq07(dados, saida):
+    """RQ 07: matriz de transição C1 -> C4, isolando o efeito da variante da métrica."""
+    plt = estilo.aplicar()
+    quadro = dados.repositorios
+    base = c1.classificar(dados)
+    de = classificar_em(base, quadro, "a", "a")
+    para = classificar_em(base, quadro, "b", "b")
+    matriz = pd.crosstab(de, para).reindex(index=NIVEIS_ORDEM, columns=NIVEIS_ORDEM,
+                                           fill_value=0)
+    figura, eixo = plt.subplots(figsize=(estilo.LARGURA / 1.7, 3.0))
+    # Contagem é magnitude: rampa sequencial de um matiz, do claro ao escuro.
+    rampa = LinearSegmentedColormap.from_list(
+        "contagem", ["#f2f6fc", estilo.NIVEIS["Medium"], estilo.NIVEIS["Elite"]])
+    valores = matriz.to_numpy(dtype="float64")
+    eixo.pcolormesh(valores, cmap=rampa, edgecolors="white", linewidth=1.0,
+                    vmin=0, vmax=max(valores.max(), 1))
+    centros = np.arange(len(NIVEIS_ORDEM)) + 0.5
+    eixo.set(xticks=centros, yticks=centros, aspect="equal",
+             xlabel="categoria na C4 (variantes b)", ylabel="categoria na C1 (variantes a)")
+    eixo.set_xticklabels(NIVEIS_ORDEM)
+    eixo.set_yticklabels(NIVEIS_ORDEM)
+    eixo.invert_yaxis()
+    eixo.grid(visible=False)
+    for i in range(len(NIVEIS_ORDEM)):
+        for j in range(len(NIVEIS_ORDEM)):
+            contagem = int(valores[i, j])
+            if not contagem:
+                continue
+            tinta = "white" if contagem > valores.max() * 0.55 else estilo.NEUTRO
+            eixo.text(j + 0.5, i + 0.5, str(contagem), ha="center", va="center",
+                      fontsize=8, color=tinta,
+                      fontweight="bold" if i == j else "normal")
+    mudaram = int(valores.sum() - np.trace(valores))
+    eixo.set_title(f"{mudaram} de {int(valores.sum())} mudam de categoria "
+                   f"({mudaram / max(valores.sum(), 1):.1%})")
+    figura.tight_layout()
+    return estilo.salvar(figura, saida, "artigo_rq07_transicao")
+
+
+def figura_rq08(quadro, saida):
+    """RQ 08: retrabalho contra a taxa de falha (b) e por categoria geral."""
+    plt = estilo.aplicar()
+    figura, (esquerda, direita) = plt.subplots(1, 2, figsize=(estilo.LARGURA, 2.8))
+    par = quadro.loc[:, ["rework_rate", "delivery_change_failure_rate"]].dropna()
+    esquerda.scatter(par["delivery_change_failure_rate"], par["rework_rate"], s=9, alpha=0.55,
+                     color=estilo.NIVEIS["High"], edgecolors="none")
+    if len(par) >= 3 and par.nunique().min() >= 2:
+        rho = spearmanr(par.iloc[:, 1], par.iloc[:, 0])[0]
+        r = pearsonr(par.iloc[:, 1], par.iloc[:, 0])[0]
+        esquerda.annotate(f"ρ = {comum.numero(rho)}   r = {comum.numero(r)}\nn = {len(par)}",
+                          xy=(0.03, 0.97), xycoords="axes fraction", va="top", fontsize=7,
+                          color=estilo.NEUTRO)
+    esquerda.set(xlabel="taxa de falha (b) de entrega", ylabel="taxa de retrabalho",
+                 xlim=(-0.03, 1.03), ylim=(-0.03, 1.03), title="Retrabalho × falha de entrega")
+    amostras, rotulos, cores = [], [], []
+    for nivel_ in NIVEIS_ORDEM:
+        valores = comum.serie_numerica(
+            quadro.loc[quadro["overall"] == nivel_, "rework_rate"]).dropna()
+        if valores.empty:
+            continue
+        amostras.append(valores.to_numpy())
+        rotulos.append(f"{nivel_}\nn={valores.size}")
+        cores.append(estilo.NIVEIS[nivel_])
+    if amostras:
+        estilo.caixa(direita, amostras, rotulos, cores)
+    direita.set(ylabel="taxa de retrabalho", ylim=(-0.03, 1.03),
+                title="Retrabalho por categoria DORA")
+    direita.grid(axis="x", visible=False)
+    figura.tight_layout()
+    return estilo.salvar(figura, saida, "artigo_rq08_rework")

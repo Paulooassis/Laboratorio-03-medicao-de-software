@@ -127,6 +127,14 @@ $p_{\text{Holm}} = 0{,}0556$, e os demais ficam em $p_{\text{Holm}} = 1{,}000$ c
 $\varepsilon^2 \leq 0{,}007$. O fator idade não pôde ser testado: a estratificação por
 quartis não produziu dois grupos válidos na amostra.
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{artigo_rq06_fatores.pdf}
+\caption{Lead time (a) por linguagem principal e por quartil de contribuidores, em escala
+logarítmica. As caixas mostram mediana e IQR, e o $n$ de cada grupo está no eixo.}
+\label{fig:rq06}
+\end{figure}
+
 \subsection{Análise de Sensibilidade e Retrabalho (RQ 07 e RQ 08)}
 
 A Tabela \ref{tab:rq07} apresenta, para cada par de combinações, a proporção de
@@ -158,10 +166,28 @@ nula. A mediana da taxa de falha passa de 5,63\% na C1 para 27,45\% na C2, um au
 Em contraste, a frequência de deploy entre C1 e C4 --- que compartilham a unidade --- é
 idêntica ($\kappa = 1{,}000$).
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.52\textwidth]{artigo_rq07_transicao.pdf}
+\caption{Matriz de transição entre a C1 e a C4, que diferem \emph{apenas} nas variantes
+das métricas. A diagonal reúne quem permanece na mesma categoria; as 47 transições de
+\emph{High} para \emph{Medium} são o deslocamento dominante.}
+\label{fig:rq07}
+\end{figure}
+
 Para a RQ 08 (bônus), a \emph{deployment rework rate} registrou mediana de 70,0\%
 (IQR = 40,6\%; $n = 300$): 12.020 das 18.366 releases avaliadas foram classificadas como
 corretivas pela heurística v1, uma taxa agregada de 65,4\%. Sua correlação com a taxa de falha de
 entrega é apenas fraca ($\rho = 0{,}359$; $p = 1{,}5 \times 10^{-10}$).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{artigo_rq08_rework.pdf}
+\caption{À esquerda, retrabalho contra taxa de falha (b), com os dois coeficientes. À
+direita, retrabalho por categoria geral: a mediana \emph{cai} de 0,72 em \emph{Elite} para
+0,50 em \emph{Low}, o inverso do que se esperaria de uma métrica de defeito.}
+\label{fig:rq08}
+\end{figure}
 
 \subsection{Fragilidade da Classificação nas Fronteiras de Faixa}
 
