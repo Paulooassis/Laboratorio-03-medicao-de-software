@@ -2,21 +2,25 @@
 
 Fonte LaTeX do artigo, no template da SBC.
 
-## Para abrir no Overleaf (caminho recomendado)
+## Para abrir no Overleaf
 
-Use **[`artigo-overleaf.tex`](artigo-overleaf.tex)**: é o artigo inteiro em um arquivo só,
-com a bibliografia embutida em `thebibliography`, então compila em uma passada, sem
-`bibtex` e sem `.bib` separado.
+Há dois arquivos gerados, conforme o que você precisa colar:
+
+| Arquivo | Quando usar |
+| --- | --- |
+| [`artigo-overleaf.tex`](artigo-overleaf.tex) | Documento inteiro, com preâmbulo e bibliografia embutida — substitui o `.tex` principal |
+| [`secoes-overleaf.tex`](secoes-overleaf.tex) | Só as seções, para colar no corpo de um documento que já existe |
+
+Os dois referenciam as figuras como `figuras/<arquivo>.pdf`.
 
 1. Abra o [template SBC no Overleaf](https://www.overleaf.com/latex/templates/sbc-conferences-template/blbxwjwzdngr)
-   e clique em *Open as Template* — ele já traz `sbc-template.sty`.
-2. Substitua o conteúdo do `.tex` principal pelo de `artigo-overleaf.tex`.
-3. Envie os três PDFs de `../resultados/figuras/` (`artigo_violino_metricas.pdf`,
-   `artigo_dispersao_df_cfr.pdf`, `artigo_correlacao.pdf`) para uma pasta `figuras/` do
-   projeto.
+   com *Open as Template* — ele já traz `sbc-template.sty`.
+2. Crie uma pasta `figuras/` no projeto e envie os **seis PDFs** de
+   `../resultados/figuras/artigo_*.pdf`.
+3. Cole o arquivo escolhido acima.
 
-Sem as figuras o documento **ainda compila**: cada uma vira uma moldura dizendo qual
-arquivo falta, em vez de quebrar a compilação.
+Ao colar apenas as seções, confira que o preâmbulo tem `graphicx`, `amsmath`, `booktabs`,
+`multirow` e `url`.
 
 ## Fonte modular
 

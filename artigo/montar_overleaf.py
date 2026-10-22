@@ -13,26 +13,9 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent
 SECOES = ("01-introducao", "02-metodologia", "03-resultados", "04-discussao",
           "05-ameacas", "06-replicacao", "07-conclusao")
-# As figuras são enviadas à parte no Overleaf; sem elas o documento ainda compila.
-FALLBACK_FIGURA = r"""
-% As figuras vêm de resultados/figuras/ e precisam ser enviadas ao projeto do Overleaf.
-% Enquanto não estiverem lá, o documento compila com um aviso no lugar de cada uma, em
-% vez de falhar. `\detokenize` protege o sublinhado do nome do arquivo.
-\newcommand{\figuradora}[1]{%
-  \IfFileExists{#1}{\includegraphics[width=0.85\textwidth]{#1}}{%
-  \IfFileExists{figuras/#1}{\includegraphics[width=\textwidth]{figuras/#1}}{%
-    \fbox{\parbox{0.93\textwidth}{\centering\vspace{1.1cm}
-      \texttt{\detokenize{#1}}\\[0.3cm]
-      \small Envie este arquivo de \texttt{resultados/figuras/} para o projeto do
-      Overleaf.\vspace{1.1cm}}}}}%
-}
-"""
-
-
 def corpo(nome):
-    texto = (RAIZ / "secoes" / f"{nome}.tex").read_text(encoding="utf-8").rstrip()
-    # Troca o include direto pelo comando tolerante a figura ausente.
-    return texto.replace("\\includegraphics[width=0.85\\textwidth]{", "\\figuradora{")
+    """Uma seção, como está versionada: as figuras já apontam para `figuras/`."""
+    return (RAIZ / "secoes" / f"{nome}.tex").read_text(encoding="utf-8").rstrip()
 
 
 def bibliografia():
@@ -78,9 +61,6 @@ def montar():
     principal = (RAIZ / "main.tex").read_text(encoding="utf-8")
     cabeca, _, resto = principal.partition("\\input{secoes/01-introducao}")
     # Tudo depois dos \input é só a bibliografia e o \end{document}.
-    cabeca = cabeca.replace("\\graphicspath{{../resultados/figuras/}}",
-                            "\\graphicspath{{figuras/}{../resultados/figuras/}}")
-    cabeca = cabeca.replace("\\begin{document}", FALLBACK_FIGURA + "\n\\begin{document}")
     partes = [cabeca.rstrip(), ""]
     partes += [corpo(nome) + "\n" for nome in SECOES]
     partes += [bibliografia(), "\\end{document}", ""]
@@ -89,7 +69,18 @@ def montar():
     return destino
 
 
+def montar_secoes():
+    """Só as seções, para colar em um documento que já tem preâmbulo e bibliografia."""
+    aviso = ("% Seções do artigo — cole no corpo do documento.\n"
+             "% O preâmbulo precisa de: graphicx, amsmath, booktabs, multirow e url.\n"
+             "% As figuras são referenciadas como figuras/<arquivo>.pdf.\n")
+    destino = RAIZ / "secoes-overleaf.tex"
+    destino.write_text(aviso + "\n" + "\n\n".join(corpo(nome) for nome in SECOES) + "\n",
+                       encoding="utf-8")
+    return destino
+
+
 if __name__ == "__main__":
-    caminho = montar()
-    print(f"{caminho.relative_to(Path.cwd())}: "
-          f"{len(caminho.read_text(encoding='utf-8').splitlines())} linhas")
+    for caminho in (montar(), montar_secoes()):
+        print(f"{caminho.relative_to(Path.cwd())}: "
+              f"{len(caminho.read_text(encoding='utf-8').splitlines())} linhas")
