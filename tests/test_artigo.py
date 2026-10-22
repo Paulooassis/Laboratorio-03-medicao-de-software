@@ -87,16 +87,17 @@ class CorrelacaoTests(unittest.TestCase):
 
 
 class FiguraTests(unittest.TestCase):
-    def test_writes_the_three_figures_and_the_table(self):
+    def test_writes_one_figure_per_research_question_and_the_table(self):
         with Amostra(monotona_nao_linear()) as amostra:
             resultado = artigo.executar(amostra.carregar(), amostra.saida)
             figuras = {caminho.name for caminho in (amostra.saida / "figuras").iterdir()}
             tabelas = {caminho.name for caminho in (amostra.saida / "tabelas").iterdir()}
         self.assertEqual(figuras, {"artigo_violino_metricas.pdf", "artigo_correlacao.pdf",
-                                   "artigo_dispersao_df_cfr.pdf"})
+                                   "artigo_dispersao_df_cfr.pdf", "artigo_rq06_fatores.pdf",
+                                   "artigo_rq07_transicao.pdf", "artigo_rq08_rework.pdf"})
         self.assertIn("artigo_correlacao.csv", tabelas)
         self.assertIn("artigo_correlacao.tex", tabelas)
-        self.assertEqual(len(resultado["figuras"]), 3)
+        self.assertEqual(len(resultado["figuras"]), 6)
 
     def test_the_figures_are_vector_without_embedded_images(self):
         """O artigo sai no template da SBC: figura rasterizada fica ilegível impressa."""
