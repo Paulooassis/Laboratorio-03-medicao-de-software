@@ -70,13 +70,19 @@ def montar():
 
 
 def montar_secoes():
-    """Só as seções, para colar em um documento que já tem preâmbulo e bibliografia."""
-    aviso = ("% Seções do artigo — cole no corpo do documento.\n"
+    """As seções mais a bibliografia, para colar no corpo de um documento já existente.
+
+    A bibliografia vai junto porque, sem ela, as citações do texto sairiam como `[?]`.
+    Se o documento de destino já tiver um `thebibliography`, apague um dos dois.
+    """
+    aviso = ("% Seções do artigo — cole no corpo do documento, antes do \\end{document}.\n"
              "% O preâmbulo precisa de: graphicx, amsmath, booktabs, multirow e url.\n"
-             "% As figuras são referenciadas como figuras/<arquivo>.pdf.\n")
+             "% As figuras são referenciadas como figuras/<arquivo>.pdf.\n"
+             "% A bibliografia vai no fim deste arquivo; se o seu documento já tiver uma,\n"
+             "% remova uma das duas para não duplicar.\n")
     destino = RAIZ / "secoes-overleaf.tex"
-    destino.write_text(aviso + "\n" + "\n\n".join(corpo(nome) for nome in SECOES) + "\n",
-                       encoding="utf-8")
+    destino.write_text(aviso + "\n" + "\n\n".join(corpo(nome) for nome in SECOES)
+                       + "\n" + bibliografia(), encoding="utf-8")
     return destino
 
 
